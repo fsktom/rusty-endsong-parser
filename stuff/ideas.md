@@ -15,3 +15,4 @@
     - and this option if you're absolutely sure there's no duplicates
   - and the relative paths to files as arguments without the `--`
     - or maybe to a whole directory of `endsong_x.json` files?  
+- [Plotters](https://old.reddit.com/r/rust/comments/ude3lz/plotters_is_back/) for graphs?
