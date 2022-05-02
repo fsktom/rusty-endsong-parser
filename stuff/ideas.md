@@ -18,3 +18,4 @@
 - [Plotters](https://old.reddit.com/r/rust/comments/ude3lz/plotters_is_back/) for graphs?
 - [some Rust libraries](https://old.reddit.com/r/rust/comments/uevmnx/what_crates_would_you_consider_essential/)
 - [clap - CL argument parser](https://docs.rs/clap/latest/clap/)
+- [GUI library egui](https://old.reddit.com/r/rust/comments/ugefgv/egui_018_released/)
