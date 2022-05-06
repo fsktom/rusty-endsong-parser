@@ -20,3 +20,4 @@
 - [clap - CL argument parser](https://docs.rs/clap/latest/clap/)
 - [GUI library egui](https://old.reddit.com/r/rust/comments/ugefgv/egui_018_released/)
 - [inquire library for interactive terminal](https://docs.rs/inquire/latest/inquire/)
+- [Tauri for UI with Javascript and backend with Rust!](https://youtu.be/-X8evddpu7M)
