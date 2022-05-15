@@ -21,3 +21,10 @@
 - [GUI library egui](https://old.reddit.com/r/rust/comments/ugefgv/egui_018_released/)
 - [inquire library for interactive terminal](https://docs.rs/inquire/latest/inquire/)
 - [Tauri for UI with Javascript and backend with Rust!](https://youtu.be/-X8evddpu7M)
+- way for interacting with it:
+  - after running it with the files as arguments you type in commands that do stuff
+  - like `help`, `print top artist "Powerwolf"` or similar
+  - maybe interactive menu like [this](https://code.visualstudio.com/api/extension-guides/color-theme#create-a-new-color-theme) [one](https://code.visualstudio.com/assets/api/extension-guides/color-theme/yocode-colortheme.png)
+  - with autocomplete for commands AND (most importantly) artists, albums and songs !!
+  - maybe select commands with the interactive menu/options and there you can go back or forward and change parameters or leave them at default and at the end you type in the aspect
+    - THIS and a shorthand commands for power users (faster and easier to the same command but with one thing changed)
