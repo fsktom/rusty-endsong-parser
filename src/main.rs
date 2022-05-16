@@ -6,6 +6,9 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
+mod types;
+use types::{Album, Artist, Aspect, Song};
+
 #[derive(Serialize, Deserialize, Debug)]
 // struct Endsong {
 //     entries: Vec<Entry>,
@@ -62,6 +65,9 @@ fn main() {
 
     let u = read_user_from_file(paths[0]).unwrap();
     println!("{:?}", u);
+
+    // let song_test: Aspect::Song(String::from("Midnight Messiah"), Album(String::from("Bible of the Beast"), Artist(String::from("Powerwolf")), Artist(String::from("Powerwolf"))));
+    types::run();
 }
 
 // https://docs.serde.rs/serde_json/fn.from_reader.html
