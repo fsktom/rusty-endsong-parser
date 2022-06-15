@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json;
 
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
@@ -19,38 +20,38 @@ mod types;
 struct Entry {
     ts: String,
     #[serde(skip_deserializing)]
-    username: bool,
+    username: (),
     #[serde(skip_deserializing)]
-    platform: bool,
+    platform: (),
     ms_played: i32,
     #[serde(skip_deserializing)]
-    ip_addr_decrypted: bool,
+    ip_addr_decrypted: (),
     #[serde(skip_deserializing)]
-    user_agent_decrypted: bool,
+    user_agent_decrypted: (),
     master_metadata_track_name: Option<String>,
     master_metadata_album_artist_name: Option<String>,
     master_metadata_album_album_name: Option<String>,
     spotify_track_uri: Option<String>,
     #[serde(skip_deserializing)]
-    episode_name: bool,
+    episode_name: (),
     #[serde(skip_deserializing)]
-    episode_show_name: bool,
+    episode_show_name: (),
     #[serde(skip_deserializing)]
-    spotify_episode_uri: bool,
+    spotify_episode_uri: (),
     #[serde(skip_deserializing)]
-    reason_start: bool,
+    reason_start: (),
     #[serde(skip_deserializing)]
-    reason_end: bool,
+    reason_end: (),
     #[serde(skip_deserializing)]
-    shuffle: bool, // null, true, false
+    shuffle: (), // null, true, false
     #[serde(skip_deserializing)]
-    skipped: bool, // null, true, false
+    skipped: (), // null, true, false
     #[serde(skip_deserializing)]
-    offline: bool, // null, true, false
+    offline: (), // null, true, false
     #[serde(skip_deserializing)]
-    offline_timestamp: bool,
+    offline_timestamp: (),
     #[serde(skip_deserializing)]
-    incognito_mode: bool, // null, true, false
+    incognito_mode: (), // null, true, false
 }
 
 fn main() {
@@ -64,7 +65,25 @@ fn main() {
     // println!("{}", contents);
 
     let u = read_user_from_file(paths[0]).unwrap();
-    println!("{:?}", u);
+    let mut v: Vec<HashMap<String, String>> = Vec::new();
+    let mut empty: Vec<HashMap<String, String>> = Vec::new();
+    for entry in u {
+        let new_hash = entry_struct_to_hashmap(entry);
+        let new = new_hash.clone();
+        match new_hash.get("track") {
+            Some(data) => {
+                if data == "n/a" {
+                    empty.push(new_hash)
+                }
+            }
+            None => panic!(),
+        }
+        v.push(new);
+    }
+
+    println!("{:?}\nNum of all entries: {}", v, v.len());
+
+    println!("Num of non-song? entries: {}", empty.len());
 
     // let song_test: Aspect::Song(String::from("Midnight Messiah"), Album(String::from("Bible of the Beast"), Artist(String::from("Powerwolf")), Artist(String::from("Powerwolf"))));
     types::run();
@@ -81,4 +100,30 @@ fn read_user_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn Er
 
     // Return the `User`.
     Ok(u)
+}
+
+fn entry_struct_to_hashmap(entry: Entry) -> HashMap<String, String> {
+    let mut a = HashMap::new();
+    a.insert("timestamp".to_string(), entry.ts);
+    a.insert("ms_played".to_string(), entry.ms_played.to_string());
+    a.insert(
+        "track".to_string(),
+        parse_option(entry.master_metadata_track_name),
+    );
+    a.insert(
+        "album".to_string(),
+        parse_option(entry.master_metadata_album_album_name),
+    );
+    a.insert(
+        "artist".to_string(),
+        parse_option(entry.master_metadata_album_artist_name),
+    );
+    a
+}
+
+fn parse_option(opt: Option<String>) -> String {
+    match opt {
+        Some(data) => data,
+        None => "n/a".to_string(),
+    }
 }
