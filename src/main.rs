@@ -10,5 +10,14 @@ fn main() {
 
     let entries = parse::parse(paths);
 
+    println!(
+        "{} - {} ({}) played on {} for {}ms",
+        entries[2].artist,
+        entries[2].track,
+        entries[2].album,
+        entries[2].timestamp,
+        entries[2].ms_played
+    );
+
     types::run();
 }

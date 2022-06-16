@@ -9,6 +9,8 @@ use chrono::DateTime;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
+use crate::types::Song;
+
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
 // null values are either skipped (defaulted to unit tuple or are an Option)
 #[derive(Serialize, Deserialize, Debug)]
@@ -51,32 +53,29 @@ struct Entry {
 
 #[derive(Clone, Debug)]
 pub struct SongEntry {
-    timestamp: DateTime<chrono::FixedOffset>,
-    ms_played: u32,
-    track: String,
-    album: String,
-    artist: String,
+    pub timestamp: DateTime<chrono::FixedOffset>,
+    pub ms_played: u32,
+    pub track: String,
+    pub album: String,
+    pub artist: String,
 }
 
 pub fn parse(paths: Vec<&str>) -> Vec<SongEntry> {
     let u = read_entries_from_file(paths[0]).unwrap();
-    let mut v: Vec<SongEntry> = Vec::new();
-    let mut empty = v.clone();
+    let mut songs: Vec<SongEntry> = Vec::new();
+    let mut podcasts: Vec<Entry> = Vec::new();
     for entry in u {
-        let new_hash = entry_to_songentry(entry);
-        // let new = new_hash.clone();
-        if new_hash.track == "n/a" {
-            empty.push(new_hash)
-        } else {
-            v.push(new_hash)
+        match entry_to_songentry(entry) {
+            Ok(song) => songs.push(song),
+            Err(pod) => podcasts.push(pod),
         }
     }
 
-    println!("{:?}\nNum of all entries: {}", v, v.len());
+    println!("{:?}\nNum of song entries: {}", songs, songs.len());
 
-    println!("Num of non-song? entries: {}", empty.len());
+    println!("Num of non-song? entries: {}", podcasts.len());
 
-    v
+    songs
 }
 
 // https://docs.serde.rs/serde_json/fn.from_reader.html
@@ -92,20 +91,23 @@ fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn
     Ok(full_entries)
 }
 
-fn entry_to_songentry(entry: Entry) -> SongEntry {
-    SongEntry {
+fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
+    if parse_option(entry.master_metadata_track_name.clone()) == "n/a" {
+        return Err(entry);
+    }
+    Ok(SongEntry {
         // RFC 3339 is basically ISO 8601
         timestamp: DateTime::parse_from_rfc3339(&entry.ts).unwrap(),
         ms_played: entry.ms_played as u32,
         track: parse_option(entry.master_metadata_track_name),
         album: parse_option(entry.master_metadata_album_album_name),
         artist: parse_option(entry.master_metadata_album_artist_name),
-    }
+    })
 }
 
 fn parse_option(opt: Option<String>) -> String {
     match opt {
         Some(data) => data,
-        None => "n/a".to_string(),
+        None => String::from("n/a"),
     }
 }
