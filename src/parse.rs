@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
@@ -8,9 +7,6 @@ use chrono::DateTime;
 
 use serde::{Deserialize, Serialize};
 use serde_json;
-
-use crate::types::Song;
-
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
 // null values are either skipped (defaulted to unit tuple or are an Option)
 #[derive(Serialize, Deserialize, Debug)]
@@ -92,6 +88,8 @@ fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn
 }
 
 fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
+    // to remove podcast entries
+    // if the track is null, so are album and artist
     if parse_option(entry.master_metadata_track_name.clone()) == "n/a" {
         return Err(entry);
     }
