@@ -49,40 +49,32 @@ struct Entry {
     incognito_mode: (),
 }
 
-struct SongStruct {
-    ts: DateTime<chrono::Utc>,
-    ms_played: i32,
+#[derive(Clone, Debug)]
+pub struct SongEntry {
+    timestamp: DateTime<chrono::FixedOffset>,
+    ms_played: u32,
     track: String,
     album: String,
     artist: String,
 }
 
-pub fn parse(paths: Vec<&str>) -> Vec<HashMap<String, String>> {
+pub fn parse(paths: Vec<&str>) -> Vec<SongEntry> {
     let u = read_entries_from_file(paths[0]).unwrap();
-    let mut v: Vec<HashMap<String, String>> = Vec::new();
+    let mut v: Vec<SongEntry> = Vec::new();
     let mut empty = v.clone();
     for entry in u {
-        let new_hash = entry_struct_to_hashmap(entry);
-        let new = new_hash.clone();
-        match new_hash.get("track") {
-            Some(data) => {
-                if data == "n/a" {
-                    empty.push(new_hash)
-                }
-            }
-            None => panic!(),
+        let new_hash = entry_to_songentry(entry);
+        // let new = new_hash.clone();
+        if new_hash.track == "n/a" {
+            empty.push(new_hash)
+        } else {
+            v.push(new_hash)
         }
-        v.push(new);
     }
 
     println!("{:?}\nNum of all entries: {}", v, v.len());
 
     println!("Num of non-song? entries: {}", empty.len());
-
-    let ts = String::from("2016-07-21T01:02:07Z");
-    // RFC 3339 is basically ISO 8601
-    let n = DateTime::parse_from_rfc3339(&ts).unwrap();
-    println!("{}", n);
 
     v
 }
@@ -100,23 +92,15 @@ fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn
     Ok(full_entries)
 }
 
-fn entry_struct_to_hashmap(entry: Entry) -> HashMap<String, String> {
-    let mut a = HashMap::new();
-    a.insert("timestamp".to_string(), entry.ts);
-    a.insert("ms_played".to_string(), entry.ms_played.to_string());
-    a.insert(
-        "track".to_string(),
-        parse_option(entry.master_metadata_track_name),
-    );
-    a.insert(
-        "album".to_string(),
-        parse_option(entry.master_metadata_album_album_name),
-    );
-    a.insert(
-        "artist".to_string(),
-        parse_option(entry.master_metadata_album_artist_name),
-    );
-    a
+fn entry_to_songentry(entry: Entry) -> SongEntry {
+    SongEntry {
+        // RFC 3339 is basically ISO 8601
+        timestamp: DateTime::parse_from_rfc3339(&entry.ts).unwrap(),
+        ms_played: entry.ms_played as u32,
+        track: parse_option(entry.master_metadata_track_name),
+        album: parse_option(entry.master_metadata_album_album_name),
+        artist: parse_option(entry.master_metadata_album_artist_name),
+    }
 }
 
 fn parse_option(opt: Option<String>) -> String {
