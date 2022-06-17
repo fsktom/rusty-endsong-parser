@@ -3,9 +3,9 @@ mod types;
 
 fn main() {
     // this is only temporary -> later on these files should be added by CLI args
-    let paths: Vec<&str> = vec![
-        "/home/filip/Other/SpotifyData/2021-07/endsong_0.json",
-        "/home/filip/Other/SpotifyData/2021-07/single_entry.json",
+    let paths: Vec<String> = vec![
+        "/home/filip/Other/SpotifyData/2021-07/endsong_0.json".to_string(),
+        "/home/filip/Other/SpotifyData/2021-07/endsong_1.json".to_string(),
     ];
 
     let entries = parse::parse(paths);
@@ -18,6 +18,8 @@ fn main() {
         entries[2].timestamp,
         entries[2].ms_played
     );
+
+    println!("{}", entries.len());
 
     types::run();
 }

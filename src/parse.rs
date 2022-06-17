@@ -56,8 +56,8 @@ pub struct SongEntry {
     pub artist: String,
 }
 
-pub fn parse(paths: Vec<&str>) -> Vec<SongEntry> {
-    let u = read_entries_from_file(paths[0]).unwrap();
+fn parse_single(path: String) -> Vec<SongEntry> {
+    let u = read_entries_from_file(path).unwrap();
     let mut songs: Vec<SongEntry> = Vec::new();
     let mut podcasts: Vec<Entry> = Vec::new();
     for entry in u {
@@ -72,6 +72,15 @@ pub fn parse(paths: Vec<&str>) -> Vec<SongEntry> {
     println!("Num of non-song? entries: {}", podcasts.len());
 
     songs
+}
+
+pub fn parse(paths: Vec<String>) -> Vec<SongEntry> {
+    let mut song_entries: Vec<SongEntry> = Vec::new();
+    for path in paths {
+        let mut one = parse_single(path);
+        song_entries.append(&mut one)
+    }
+    song_entries
 }
 
 // https://docs.serde.rs/serde_json/fn.from_reader.html
