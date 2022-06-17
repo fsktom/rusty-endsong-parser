@@ -3,59 +3,59 @@ use std::fmt::Display;
 
 use chrono::DateTime;
 
-pub fn run() {
-    let art1 = Artist {
-        name: String::from("Powerwolf"),
-    };
-    let alb1 = Album {
-        name: String::from("Bible of the Beast"),
-        artist: &art1,
-    };
-    let son1 = Song {
-        name: String::from("Midnight Messiah"),
-        album: &alb1,
-        artist: &art1,
-    };
-
-    let som_art = Aspect::Artist(&art1);
-    let som_alb = Aspect::Album(&alb1);
-    let som_son = Aspect::Song(&son1);
-    println!("{}", som_art);
-    println!("{}", som_alb);
-    println!("{}", som_son);
+pub enum Aspect {
+    Artists,
+    Albums,
+    Songs,
 }
 
-pub enum Aspect<'a> {
-    Artist(&'a Artist),
-    Album(&'a Album<'a>),
-    Song(&'a Song<'a>),
-}
-
-impl Display for Aspect<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            &Aspect::Artist(art) => write!(f, "{}", art.name),
-            &Aspect::Album(alb) => write!(f, "{} - {}", alb.artist.name, alb.name),
-            &Aspect::Song(son) => {
-                write!(f, "{} - {} ({})", son.artist.name, son.name, son.album.name)
-            }
-        }
+// bc Rust still doesn't have default argument values
+// https://www.reddit.com/r/rust/comments/fi6nov/why_does_rust_not_support_default_arguments/fkfezxv/
+impl Default for Aspect {
+    fn default() -> Self {
+        Aspect::Songs
     }
 }
 
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Artist {
-    name: String,
+    pub name: String,
 }
 
-pub struct Album<'a> {
-    name: String,
-    artist: &'a Artist,
+impl Display for Artist {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 
-pub struct Song<'a> {
-    name: String,
-    album: &'a Album<'a>,
-    artist: &'a Artist,
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+pub struct Album {
+    pub name: String,
+    pub artist: Artist,
+}
+
+impl Display for Album {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} - {}", self.artist.name, self.name)
+    }
+}
+
+// to allow for custom HashMap key
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+pub struct Song {
+    pub name: String,
+    pub album: Album,
+    pub id: String,
+}
+
+impl Display for Song {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} - {} ({})",
+            self.album.artist.name, self.name, self.album.name
+        )
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -65,4 +65,5 @@ pub struct SongEntry {
     pub track: String,
     pub album: String,
     pub artist: String,
+    pub id: String,
 }

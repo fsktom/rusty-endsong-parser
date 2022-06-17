@@ -1,5 +1,9 @@
+/// Module for printing parsed data to stdout
+mod display;
 mod parse;
 mod types;
+
+use crate::types::Aspect;
 
 fn main() {
     // this is only temporary -> later on these files should be added by CLI args
@@ -12,15 +16,16 @@ fn main() {
     let entries = parse::parse(paths);
 
     println!(
-        "{} - {} ({}) played on {} for {}ms",
+        "{} - {} ({}) played on {} for {}ms || ID: {}",
         entries[2].artist,
         entries[2].track,
         entries[2].album,
         entries[2].timestamp,
-        entries[2].ms_played
+        entries[2].ms_played,
+        entries[2].id
     );
 
-    println!("{}", entries.len());
+    // dbg!(entries.len());
 
-    types::run();
+    display::print_top(&entries, Aspect::Songs, 100);
 }

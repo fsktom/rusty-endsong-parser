@@ -61,9 +61,9 @@ fn parse_single(path: String) -> Vec<SongEntry> {
         }
     }
 
-    println!("{:?}\nNum of song entries: {}", songs, songs.len());
+    // println!("{:?}\nNum of song entries: {}", songs, songs.len());
 
-    println!("Num of non-song? entries: {}", podcasts.len());
+    // println!("Num of non-song? entries: {}", podcasts.len());
 
     songs
 }
@@ -86,7 +86,7 @@ fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn
     // Read the JSON contents of tshe file as an instance of `User`.
     let full_entries = serde_json::from_reader(reader)?;
 
-    // Return the `User`.
+    // Return entries
     Ok(full_entries)
 }
 
@@ -105,6 +105,7 @@ fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
         track: parse_option(entry.master_metadata_track_name),
         album: parse_option(entry.master_metadata_album_album_name),
         artist: parse_option(entry.master_metadata_album_artist_name),
+        id: parse_option(entry.spotify_track_uri),
     })
 }
 
