@@ -27,5 +27,5 @@ fn main() {
 
     // dbg!(entries.len());
 
-    display::print_top(&entries, Aspect::Songs, 100);
+    display::print_top(&entries, Aspect::Songs, 10000);
 }

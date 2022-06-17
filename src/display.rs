@@ -1,4 +1,3 @@
-
 use std::collections::HashMap;
 
 use crate::types::Aspect;
@@ -14,7 +13,16 @@ pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
             let mut a_vec: Vec<(&Song, &u32)> = a.iter().collect();
             a_vec.sort_by(|a, b| b.1.cmp(a.1));
             println!("{:?}", a_vec);
-            for i in 0..num {
+
+            // if the number of unique songs is lower than the parsed num
+            let ind: usize;
+            if a_vec.len() < num {
+                ind = a_vec.len();
+            } else {
+                ind = num;
+            }
+
+            for i in 0..ind {
                 let son = a_vec.get(i).unwrap();
                 let s = son.0;
                 let n = son.1;
