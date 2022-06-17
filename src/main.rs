@@ -3,9 +3,10 @@ mod types;
 
 fn main() {
     // this is only temporary -> later on these files should be added by CLI args
+    let root = "/home/filip/Other/SpotifyData/2021-07/";
     let paths: Vec<String> = vec![
-        "/home/filip/Other/SpotifyData/2021-07/endsong_0.json".to_string(),
-        "/home/filip/Other/SpotifyData/2021-07/endsong_1.json".to_string(),
+        format!("{}endsong_0.json", root),
+        format!("{}endsong_1.json", root),
     ];
 
     let entries = parse::parse(paths);

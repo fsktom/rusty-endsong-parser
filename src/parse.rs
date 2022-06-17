@@ -104,6 +104,8 @@ fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
     }
     Ok(SongEntry {
         // RFC 3339 is basically ISO 8601
+        // and the timestamp in endsong.json is in
+        // "2016-07-21T01:02:07Z" format
         timestamp: DateTime::parse_from_rfc3339(&entry.ts).unwrap(),
         ms_played: entry.ms_played as u32,
         track: parse_option(entry.master_metadata_track_name),
