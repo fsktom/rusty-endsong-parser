@@ -7,6 +7,9 @@ use chrono::DateTime;
 
 use serde::{Deserialize, Serialize};
 use serde_json;
+
+use crate::types::SongEntry;
+
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
 // null values are either skipped (defaulted to unit tuple or are an Option)
 #[derive(Serialize, Deserialize, Debug)]
@@ -45,15 +48,6 @@ struct Entry {
     offline_timestamp: (),
     #[serde(skip_deserializing)]
     incognito_mode: (),
-}
-
-#[derive(Clone, Debug)]
-pub struct SongEntry {
-    pub timestamp: DateTime<chrono::FixedOffset>,
-    pub ms_played: u32,
-    pub track: String,
-    pub album: String,
-    pub artist: String,
 }
 
 fn parse_single(path: String) -> Vec<SongEntry> {

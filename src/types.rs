@@ -1,6 +1,8 @@
 // https://doc.rust-lang.org/stable/book/ch06-01-defining-an-enum.html
 use std::fmt::Display;
 
+use chrono::DateTime;
+
 pub fn run() {
     let art1 = Artist {
         name: String::from("Powerwolf"),
@@ -54,4 +56,13 @@ pub struct Song<'a> {
     name: String,
     album: &'a Album<'a>,
     artist: &'a Artist,
+}
+
+#[derive(Clone, Debug)]
+pub struct SongEntry {
+    pub timestamp: DateTime<chrono::FixedOffset>,
+    pub ms_played: u32,
+    pub track: String,
+    pub album: String,
+    pub artist: String,
 }
