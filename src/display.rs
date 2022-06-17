@@ -1,35 +1,50 @@
 use std::collections::HashMap;
 
 use crate::types::Aspect;
+use crate::types::Music;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
 
 pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
     match asp {
         Aspect::Songs => {
-            let a = gather_songs(entries);
-            // println!("{:?}", a);
-            // https://stackoverflow.com/q/34555837/6694963
-            let mut a_vec: Vec<(&Song, &u32)> = a.iter().collect();
-            a_vec.sort_by(|a, b| b.1.cmp(a.1));
-            println!("{:?}", a_vec);
-
-            // if the number of unique songs is lower than the parsed num
-            let ind: usize;
-            if a_vec.len() < num {
-                ind = a_vec.len();
-            } else {
-                ind = num;
-            }
-
-            for i in 0..ind {
-                let son = a_vec.get(i).unwrap();
-                let s = son.0;
-                let n = son.1;
-                println!("#{}\t{} => {}", i + 1, s, n)
-            }
+            println!("=== TOP {} SONGS ===", num);
+            print_top_helper(gather_songs(entries), num);
+            println!();
         }
-        _ => println!("whatcha doin?"),
+        Aspect::Albums => {
+            println!("=== TOP {} ALBUMS ===", num);
+            print_top_helper(gather_albums(entries), num);
+            println!();
+        }
+        Aspect::Artists => {
+            println!("=== TOP {} ARTISTS ===", num);
+            print_top_helper(gather_artists(entries), num);
+            println!();
+        }
+    }
+}
+
+fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
+    // https://stackoverflow.com/q/34555837/6694963
+    let mut music_vec: Vec<(&T, &u32)> = music_dict.iter().collect();
+    music_vec.sort_by(|a, b| b.1.cmp(a.1));
+    // TODO: secondary sorting
+    //       if plays are equal -> sort A->Z
+
+    // if the number of unique songs/... is lower than the parsed num
+    let ind: usize;
+    if music_vec.len() < num {
+        ind = music_vec.len();
+    } else {
+        ind = num;
+    }
+
+    for i in 0..ind {
+        let mus = music_vec.get(i).unwrap();
+        let m = mus.0;
+        let n = mus.1;
+        println!("#{}\t{} => {}", i + 1, m, n)
     }
 }
 
@@ -57,4 +72,36 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     }
 
     songs
+}
+
+fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
+    let mut albums: HashMap<Album, u32> = HashMap::new();
+
+    for entry in entries {
+        let artist = Artist {
+            name: entry.artist.clone(),
+        };
+        let album = Album {
+            name: entry.album.clone(),
+            artist: artist.clone(),
+        };
+
+        *albums.entry(album).or_insert(0) += 1;
+    }
+
+    albums
+}
+
+fn gather_artists(entries: &Vec<SongEntry>) -> HashMap<Artist, u32> {
+    let mut artists: HashMap<Artist, u32> = HashMap::new();
+
+    for entry in entries {
+        let artist = Artist {
+            name: entry.artist.clone(),
+        };
+
+        *artists.entry(artist).or_insert(0) += 1;
+    }
+
+    artists
 }

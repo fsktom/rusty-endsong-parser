@@ -17,6 +17,8 @@ impl Default for Aspect {
     }
 }
 
+pub trait Music: Display {}
+
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Artist {
     pub name: String,
@@ -27,6 +29,7 @@ impl Display for Artist {
         write!(f, "{}", self.name)
     }
 }
+impl Music for Artist {}
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Album {
@@ -39,6 +42,7 @@ impl Display for Album {
         write!(f, "{} - {}", self.artist.name, self.name)
     }
 }
+impl Music for Album {}
 
 // to allow for custom HashMap key
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
@@ -57,6 +61,7 @@ impl Display for Song {
         )
     }
 }
+impl Music for Song {}
 
 #[derive(Clone, Debug)]
 pub struct SongEntry {

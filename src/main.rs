@@ -11,21 +11,16 @@ fn main() {
     let paths: Vec<String> = vec![
         format!("{}endsong_0.json", root),
         format!("{}endsong_1.json", root),
+        format!("{}endsong_2.json", root),
+        format!("{}endsong_3.json", root),
+        format!("{}endsong_4.json", root),
+        format!("{}endsong_5.json", root),
+        format!("{}endsong_6.json", root),
     ];
 
     let entries = parse::parse(paths);
 
-    println!(
-        "{} - {} ({}) played on {} for {}ms || ID: {}",
-        entries[2].artist,
-        entries[2].track,
-        entries[2].album,
-        entries[2].timestamp,
-        entries[2].ms_played,
-        entries[2].id
-    );
-
-    // dbg!(entries.len());
-
-    display::print_top(&entries, Aspect::Songs, 10000);
+    display::print_top(&entries, Aspect::default(), 10);
+    display::print_top(&entries, Aspect::Albums, 10);
+    display::print_top(&entries, Aspect::Artists, 10);
 }
