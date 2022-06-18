@@ -25,6 +25,22 @@ pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
     }
 }
 
+pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: Aspect, artist: &Artist, num: usize) {
+    match asp {
+        Aspect::Songs => {
+            println!("=== TOP {} SONGS FROM {} ===", num, artist.name);
+            print_top_helper(gather_songs_with_artist(entries, artist), num);
+            println!();
+        }
+        Aspect::Albums => {
+            println!("=== TOP {} ALBUMS FROM {} ===", num, artist.name);
+            print_top_helper(gather_albums_with_artist(entries, artist), num);
+            println!();
+        }
+        _ => println!("gay"),
+    }
+}
+
 fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
     let mut music_vec: Vec<(&T, &u32)> = music_dict.iter().collect();
@@ -74,6 +90,32 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     songs
 }
 
+fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Song, u32> {
+    let mut songs: HashMap<Song, u32> = HashMap::new();
+
+    for entry in entries {
+        let artist = Artist {
+            name: entry.artist.clone(),
+        };
+        if artist != *art {
+            continue;
+        }
+        let album = Album {
+            name: entry.album.clone(),
+            artist: artist.clone(),
+        };
+        let song = Song {
+            name: entry.track.clone(),
+            album: album.clone(),
+            id: entry.id.clone(),
+        };
+
+        *songs.entry(song).or_insert(0) += 1;
+    }
+
+    songs
+}
+
 fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
@@ -81,6 +123,27 @@ fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
         let artist = Artist {
             name: entry.artist.clone(),
         };
+        let album = Album {
+            name: entry.album.clone(),
+            artist: artist.clone(),
+        };
+
+        *albums.entry(album).or_insert(0) += 1;
+    }
+
+    albums
+}
+
+fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Album, u32> {
+    let mut albums: HashMap<Album, u32> = HashMap::new();
+
+    for entry in entries {
+        let artist = Artist {
+            name: entry.artist.clone(),
+        };
+        if artist != *art {
+            continue;
+        }
         let album = Album {
             name: entry.album.clone(),
             artist: artist.clone(),

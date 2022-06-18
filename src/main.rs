@@ -23,4 +23,10 @@ fn main() {
     display::print_top(&entries, Aspect::default(), 10);
     display::print_top(&entries, Aspect::Albums, 10);
     display::print_top(&entries, Aspect::Artists, 10);
+
+    let powerwolf = types::Artist {
+        name: String::from("Powerwolf"),
+    };
+    display::print_top_from_artist(&entries, Aspect::Songs, &powerwolf, 10);
+    display::print_top_from_artist(&entries, Aspect::Albums, &powerwolf, 10)
 }
