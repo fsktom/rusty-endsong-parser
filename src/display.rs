@@ -28,13 +28,24 @@ pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
 pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: Aspect, artist: &Artist, num: usize) {
     match asp {
         Aspect::Songs => {
-            println!("=== TOP {} SONGS FROM {} ===", num, artist.name);
+            println!("=== TOP {} SONGS FROM {} ===", num, artist);
             print_top_helper(gather_songs_with_artist(entries, artist), num);
             println!();
         }
         Aspect::Albums => {
-            println!("=== TOP {} ALBUMS FROM {} ===", num, artist.name);
+            println!("=== TOP {} ALBUMS FROM {} ===", num, artist);
             print_top_helper(gather_albums_with_artist(entries, artist), num);
+            println!();
+        }
+        _ => println!("gay"),
+    }
+}
+
+pub fn print_top_from_album(entries: &Vec<SongEntry>, asp: Aspect, album: &Album, num: usize) {
+    match asp {
+        Aspect::Songs => {
+            println!("=== TOP {} SONGS FROM {} ===", num, album);
+            print_top_helper(gather_songs_with_album(entries, album), num);
             println!();
         }
         _ => println!("gay"),
@@ -104,6 +115,32 @@ fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<S
             name: entry.album.clone(),
             artist: artist.clone(),
         };
+        let song = Song {
+            name: entry.track.clone(),
+            album: album.clone(),
+            id: entry.id.clone(),
+        };
+
+        *songs.entry(song).or_insert(0) += 1;
+    }
+
+    songs
+}
+
+fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Song, u32> {
+    let mut songs: HashMap<Song, u32> = HashMap::new();
+
+    for entry in entries {
+        let artist = Artist {
+            name: entry.artist.clone(),
+        };
+        let album = Album {
+            name: entry.album.clone(),
+            artist: artist.clone(),
+        };
+        if album != *alb {
+            continue;
+        }
         let song = Song {
             name: entry.track.clone(),
             album: album.clone(),

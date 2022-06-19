@@ -7,6 +7,10 @@ use crate::types::Aspect;
 
 fn main() {
     // this is only temporary -> later on these files should be added by CLI args
+    // or both options!
+    // benchmark! =>
+    // 1) paths as CLI args
+    // 2) paths as part of compiled source code!
     let root = "/home/filip/Other/SpotifyData/2021-07/";
     let paths: Vec<String> = vec![
         format!("{}endsong_0.json", root),
@@ -29,4 +33,12 @@ fn main() {
     };
     display::print_top_from_artist(&entries, Aspect::Songs, &powerwolf, 10);
     display::print_top_from_artist(&entries, Aspect::Albums, &powerwolf, 10);
+
+    let coat = types::Album {
+        name: String::from("Coat of Arms"),
+        artist: types::Artist {
+            name: "Sabaton".to_string(),
+        },
+    };
+    display::print_top_from_album(&entries, Aspect::Songs, &coat, 50);
 }
