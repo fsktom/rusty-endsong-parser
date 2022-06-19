@@ -89,7 +89,7 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
         let song = Song {
             name: entry.track.clone(),
             album: album.clone(),
-            id: entry.id.clone(),
+            // id: entry.id.clone(),
         };
 
         // either create new field with value 0 (and add 1 to it)
@@ -118,7 +118,7 @@ fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<S
         let song = Song {
             name: entry.track.clone(),
             album: album.clone(),
-            id: entry.id.clone(),
+            // id: entry.id.clone(),
         };
 
         *songs.entry(song).or_insert(0) += 1;
@@ -144,7 +144,7 @@ fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Son
         let song = Song {
             name: entry.track.clone(),
             album: album.clone(),
-            id: entry.id.clone(),
+            // id: entry.id.clone(),
         };
 
         *songs.entry(song).or_insert(0) += 1;

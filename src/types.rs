@@ -49,7 +49,7 @@ impl Music for Album {}
 pub struct Song {
     pub name: String,
     pub album: Album,
-    pub id: String,
+    // pub id: String,
 }
 
 impl Display for Song {
