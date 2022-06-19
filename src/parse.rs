@@ -51,7 +51,7 @@ struct Entry {
 }
 
 fn parse_single(path: String) -> Vec<SongEntry> {
-    let u = read_entries_from_file(path).unwrap();
+    let u = read_entries_from_file(&path).expect(format!("File {} is invalid!", &path).as_str());
     let mut songs: Vec<SongEntry> = Vec::new();
     let mut podcasts: Vec<Entry> = Vec::new();
     for entry in u {

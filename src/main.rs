@@ -28,5 +28,5 @@ fn main() {
         name: String::from("Powerwolf"),
     };
     display::print_top_from_artist(&entries, Aspect::Songs, &powerwolf, 10);
-    display::print_top_from_artist(&entries, Aspect::Albums, &powerwolf, 10)
+    display::print_top_from_artist(&entries, Aspect::Albums, &powerwolf, 10);
 }
