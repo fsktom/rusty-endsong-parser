@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::types::Aspect;
+use crate::types::AspectFull;
 use crate::types::Music;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
@@ -71,7 +72,7 @@ fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
         let mus = music_vec.get(i).unwrap();
         let m = mus.0;
         let n = mus.1;
-        println!("#{}\t{} => {}", i + 1, m, n)
+        println!("#{}\t{} | {} plays", i + 1, m, n)
     }
 }
 
@@ -204,4 +205,112 @@ fn gather_artists(entries: &Vec<SongEntry>) -> HashMap<Artist, u32> {
     }
 
     artists
+}
+
+struct ArtistPlays(Artist, u32);
+struct AlbumPlays(Album, u32);
+struct SongPlays(Song, u32);
+
+pub fn print_aspect(entries: &Vec<SongEntry>, asp: AspectFull) {
+    match asp {
+        AspectFull::Artist(art) => {
+            println!("=== {} | {} plays ===", art, gather_artist(entries, art).1);
+            print_artist(entries, gather_albums_with_artist(entries, art));
+        }
+        AspectFull::Album(alb) => {
+            println!("=== {} | {} plays ===", alb, gather_album(entries, alb).1);
+            print_album(gather_songs_with_album(entries, alb));
+        }
+        AspectFull::Song(son) => {
+            let son = gather_song(entries, son);
+            println!("{} | {} plays", son.0, son.1);
+        }
+    }
+}
+
+fn gather_artist(entries: &Vec<SongEntry>, art: &Artist) -> ArtistPlays {
+    let mut artist_asp = ArtistPlays(art.clone(), 0);
+
+    for entry in entries {
+        let artist = Artist {
+            name: entry.artist.clone(),
+        };
+
+        if artist == *art {
+            artist_asp.1 += 1;
+        }
+    }
+
+    artist_asp
+}
+
+fn gather_album(entries: &Vec<SongEntry>, alb: &Album) -> AlbumPlays {
+    let mut album_asp = AlbumPlays(alb.clone(), 0);
+
+    for entry in entries {
+        let artist = Artist {
+            name: entry.artist.clone(),
+        };
+        let album = Album {
+            name: entry.album.clone(),
+            artist: artist.clone(),
+        };
+
+        if album == *alb {
+            album_asp.1 += 1;
+        }
+    }
+
+    album_asp
+}
+
+fn gather_song(entries: &Vec<SongEntry>, son: &Song) -> SongPlays {
+    let mut song_asp = SongPlays(son.clone(), 0);
+
+    for entry in entries {
+        let artist = Artist {
+            name: entry.artist.clone(),
+        };
+        let album = Album {
+            name: entry.album.clone(),
+            artist: artist.clone(),
+        };
+        let song = Song {
+            name: entry.track.clone(),
+            album: album.clone(),
+            // id: entry.id.clone(),
+        };
+
+        if song == *son {
+            song_asp.1 += 1;
+        }
+    }
+
+    song_asp
+}
+
+fn print_artist(entries: &Vec<SongEntry>, artist: HashMap<Album, u32>) {
+    let mut artist_vec: Vec<(&Album, &u32)> = artist.iter().collect();
+    artist_vec.sort_by(|a, b| b.1.cmp(a.1));
+
+    for i in 0..artist_vec.len() {
+        let alb = artist_vec.get(i).unwrap().0;
+        let mus = gather_songs_with_album(entries, alb);
+        // calling gather_album here is unnecessary work
+        // it should add up the total plays somehwere else
+        println!("--- {} | {} plays ---", alb, gather_album(entries, alb).1);
+        print_album(mus);
+    }
+}
+
+fn print_album(album: HashMap<Song, u32>) {
+    let mut album_vec: Vec<(&Song, &u32)> = album.iter().collect();
+    album_vec.sort_by(|a, b| b.1.cmp(a.1));
+
+    for i in 0..album_vec.len() {
+        let mus = album_vec.get(i).unwrap();
+        let m = mus.0;
+        let n = mus.1;
+        println!("#{}\t{} => {}", i + 1, m, n)
+    }
 }

@@ -3,6 +3,12 @@ use std::fmt::Display;
 
 use chrono::DateTime;
 
+pub enum AspectFull<'a> {
+    Artist(&'a Artist),
+    Album(&'a Album),
+    Song(&'a Song),
+}
+
 pub enum Aspect {
     Artists,
     Albums,

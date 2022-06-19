@@ -4,6 +4,7 @@ mod parse;
 mod types;
 
 use crate::types::Aspect;
+use crate::types::AspectFull;
 
 fn main() {
     // this is only temporary -> later on these files should be added by CLI args
@@ -14,12 +15,12 @@ fn main() {
     let root = "/home/filip/Other/SpotifyData/2021-07/";
     let paths: Vec<String> = vec![
         format!("{}endsong_0.json", root),
-        format!("{}endsong_1.json", root),
-        format!("{}endsong_2.json", root),
-        format!("{}endsong_3.json", root),
-        format!("{}endsong_4.json", root),
-        format!("{}endsong_5.json", root),
-        format!("{}endsong_6.json", root),
+        // format!("{}endsong_1.json", root),
+        // format!("{}endsong_2.json", root),
+        // format!("{}endsong_3.json", root),
+        // format!("{}endsong_4.json", root),
+        // format!("{}endsong_5.json", root),
+        // format!("{}endsong_6.json", root),
     ];
 
     let entries = parse::parse(paths);
@@ -41,4 +42,19 @@ fn main() {
         },
     };
     display::print_top_from_album(&entries, Aspect::Songs, &coat, 50);
+
+    let final_solution = types::Song {
+        name: String::from("The Final Solution"),
+        album: coat.clone(),
+    };
+    display::print_aspect(
+        &entries,
+        AspectFull::Artist(&types::Artist {
+            name: "Sabaton".to_string(),
+        }),
+    );
+    println!();
+    display::print_aspect(&entries, AspectFull::Album(&coat));
+    println!();
+    display::print_aspect(&entries, AspectFull::Song(&final_solution));
 }
