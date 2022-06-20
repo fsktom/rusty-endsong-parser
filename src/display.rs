@@ -311,6 +311,6 @@ fn print_album(album: HashMap<Song, u32>) {
         let mus = album_vec.get(i).unwrap();
         let m = mus.0;
         let n = mus.1;
-        println!("#{}\t{} => {}", i + 1, m, n)
+        println!("#{}\t{} | {} plays", i + 1, m, n)
     }
 }
