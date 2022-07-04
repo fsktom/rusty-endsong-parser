@@ -28,3 +28,6 @@
   - with autocomplete for commands AND (most importantly) artists, albums and songs !!
   - maybe select commands with the interactive menu/options and there you can go back or forward and change parameters or leave them at default and at the end you type in the aspect
     - THIS and a shorthand commands for power users (faster and easier to the same command but with one thing changed)
+- adjust for DST + time zone
+  - e.g. for my listens adjust when DST was in Germany and save the relative time from the absolute Unix timestamp
+  - for beginning: hardcode when CET changes to CEST for 2016-2022
