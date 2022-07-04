@@ -31,3 +31,5 @@
 - adjust for DST + time zone
   - e.g. for my listens adjust when DST was in Germany and save the relative time from the absolute Unix timestamp
   - for beginning: hardcode when CET changes to CEST for 2016-2022
+- [rayon](https://github.com/rayon-rs/rayon) for parallel iterator work!!!
+  - [from this jonhoo talk](https://youtu.be/DnT-LUQgc7s?t=1516)
