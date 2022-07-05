@@ -9,18 +9,15 @@ pub enum AspectFull<'a> {
     Song(&'a Song),
 }
 
+// you can derive Default in Rust 1.62 https://github.com/rust-lang/rust/pull/94457/
+#[derive(Default)]
 pub enum Aspect {
     Artists,
     Albums,
+    // bc Rust still doesn't have default argument values
+    // https://www.reddit.com/r/rust/comments/fi6nov/why_does_rust_not_support_default_arguments/fkfezxv/
+    #[default]
     Songs,
-}
-
-// bc Rust still doesn't have default argument values
-// https://www.reddit.com/r/rust/comments/fi6nov/why_does_rust_not_support_default_arguments/fkfezxv/
-impl Default for Aspect {
-    fn default() -> Self {
-        Aspect::Songs
-    }
 }
 
 pub trait Music: Display {}
