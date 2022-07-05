@@ -1,8 +1,11 @@
 [package]
 name = "rusty-endsong-parser"
 version = "0.1.0"
-edition = "2021"
 authors = ["Filip Tomaśko <shader301270@gmail.com>"]
+edition = "2021"
+rust-version = "1.62"
+description = "Handling of Spotify endsong.json files - printing top 10 songs/albums/artists, plotting etc."
+readme="README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
