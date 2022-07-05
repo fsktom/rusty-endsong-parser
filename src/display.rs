@@ -72,8 +72,43 @@ fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
         let mus = music_vec.get(i).unwrap();
         let m = mus.0;
         let n = mus.1;
-        println!("#{}\t{} | {} plays", i + 1, m, n)
+        println!("{}: {} | {} plays", leading_whitespace(i + 1, ind), m, n)
     }
+}
+
+/// Formats `1` to ` #1` if user wishes for Top 10
+/// or to `  #1` if Top 100 etc.
+/// # Examples
+///
+/// ```
+/// let num = 6;
+/// let max = 100;
+///
+/// assert_eq!(leading_whitespace(num, max), String::from("  #7"))
+/// ```
+fn leading_whitespace(num: usize, max_num: usize) -> String {
+    // https://github.com/Filip-Tomasko/endsong-parser-python/blob/main/src/endsong_parser.py#L551-L578
+    let mut order_format = String::from("");
+
+    // bc as of Rust 1.62 it doesn't support log10 on usize
+    // https://doc.rust-lang.org/std/primitive.usize.html#method.log10
+    let num = num as f64;
+    let max_num = max_num as f64;
+
+    let mut num_of_zero = max_num.log10().floor() as usize;
+    let digits = num.log10() as usize + 1;
+
+    loop {
+        if num_of_zero == 0 {
+            break;
+        }
+        if digits <= num_of_zero {
+            order_format += " ";
+        }
+        num_of_zero -= 1;
+    }
+
+    format!("{}#{}", order_format, num)
 }
 
 fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
@@ -311,6 +346,11 @@ fn print_album(album: HashMap<Song, u32>) {
         let mus = album_vec.get(i).unwrap();
         let m = mus.0;
         let n = mus.1;
-        println!("#{}\t{} | {} plays", i + 1, m, n)
+        println!(
+            "{}: {} | {} plays",
+            leading_whitespace(i + 1, album_vec.len()),
+            m,
+            n
+        )
     }
 }
