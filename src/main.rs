@@ -12,7 +12,7 @@ fn main() {
     // benchmark! =>
     // 1) paths as CLI args
     // 2) paths as part of compiled source code!
-    let root = "/home/filip/Other/SpotifyData/2021-07/";
+    let root = "/home/filip/Other/SpotifyData/2022-06/";
     let paths: Vec<String> = vec![
         format!("{}endsong_0.json", root),
         // format!("{}endsong_1.json", root),
@@ -21,6 +21,7 @@ fn main() {
         // format!("{}endsong_4.json", root),
         // format!("{}endsong_5.json", root),
         // format!("{}endsong_6.json", root),
+        // format!("{}endsong_7.json", root),
     ];
 
     let entries = parse::parse(paths);
