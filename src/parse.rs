@@ -6,7 +6,6 @@ use std::path::Path;
 use chrono::DateTime;
 
 use serde::{Deserialize, Serialize};
-use serde_json;
 
 use crate::types::SongEntry;
 
@@ -51,7 +50,7 @@ struct Entry {
 }
 
 fn parse_single(path: String) -> Vec<SongEntry> {
-    let u = read_entries_from_file(&path).expect(format!("File {} is invalid!", &path).as_str());
+    let u = read_entries_from_file(&path).unwrap_or_else(|_| panic!("File {} is invalid!", &path));
     let mut songs: Vec<SongEntry> = Vec::new();
     let mut podcasts: Vec<Entry> = Vec::new();
     for entry in u {

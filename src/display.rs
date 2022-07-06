@@ -61,12 +61,11 @@ fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
     //       if plays are equal -> sort A->Z
 
     // if the number of unique songs/... is lower than the parsed num
-    let ind: usize;
-    if music_vec.len() < num {
-        ind = music_vec.len();
+    let ind: usize = if music_vec.len() < num {
+        music_vec.len()
     } else {
-        ind = num;
-    }
+        num
+    };
 
     for i in 0..ind {
         let mus = music_vec.get(i).unwrap();
