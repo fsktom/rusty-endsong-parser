@@ -84,7 +84,7 @@ fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
 /// ```
 fn leading_whitespace(num: usize, max_num: usize) -> String {
     // https://github.com/Filip-Tomasko/endsong-parser-python/blob/main/src/endsong_parser.py#L551-L578
-    let mut order_format = String::from("");
+    let mut order_format = String::new();
 
     // bc as of Rust 1.62 it doesn't support log10 on usize
     // https://doc.rust-lang.org/std/primitive.usize.html#method.log10
