@@ -1,4 +1,8 @@
-/// Module for printing parsed data to stdout
+//! [![github]](https://github.com/Filip-Tomasko/rusty-endsong-parser/)
+//!
+//! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
+//!
+//! Module for printing parsed data to stdout
 mod display;
 mod parse;
 mod types;

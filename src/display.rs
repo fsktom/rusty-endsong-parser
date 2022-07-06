@@ -80,7 +80,7 @@ fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
 /// or to `  #1` if Top 100 etc.
 /// # Examples
 /// ```
-/// assert_eq!(leading_whitespace(num, max), String::from("  #7"))
+/// assert_eq!(leading_whitespace(7usize, 100usize), String::from("  #7"));
 /// ```
 fn leading_whitespace(num: usize, max_num: usize) -> String {
     // https://github.com/Filip-Tomasko/endsong-parser-python/blob/main/src/endsong_parser.py#L551-L578
