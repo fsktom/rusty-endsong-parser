@@ -79,11 +79,7 @@ fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
 /// Formats `1` to ` #1` if user wishes for Top 10
 /// or to `  #1` if Top 100 etc.
 /// # Examples
-///
 /// ```
-/// let num = 6;
-/// let max = 100;
-///
 /// assert_eq!(leading_whitespace(num, max), String::from("  #7"))
 /// ```
 fn leading_whitespace(num: usize, max_num: usize) -> String {
