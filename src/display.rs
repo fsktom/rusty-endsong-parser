@@ -81,6 +81,7 @@ fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
 /// # Examples
 /// ```
 /// assert_eq!(leading_whitespace(7usize, 100usize), String::from("  #7"));
+/// assert_eq!(leading_whitespace(7usize, 1000usize), String::from("   #7"));
 /// ```
 fn leading_whitespace(num: usize, max_num: usize) -> String {
     // https://github.com/Filip-Tomasko/endsong-parser-python/blob/main/src/endsong_parser.py#L551-L578
@@ -348,5 +349,18 @@ fn print_album(album: HashMap<Song, u32>) {
             m,
             n
         )
+    }
+}
+
+// https://doc.rust-lang.org/book/ch11-03-test-organization.html#unit-tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn order_format() {
+        assert_eq!(leading_whitespace(3usize, 100usize), String::from("  #3"));
+        assert_eq!(leading_whitespace(3usize, 1000usize), String::from("   #3"));
+        assert_eq!(leading_whitespace(3usize, 5692usize), String::from("   #3"));
     }
 }
