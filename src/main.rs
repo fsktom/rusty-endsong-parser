@@ -3,6 +3,8 @@
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //!
 //! CLI application with which you can analyze Spotify endsong.json files
+#![forbid(unsafe_code)]
+
 mod display;
 mod parse;
 mod types;
