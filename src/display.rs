@@ -124,6 +124,7 @@ fn leading_whitespace(num: usize, max_num: usize) -> String {
     format!("{}#{}", order_format, num)
 }
 
+#[allow(clippy::needless_range_loop)]
 fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
