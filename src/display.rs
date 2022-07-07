@@ -6,6 +6,20 @@ use crate::types::Music;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
 
+/// If set to true, it will sum up the plays of one song across multiple
+/// albums it may be in
+///
+/// Only applies to printing top songs with [print_top()]!
+///
+/// The album displayed in the parantheses will be the one it has the
+/// highest amount of listens from
+const SUM_ALBUMS: bool = true;
+
+/// Prints the top `num` of an `asp`
+///
+/// * `asp` - Aspect::Songs (affected by [SUM_ALBUMS]) for top songs, Aspect::Albums for top albums and
+/// Aspect::Artists for top artists
+/// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
 pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
     match asp {
         Aspect::Songs => {
@@ -128,6 +142,81 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
         // or if a field with that key already exists,
         // add one play to it
         *songs.entry(song).or_insert(0) += 1;
+    }
+
+    if SUM_ALBUMS {
+        #[derive(PartialEq, Eq, Hash, Debug, Clone)]
+        struct SongJustArtist {
+            name: String,
+            artist: Artist,
+        }
+
+        let mut songs_artist: HashMap<SongJustArtist, u32> = HashMap::new();
+
+        #[derive(PartialEq, Eq, Hash, Debug, Clone)]
+        struct AlbumPlays(Album, u32);
+        #[derive(PartialEq, Eq, Hash, Debug, Clone)]
+        struct SongAlbums {
+            name: String,
+            albums: Vec<AlbumPlays>,
+        }
+        // to know which album the song had highest amount of plays from
+        // that album will be then displayed in () after the song name
+        // but the number of plays that will be displayed will be a sum of
+        // the plays from all albums
+        let mut changed: HashMap<SongJustArtist, SongAlbums> = HashMap::new();
+
+        for (k, v) in songs.iter() {
+            let song_just_artist = SongJustArtist {
+                name: k.name.clone(),
+                artist: k.album.artist.clone(),
+            };
+
+            match songs_artist.get(&song_just_artist) {
+                // if it finds something it means that the song
+                // only from a different album already exists
+                Some(plays) => {
+                    *songs_artist.entry(song_just_artist.clone()).or_insert(0) += *plays;
+
+                    let temp = changed.get_mut(&song_just_artist).unwrap();
+                    temp.albums.push(AlbumPlays(k.album.clone(), *v));
+                }
+                // if it doesn't find anything, it's the first appearance of that song
+                None => {
+                    songs_artist.insert(song_just_artist.clone(), *v);
+                    let salb = SongAlbums {
+                        name: k.name.clone(),
+                        albums: vec![AlbumPlays(k.album.clone(), *v)],
+                    };
+                    changed.insert(song_just_artist.clone(), salb);
+                }
+            }
+        }
+
+        for (k, v) in changed.iter() {
+            let albs = &v.albums;
+
+            // the first album will be taken if both have
+            // the same number of plays
+            let mut total: u32 = 0;
+            let highest: &AlbumPlays = {
+                let mut plays = 0;
+                for alb in 0..albs.len() {
+                    if albs[alb].1 > plays {
+                        plays = albs[alb].1
+                    }
+                    total += albs[alb].1
+                }
+                &albs[0]
+            };
+
+            let son = Song {
+                name: k.name.clone(),
+                album: highest.0.clone(),
+            };
+
+            songs.insert(son, total);
+        }
     }
 
     songs
