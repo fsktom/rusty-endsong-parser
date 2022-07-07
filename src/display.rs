@@ -444,6 +444,26 @@ fn print_album(album: HashMap<Song, u32>) {
     }
 }
 
+pub fn find() {
+    todo!()
+}
+
+fn find_artist(artist_name: String) -> Option<Artist> {
+    todo!()
+}
+
+fn find_album(album_name: String, artist_name: String) -> Option<Album> {
+    todo!()
+}
+
+fn find_song(song_name: String, artist_name: String) -> Option<Vec<Song>> {
+    todo!()
+}
+
+fn find_son_from_album(song_name: String, album_name: String, artist_name: String) -> Option<Song> {
+    todo!()
+}
+
 // https://doc.rust-lang.org/book/ch11-03-test-organization.html#unit-tests
 #[cfg(test)]
 mod tests {
