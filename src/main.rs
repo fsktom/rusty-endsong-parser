@@ -2,7 +2,7 @@
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //!
-//! Module for printing parsed data to stdout
+//! CLI application with which you can analyze Spotify endsong.json files
 mod display;
 mod parse;
 mod types;
