@@ -10,6 +10,9 @@ mod types;
 use crate::types::Aspect;
 use crate::types::AspectFull;
 
+/// Currently just tests various [crate::display] functions
+/// after deserializing the endsong.json files using
+/// [crate::parse::parse()]
 fn main() {
     // this is only temporary -> later on these files should be added by CLI args
     // or both options!

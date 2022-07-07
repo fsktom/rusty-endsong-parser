@@ -1,3 +1,4 @@
+//! Module containg many types used throughout the program
 // https://doc.rust-lang.org/stable/book/ch06-01-defining-an-enum.html
 use std::fmt::Display;
 
@@ -20,10 +21,14 @@ pub enum Aspect {
     Songs,
 }
 
+/// Used for functions in [crate::display] that accept either
+/// a [Song], [Album] or [Artist] struct
 pub trait Music: Display {}
 
+/// Struct for representing an artist
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Artist {
+    /// Name of the artist
     pub name: String,
 }
 
@@ -34,9 +39,12 @@ impl Display for Artist {
 }
 impl Music for Artist {}
 
+/// Struct for representing an album
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Album {
+    /// Name of the album
     pub name: String,
+    /// Artist of the album
     pub artist: Artist,
 }
 
@@ -47,10 +55,13 @@ impl Display for Album {
 }
 impl Music for Album {}
 
+/// Struct for representing a song
 // to allow for custom HashMap key
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Song {
+    /// Name of the song
     pub name: String,
+    /// The album this song is from
     pub album: Album,
     // pub id: String,
 }

@@ -1,3 +1,5 @@
+//! Module responsible for deserializing the endsong.json files
+//! into usable Rust data types
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;

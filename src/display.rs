@@ -1,3 +1,6 @@
+//! Module responsible for displaying the contents of endsong.json files
+//! in a human-readable format (e.g. as 100 most played songs)
+//! to the [std::io::stdout]
 use std::collections::HashMap;
 
 use crate::types::Aspect;
