@@ -14,7 +14,7 @@
     - I think just checking the hash of every file, putting into array and check if array has duplicates
     - and this option if you're absolutely sure there's no duplicates
   - and the relative paths to files as arguments without the `--`
-    - or maybe to a whole directory of `endsong_x.json` files?  
+    - or maybe to a whole directory of `endsong_x.json` files?
 - [Plotters](https://old.reddit.com/r/rust/comments/ude3lz/plotters_is_back/) for graphs?
 - [some Rust libraries](https://old.reddit.com/r/rust/comments/uevmnx/what_crates_would_you_consider_essential/)
 - [clap - CL argument parser](https://docs.rs/clap/latest/clap/)
@@ -33,3 +33,4 @@
   - for beginning: hardcode when CET changes to CEST for 2016-2022
 - [rayon](https://github.com/rayon-rs/rayon) for parallel iterator work!!!
   - [from this jonhoo talk](https://youtu.be/DnT-LUQgc7s?t=1516)
+- [tui-rs](https://github.com/fdehau/tui-rs) for terminal UI?!?
