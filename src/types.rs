@@ -31,7 +31,19 @@ pub struct Artist {
     /// Name of the artist
     pub name: String,
 }
+impl Artist {
+    /// Creates an instance of Artist with a [String] parameter
+    pub fn new(artist_name: String) -> Artist {
+        Artist { name: artist_name }
+    }
 
+    /// Creates an instance of Artist with a &[str] parameter
+    pub fn from_str(artist_name: &str) -> Artist {
+        Artist {
+            name: artist_name.to_string(),
+        }
+    }
+}
 impl Display for Artist {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.name)
@@ -47,7 +59,23 @@ pub struct Album {
     /// Artist of the album
     pub artist: Artist,
 }
+impl Album {
+    /// Creates an instance of Album with [String] parameters
+    pub fn new(album_name: String, artist_name: String) -> Album {
+        Album {
+            name: album_name,
+            artist: Artist::new(artist_name),
+        }
+    }
 
+    /// Creates an instance of Album with &[str] parameters
+    pub fn from_str(album_name: &str, artist_name: &str) -> Album {
+        Album {
+            name: album_name.to_string(),
+            artist: Artist::from_str(artist_name),
+        }
+    }
+}
 impl Display for Album {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} - {}", self.artist.name, self.name)
@@ -65,7 +93,23 @@ pub struct Song {
     pub album: Album,
     // pub id: String,
 }
+impl Song {
+    /// Creates an instance of Song with [String] parameters
+    pub fn new(song_name: String, album_name: String, artist_name: String) -> Song {
+        Song {
+            name: song_name,
+            album: Album::new(album_name, artist_name),
+        }
+    }
 
+    /// Creates an instance of Song with &[str] parameters
+    pub fn from_str(song_name: &str, album_name: &str, artist_name: &str) -> Song {
+        Song {
+            name: song_name.to_string(),
+            album: Album::from_str(album_name, artist_name),
+        }
+    }
+}
 impl Display for Song {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
