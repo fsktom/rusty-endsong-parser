@@ -414,7 +414,11 @@ fn find_song(song_name: String, artist_name: String) -> Option<Vec<Song>> {
     todo!()
 }
 
-fn find_son_from_album(song_name: String, album_name: String, artist_name: String) -> Option<Song> {
+fn find_song_from_album(
+    song_name: String,
+    album_name: String,
+    artist_name: String,
+) -> Option<Song> {
     todo!()
 }
 

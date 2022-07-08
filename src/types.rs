@@ -130,3 +130,50 @@ pub struct SongEntry {
     pub artist: String,
     pub id: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_constructors() {
+        assert_eq!(
+            Artist::new(String::from("Sabaton")),
+            Artist::from_str("Sabaton")
+        );
+        assert_eq!(
+            Artist::from_str("Sabaton"),
+            Artist {
+                name: "Sabaton".to_string()
+            }
+        );
+
+        assert_eq!(
+            Album::new(String::from("Coat of Arms"), String::from("Sabaton")),
+            Album::from_str("Coat of Arms", "Sabaton")
+        );
+        assert_eq!(
+            Album::from_str("Coat of Arms", "Sabaton"),
+            Album {
+                name: "Coat of Arms".to_string(),
+                artist: Artist::from_str("Sabaton")
+            }
+        );
+
+        assert_eq!(
+            Song::new(
+                String::from("The Final Solution"),
+                String::from("Coat of Arms"),
+                String::from("Sabaton")
+            ),
+            Song::from_str("The Final Solution", "Coat of Arms", "Sabaton")
+        );
+        assert_eq!(
+            Song::from_str("The Final Solution", "Coat of Arms", "Sabaton"),
+            Song {
+                name: "The Final Solution".to_string(),
+                album: Album::from_str("Coat of Arms", "Sabaton")
+            }
+        );
+    }
+}
