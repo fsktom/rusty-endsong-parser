@@ -135,6 +135,7 @@ pub struct SongEntry {
 mod tests {
     use super::*;
 
+    /// Tests the `::new` and `::from_str` constructors of Artist, Album and Song
     #[test]
     fn test_constructors() {
         assert_eq!(
