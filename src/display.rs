@@ -129,18 +129,11 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        let artist = Artist {
-            name: entry.artist.clone(),
-        };
-        let album = Album {
-            name: entry.album.clone(),
-            artist: artist.clone(),
-        };
-        let song = Song {
-            name: entry.track.clone(),
-            album: album.clone(),
-            // id: entry.id.clone(),
-        };
+        let song = Song::new(
+            entry.track.clone(),
+            entry.album.clone(),
+            entry.artist.clone(),
+        );
 
         // either create new field with value 0 (and add 1 to it)
         // or if a field with that key already exists,
@@ -230,21 +223,15 @@ fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<S
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        let artist = Artist {
-            name: entry.artist.clone(),
-        };
-        if artist != *art {
+        if Artist::new(entry.artist.clone()) != *art {
             continue;
         }
-        let album = Album {
-            name: entry.album.clone(),
-            artist: artist.clone(),
-        };
-        let song = Song {
-            name: entry.track.clone(),
-            album: album.clone(),
-            // id: entry.id.clone(),
-        };
+
+        let song = Song::new(
+            entry.track.clone(),
+            entry.album.clone(),
+            entry.artist.clone(),
+        );
 
         *songs.entry(song).or_insert(0) += 1;
     }
@@ -256,21 +243,15 @@ fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Son
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        let artist = Artist {
-            name: entry.artist.clone(),
-        };
-        let album = Album {
-            name: entry.album.clone(),
-            artist: artist.clone(),
-        };
-        if album != *alb {
+        if Album::new(entry.album.clone(), entry.artist.clone()) != *alb {
             continue;
         }
-        let song = Song {
-            name: entry.track.clone(),
-            album: album.clone(),
-            // id: entry.id.clone(),
-        };
+
+        let song = Song::new(
+            entry.track.clone(),
+            entry.album.clone(),
+            entry.artist.clone(),
+        );
 
         *songs.entry(song).or_insert(0) += 1;
     }
@@ -282,13 +263,7 @@ fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
     for entry in entries {
-        let artist = Artist {
-            name: entry.artist.clone(),
-        };
-        let album = Album {
-            name: entry.album.clone(),
-            artist: artist.clone(),
-        };
+        let album = Album::new(entry.album.clone(), entry.artist.clone());
 
         *albums.entry(album).or_insert(0) += 1;
     }
@@ -300,17 +275,10 @@ fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
     for entry in entries {
-        let artist = Artist {
-            name: entry.artist.clone(),
-        };
-        if artist != *art {
+        if Artist::new(entry.artist.clone()) != *art {
             continue;
         }
-        let album = Album {
-            name: entry.album.clone(),
-            artist: artist.clone(),
-        };
-
+        let album = Album::new(entry.album.clone(), entry.artist.clone());
         *albums.entry(album).or_insert(0) += 1;
     }
 
@@ -321,9 +289,7 @@ fn gather_artists(entries: &Vec<SongEntry>) -> HashMap<Artist, u32> {
     let mut artists: HashMap<Artist, u32> = HashMap::new();
 
     for entry in entries {
-        let artist = Artist {
-            name: entry.artist.clone(),
-        };
+        let artist = Artist::new(entry.artist.clone());
 
         *artists.entry(artist).or_insert(0) += 1;
     }
@@ -352,13 +318,12 @@ pub fn print_aspect(entries: &Vec<SongEntry>, asp: AspectFull) {
     }
 }
 
+/// Counts up the plays of a single artist
 fn gather_artist(entries: &Vec<SongEntry>, art: &Artist) -> ArtistPlays {
     let mut artist_asp = ArtistPlays(art.clone(), 0);
 
     for entry in entries {
-        let artist = Artist {
-            name: entry.artist.clone(),
-        };
+        let artist = Artist::new(entry.artist.clone());
 
         if artist == *art {
             artist_asp.1 += 1;
@@ -368,17 +333,12 @@ fn gather_artist(entries: &Vec<SongEntry>, art: &Artist) -> ArtistPlays {
     artist_asp
 }
 
+/// Counts up the plays of a single album
 fn gather_album(entries: &Vec<SongEntry>, alb: &Album) -> AlbumPlays {
     let mut album_asp = AlbumPlays(alb.clone(), 0);
 
     for entry in entries {
-        let artist = Artist {
-            name: entry.artist.clone(),
-        };
-        let album = Album {
-            name: entry.album.clone(),
-            artist: artist.clone(),
-        };
+        let album = Album::new(entry.album.clone(), entry.artist.clone());
 
         if album == *alb {
             album_asp.1 += 1;
@@ -388,22 +348,16 @@ fn gather_album(entries: &Vec<SongEntry>, alb: &Album) -> AlbumPlays {
     album_asp
 }
 
+/// Counts up the plays of a single song
 fn gather_song(entries: &Vec<SongEntry>, son: &Song) -> SongPlays {
     let mut song_asp = SongPlays(son.clone(), 0);
 
     for entry in entries {
-        let artist = Artist {
-            name: entry.artist.clone(),
-        };
-        let album = Album {
-            name: entry.album.clone(),
-            artist: artist.clone(),
-        };
-        let song = Song {
-            name: entry.track.clone(),
-            album: album.clone(),
-            // id: entry.id.clone(),
-        };
+        let song = Song::new(
+            entry.track.clone(),
+            entry.album.clone(),
+            entry.artist.clone(),
+        );
 
         if song == *son {
             song_asp.1 += 1;

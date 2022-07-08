@@ -39,29 +39,17 @@ fn main() {
     display::print_top(&entries, Aspect::Albums, 10);
     display::print_top(&entries, Aspect::Artists, 10);
 
-    let powerwolf = types::Artist {
-        name: String::from("Powerwolf"),
-    };
+    let powerwolf = types::Artist::new(String::from("Powerwolf"));
     display::print_top_from_artist(&entries, Aspect::Songs, &powerwolf, 10);
     display::print_top_from_artist(&entries, Aspect::Albums, &powerwolf, 10);
 
-    let coat = types::Album {
-        name: String::from("Coat of Arms"),
-        artist: types::Artist {
-            name: "Sabaton".to_string(),
-        },
-    };
+    let coat = types::Album::from_str("Coat of Arms", "Sabaton");
     display::print_top_from_album(&entries, Aspect::Songs, &coat, 50);
 
-    let final_solution = types::Song {
-        name: String::from("The Final Solution"),
-        album: coat.clone(),
-    };
+    let final_solution = types::Song::from_str("The Final Solution", "Coat of Arms", "Sabaton");
     display::print_aspect(
         &entries,
-        AspectFull::Artist(&types::Artist {
-            name: "Sabaton".to_string(),
-        }),
+        AspectFull::Artist(&types::Artist::from_str("Sabaton")),
     );
     println!();
     display::print_aspect(&entries, AspectFull::Album(&coat));
