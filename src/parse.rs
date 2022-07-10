@@ -13,44 +13,80 @@ use crate::types::SongEntry;
 
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
 // null values are either skipped (defaulted to unit tuple or are an Option)
+/// General/raw struct for a single entry in endsong.json
+/// (which are an array of such structs)
+///
+/// Raw because it's directly the deserialization from endsong.json
+///
+/// These are later "converted" to
+/// [crate::types::SongEntry] if they represent a song or to
+/// [crate::types::PodcastEntry] if they represent a podcast (TBD)
 #[derive(Serialize, Deserialize, Debug)]
-struct Entry {
+pub struct Entry {
+    /// timestamp in `"YYY-MM-DD 13:30:30"` format
     ts: String,
+    /// Skipped
     #[serde(skip_deserializing)]
     username: (),
+    /// Skipped
     #[serde(skip_deserializing)]
     platform: (),
-    ms_played: i32,
+    /// Miliseconds the song has been played for
+    ms_played: u32,
+    /// Skipped
     #[serde(skip_deserializing)]
     ip_addr_decrypted: (),
+    /// Skipped
     #[serde(skip_deserializing)]
     user_agent_decrypted: (),
+    /// Name of the song
+    ///
+    /// Option because the field will be empty if it's a podcast
     master_metadata_track_name: Option<String>,
+    /// Name of the album
+    ///
+    /// Option because the field will be empty if it's a podcast
     master_metadata_album_artist_name: Option<String>,
+    /// Name of the artist
+    ///
+    /// Option because the field will be empty if it's a podcast
     master_metadata_album_album_name: Option<String>,
+    /// Spotify URI (ID)
     spotify_track_uri: Option<String>,
+    /// TBD: Podcast stuff
     #[serde(skip_deserializing)]
     episode_name: (),
+    /// TBD: Podcast stuff
     #[serde(skip_deserializing)]
+    /// TBD: Podcast stuff
     episode_show_name: (),
     #[serde(skip_deserializing)]
+    /// TBD: Podcast stuff
     spotify_episode_uri: (),
+    /// Skipped
     #[serde(skip_deserializing)]
     reason_start: (),
+    /// Skipped
     #[serde(skip_deserializing)]
     reason_end: (),
+    /// Skipped
     #[serde(skip_deserializing)]
     shuffle: (),
+    /// Skipped
     #[serde(skip_deserializing)]
     skipped: (),
+    /// Skipped
     #[serde(skip_deserializing)]
     offline: (),
+    /// Skipped
     #[serde(skip_deserializing)]
     offline_timestamp: (),
+    /// Skipped
     #[serde(skip_deserializing)]
     incognito_mode: (),
 }
 
+/// Parses a single `endsong.json` file into a usable format
 fn parse_single(path: String) -> Vec<SongEntry> {
     let u = read_entries_from_file(&path).unwrap_or_else(|_| panic!("File {} is invalid!", &path));
     let mut songs: Vec<SongEntry> = Vec::new();
@@ -69,6 +105,7 @@ fn parse_single(path: String) -> Vec<SongEntry> {
     songs
 }
 
+/// Main parsing function that parses many `endsong.json` files
 pub fn parse(paths: Vec<String>) -> Vec<SongEntry> {
     let mut song_entries: Vec<SongEntry> = Vec::new();
     for path in paths {
@@ -79,6 +116,7 @@ pub fn parse(paths: Vec<String>) -> Vec<SongEntry> {
 }
 
 // https://docs.serde.rs/serde_json/fn.from_reader.html
+/// Responsible for parsing the json into a vector of the general [Entry]
 fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn Error>> {
     // Open the file in read-only mode with buffer.
     let file = File::open(path)?;
@@ -91,6 +129,7 @@ fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn
     Ok(full_entries)
 }
 
+/// Converts the genral [Entry] to a more specific [SongEntry]
 fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
     // to remove podcast entries
     // if the track is null, so are album and artist
@@ -110,6 +149,7 @@ fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
     })
 }
 
+/// Used by [entry_to_songentry()]
 fn parse_option(opt: Option<String>) -> String {
     match opt {
         Some(data) => data,

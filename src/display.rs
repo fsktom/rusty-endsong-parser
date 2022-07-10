@@ -43,6 +43,7 @@ pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
     }
 }
 
+/// Prints top songs or albums from an artist
 pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: Aspect, artist: &Artist, num: usize) {
     match asp {
         Aspect::Songs => {
@@ -59,6 +60,7 @@ pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: Aspect, artist: &Art
     }
 }
 
+/// Prints top songs from an album
 pub fn print_top_from_album(entries: &Vec<SongEntry>, asp: Aspect, album: &Album, num: usize) {
     match asp {
         Aspect::Songs => {
@@ -70,6 +72,7 @@ pub fn print_top_from_album(entries: &Vec<SongEntry>, asp: Aspect, album: &Album
     }
 }
 
+/// Used by [print_top()]
 fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
     let mut music_vec: Vec<(&T, &u32)> = music_dict.iter().collect();
@@ -124,6 +127,7 @@ fn leading_whitespace(num: usize, max_num: usize) -> String {
     format!("{}#{}", order_format, num)
 }
 
+/// Used by [print_top_helper()]
 #[allow(clippy::needless_range_loop)]
 fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
@@ -142,19 +146,29 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     }
 
     if SUM_ALBUMS {
+        /// basically [Song] but without the [Album] field
         #[derive(PartialEq, Eq, Hash, Debug, Clone)]
         struct SongJustArtist {
+            /// Name of the song
             name: String,
+            /// Artist of the song
             artist: Artist,
         }
 
         let mut songs_artist: HashMap<SongJustArtist, u32> = HashMap::new();
 
+        /// tuple struct containing an Album with the amount of plays
         #[derive(PartialEq, Eq, Hash, Debug, Clone)]
         struct AlbumPlays(Album, u32);
+
+        /// contains the name of the song and
+        /// a vector containg all the albums this song is in
         #[derive(PartialEq, Eq, Hash, Debug, Clone)]
         struct SongAlbums {
+            /// Name of the song
             name: String,
+            /// Vector with the albums the song is in with
+            /// the amount of plays in each album
             albums: Vec<AlbumPlays>,
         }
         // to know which album the song had highest amount of plays from
@@ -219,6 +233,7 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     songs
 }
 
+/// Used by [print_top_helper()]
 fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
@@ -239,6 +254,7 @@ fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<S
     songs
 }
 
+/// Used by [print_top_helper()] and [print_album()]
 fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
@@ -259,6 +275,7 @@ fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Son
     songs
 }
 
+/// Used by [print_top_helper()]
 fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
@@ -271,6 +288,7 @@ fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
     albums
 }
 
+/// Used by [print_top_helper()]
 fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
@@ -285,6 +303,7 @@ fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<
     albums
 }
 
+/// Used by [print_top_helper()]
 fn gather_artists(entries: &Vec<SongEntry>) -> HashMap<Artist, u32> {
     let mut artists: HashMap<Artist, u32> = HashMap::new();
 
@@ -297,10 +316,14 @@ fn gather_artists(entries: &Vec<SongEntry>) -> HashMap<Artist, u32> {
     artists
 }
 
+/// Tuple struct containing the artist with the amount of plays
 struct ArtistPlays(Artist, u32);
+/// Tuple struct containing the album with the amount of plays
 struct AlbumPlays(Album, u32);
+/// Tuple struct containing the song with the amount of plays
 struct SongPlays(Song, u32);
 
+/// Prints a specfic aspect
 pub fn print_aspect(entries: &Vec<SongEntry>, asp: AspectFull) {
     match asp {
         AspectFull::Artist(art) => {
@@ -367,6 +390,7 @@ fn gather_song(entries: &Vec<SongEntry>, son: &Song) -> SongPlays {
     song_asp
 }
 
+/// Used by [print_aspect()]
 fn print_artist(entries: &Vec<SongEntry>, artist: HashMap<Album, u32>) {
     let mut artist_vec: Vec<(&Album, &u32)> = artist.iter().collect();
     artist_vec.sort_by(|a, b| b.1.cmp(a.1));
@@ -381,6 +405,7 @@ fn print_artist(entries: &Vec<SongEntry>, artist: HashMap<Album, u32>) {
     }
 }
 
+/// Used by [print_aspect()]
 fn print_album(album: HashMap<Song, u32>) {
     let mut album_vec: Vec<(&Song, &u32)> = album.iter().collect();
     album_vec.sort_by(|a, b| b.1.cmp(a.1));
@@ -398,22 +423,36 @@ fn print_album(album: HashMap<Song, u32>) {
     }
 }
 
+/// TODO
+#[allow(dead_code)]
 pub fn find() {
     todo!()
 }
 
+/// TODO
+#[allow(unused_variables)]
+#[allow(dead_code)]
 fn find_artist(artist_name: String) -> Option<Artist> {
     todo!()
 }
 
+/// TODO
+#[allow(unused_variables)]
+#[allow(dead_code)]
 fn find_album(album_name: String, artist_name: String) -> Option<Album> {
     todo!()
 }
 
+/// TODO
+#[allow(unused_variables)]
+#[allow(dead_code)]
 fn find_song(song_name: String, artist_name: String) -> Option<Vec<Song>> {
     todo!()
 }
 
+/// TODO
+#[allow(unused_variables)]
+#[allow(dead_code)]
 fn find_song_from_album(
     song_name: String,
     album_name: String,

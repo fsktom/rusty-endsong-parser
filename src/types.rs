@@ -4,19 +4,34 @@ use std::fmt::Display;
 
 use chrono::DateTime;
 
+/// Algebraic data type similar to [Aspect]
+/// but used by functions such as [crate::display::print_aspect]
+/// to get more specfic data
+///
+/// Each variant contains a reference to an instance of the aspect
 pub enum AspectFull<'a> {
+    /// with ref to [Artist]
     Artist(&'a Artist),
+    /// with ref to [Album]
     Album(&'a Album),
+    /// with ref to [Song]
     Song(&'a Song),
 }
 
 // you can derive Default in Rust 1.62 https://github.com/rust-lang/rust/pull/94457/
+/// An enum that is among other things used by functions such as
+/// [crate::display::print_top] and its derivatives to know whether
+/// to print top songs ([Aspect::Songs]), albums ([Aspect::Albums])
+/// or artists ([Aspect::Artists])
 #[derive(Default)]
 pub enum Aspect {
+    /// to print top artists
     Artists,
+    /// to print top albums
     Albums,
     // bc Rust still doesn't have default argument values
     // https://www.reddit.com/r/rust/comments/fi6nov/why_does_rust_not_support_default_arguments/fkfezxv/
+    /// to print top songs
     #[default]
     Songs,
 }
@@ -121,15 +136,30 @@ impl Display for Song {
 }
 impl Music for Song {}
 
+/// A more specific version of [crate::parse::Entry]
+/// utilized by many functions here.
+/// Only for entries which are songs (there are also podcast entries)
+/// Contains the relevant metadata of each entry song entry in endsong.json
 #[derive(Clone, Debug)]
 pub struct SongEntry {
+    /// the time at which the song has been played
     pub timestamp: DateTime<chrono::FixedOffset>,
+    /// for how long the song has been played
     pub ms_played: u32,
+    /// name of the song
     pub track: String,
+    /// name of the album
     pub album: String,
+    /// name of the artist
     pub artist: String,
+    /// Spotify URI
     pub id: String,
 }
+
+/// A more specific version of [crate::parse::Entry]
+/// for podcast entries.
+#[derive(Clone, Debug)]
+pub struct PodcastEntry {}
 
 #[cfg(test)]
 mod tests {
