@@ -16,6 +16,9 @@ doesn't keep the zoom level and I'm visually impaired and need to zoom in at lea
 
 ### Lints
 
+[Useful article](https://medium.com/@Razican/enforcing-documentation-in-a-medium-size-rust-project-7b6a2a47b6d6)
+
+[Rustdoc lints](https://doc.rust-lang.org/rustdoc/lints.html)
 ```rust
 #![forbid(missing_docs)]
 #![forbid(clippy::missing_docs_in_private_items)]
