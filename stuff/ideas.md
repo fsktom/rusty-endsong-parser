@@ -1,5 +1,19 @@
 # Ideas
 
+## Plausible
+
+### Traits, associated functions etc
+
+[Inspiration video](https://youtu.be/bnnacleqg6k)
+
+implement `find()` for `Vec<SongEntry>`
+
+so that you can do `entries.find().artist("Sabaton")`
+or `entries.find().song("The Final Solution", "Coat of Arms", "Sabaton")`
+
+maybe also `entries.print_top(Aspect::Songs, 10)` instead of the current
+`display::print_top(&entries, Aspect::Songs, 10)`?
+
 ## Pure Theory
 
 - Web
