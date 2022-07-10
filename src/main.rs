@@ -24,7 +24,8 @@ use crate::types::SongEntries;
 
 /// Currently just tests various [crate::display] functions
 /// after deserializing the endsong.json files using
-/// [crate::parse::parse()]
+/// [crate::parse::parse()] or its wrapper method
+/// implemented in [SongEntries::new()]
 fn main() {
     // this is only temporary -> later on these files should be added by CLI args
     // or both options!
@@ -45,24 +46,21 @@ fn main() {
 
     let entries = SongEntries::new(paths);
 
-    display::print_top(&entries, Aspect::default(), 10);
-    display::print_top(&entries, Aspect::Albums, 10);
-    display::print_top(&entries, Aspect::Artists, 10);
+    entries.print_top(Aspect::default(), 10);
+    entries.print_top(Aspect::Albums, 10);
+    entries.print_top(Aspect::Artists, 10);
 
     let powerwolf = types::Artist::new(String::from("Powerwolf"));
-    display::print_top_from_artist(&entries, Aspect::Songs, &powerwolf, 10);
-    display::print_top_from_artist(&entries, Aspect::Albums, &powerwolf, 10);
+    entries.print_top_from_artist(Aspect::Songs, &powerwolf, 10);
+    entries.print_top_from_artist(Aspect::Albums, &powerwolf, 10);
 
     let coat = types::Album::from_str("Coat of Arms", "Sabaton");
-    display::print_top_from_album(&entries, &coat, 50);
+    entries.print_top_from_album(&coat, 50);
 
     let final_solution = types::Song::from_str("The Final Solution", "Coat of Arms", "Sabaton");
-    display::print_aspect(
-        &entries,
-        AspectFull::Artist(&types::Artist::from_str("Sabaton")),
-    );
+    entries.print_aspect(AspectFull::Artist(&types::Artist::from_str("Sabaton")));
     println!();
-    display::print_aspect(&entries, AspectFull::Album(&coat));
+    entries.print_aspect(AspectFull::Album(&coat));
     println!();
-    display::print_aspect(&entries, AspectFull::Song(&final_solution));
+    entries.print_aspect(AspectFull::Song(&final_solution));
 }

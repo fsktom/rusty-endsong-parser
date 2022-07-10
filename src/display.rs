@@ -16,7 +16,7 @@ use crate::types::{Album, Artist, Song};
 ///
 /// The album displayed in the parantheses will be the one it has the
 /// highest amount of listens from
-const SUM_ALBUMS: bool = true;
+pub const SUM_ALBUMS: bool = true;
 
 /// Prints the top `num` of an `asp`
 ///

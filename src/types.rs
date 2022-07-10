@@ -194,7 +194,7 @@ impl SongEntries {
     /// Will automatically change to total number of that aspect if `num` is higher than that
     ///
     /// Wrapper for [display::print_top()]
-    fn print_top(&self, asp: Aspect, num: usize) {
+    pub fn print_top(&self, asp: Aspect, num: usize) {
         display::print_top(self, asp, num)
     }
 
@@ -206,7 +206,7 @@ impl SongEntries {
     /// Will automatically change to total number of that aspect if `num` is higher than that
     ///
     /// Wrapper for [display::print_top_from_artist()]
-    fn print_top_from_artist(&self, asp: Aspect, artist: &Artist, num: usize) {
+    pub fn print_top_from_artist(&self, asp: Aspect, artist: &Artist, num: usize) {
         display::print_top_from_artist(self, asp, artist, num)
     }
 
@@ -217,7 +217,7 @@ impl SongEntries {
     /// Will automatically change to total number of songs from that album if `num` is higher than that
     ///
     /// Wrapper for [display::print_top_from_album()]
-    fn print_top_from_album(&self, album: &Album, num: usize) {
+    pub fn print_top_from_album(&self, album: &Album, num: usize) {
         display::print_top_from_album(self, album, num)
     }
 
@@ -227,7 +227,7 @@ impl SongEntries {
     /// relevant struct
     ///
     /// Wrapper for [display::print_aspect()]
-    fn print_aspect(&self, asp: AspectFull) {
+    pub fn print_aspect(&self, asp: AspectFull) {
         display::print_aspect(self, asp)
     }
 }
