@@ -20,8 +20,8 @@ const SUM_ALBUMS: bool = true;
 
 /// Prints the top `num` of an `asp`
 ///
-/// * `asp` - Aspect::Songs (affected by [SUM_ALBUMS]) for top songs, Aspect::Albums for top albums and
-/// Aspect::Artists for top artists
+/// * `asp` - [Aspect::Songs] (affected by [SUM_ALBUMS]) for top songs, [Aspect::Albums] for top albums and
+/// [Aspect::Artists] for top artists
 /// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
 pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
     match asp {
@@ -44,6 +44,10 @@ pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
 }
 
 /// Prints top songs or albums from an artist
+///
+/// * `asp` - [Aspect::Songs] for top songs and [Aspect::Albums] for top albums
+/// * `artist` - the [Artist] you want the top songs/albums from
+/// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
 pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: Aspect, artist: &Artist, num: usize) {
     match asp {
         Aspect::Songs => {
@@ -61,15 +65,14 @@ pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: Aspect, artist: &Art
 }
 
 /// Prints top songs from an album
-pub fn print_top_from_album(entries: &Vec<SongEntry>, asp: Aspect, album: &Album, num: usize) {
-    match asp {
-        Aspect::Songs => {
-            println!("=== TOP {} SONGS FROM {} ===", num, album);
-            print_top_helper(gather_songs_with_album(entries, album), num);
-            println!();
-        }
-        _ => println!("gay"),
-    }
+///
+/// * `album` - the [Album] you want the top songs from
+/// * `num` - number of displayed top songs.
+/// Will automatically change to total number of songs from that album if `num` is higher than that
+pub fn print_top_from_album(entries: &Vec<SongEntry>, album: &Album, num: usize) {
+    println!("=== TOP {} SONGS FROM {} ===", num, album);
+    print_top_helper(gather_songs_with_album(entries, album), num);
+    println!();
 }
 
 /// Used by [print_top()]
@@ -324,6 +327,9 @@ struct AlbumPlays(Album, u32);
 struct SongPlays(Song, u32);
 
 /// Prints a specfic aspect
+///
+/// * `asp` - the aspect you want informationa about containing the
+/// relevant struct
 pub fn print_aspect(entries: &Vec<SongEntry>, asp: AspectFull) {
     match asp {
         AspectFull::Artist(art) => {

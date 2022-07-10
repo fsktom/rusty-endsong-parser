@@ -14,6 +14,8 @@ or `entries.find().song("The Final Solution", "Coat of Arms", "Sabaton")`
 maybe also `entries.print_top(Aspect::Songs, 10)` instead of the current
 `display::print_top(&entries, Aspect::Songs, 10)`?
 
+=> partially implemented!
+
 ## Pure Theory
 
 - Web

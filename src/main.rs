@@ -20,6 +20,7 @@ mod types;
 
 use crate::types::Aspect;
 use crate::types::AspectFull;
+use crate::types::SongEntries;
 
 /// Currently just tests various [crate::display] functions
 /// after deserializing the endsong.json files using
@@ -42,7 +43,7 @@ fn main() {
         // format!("{}endsong_7.json", root),
     ];
 
-    let entries = parse::parse(paths);
+    let entries = SongEntries::new(paths);
 
     display::print_top(&entries, Aspect::default(), 10);
     display::print_top(&entries, Aspect::Albums, 10);
@@ -53,7 +54,7 @@ fn main() {
     display::print_top_from_artist(&entries, Aspect::Albums, &powerwolf, 10);
 
     let coat = types::Album::from_str("Coat of Arms", "Sabaton");
-    display::print_top_from_album(&entries, Aspect::Songs, &coat, 50);
+    display::print_top_from_album(&entries, &coat, 50);
 
     let final_solution = types::Song::from_str("The Final Solution", "Coat of Arms", "Sabaton");
     display::print_aspect(

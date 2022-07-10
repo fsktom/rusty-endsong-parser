@@ -4,6 +4,9 @@ use std::fmt::Display;
 
 use chrono::DateTime;
 
+use crate::display;
+use crate::parse;
+
 /// Algebraic data type similar to [Aspect]
 /// but used by functions such as [crate::display::print_aspect]
 /// to get more specfic data
@@ -154,6 +157,79 @@ pub struct SongEntry {
     pub artist: String,
     /// Spotify URI
     pub id: String,
+}
+
+/// Struct containing a vector of [SongEntry]
+///
+/// Fundamental for the use of this program
+pub struct SongEntries(Vec<SongEntry>);
+
+// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
+// so that when you use &self it refers to &self.0 (Vec<SongEntry>)
+impl std::ops::Deref for SongEntries {
+    type Target = Vec<SongEntry>;
+    fn deref(&self) -> &Vec<SongEntry> {
+        &self.0
+    }
+}
+impl std::ops::DerefMut for SongEntries {
+    fn deref_mut(&mut self) -> &mut Vec<SongEntry> {
+        &mut self.0
+    }
+}
+
+impl SongEntries {
+    /// Creates an instance of SongEntries
+    ///
+    /// * `paths` - a vector containing paths to each `endsong.json` file
+    pub fn new(paths: Vec<String>) -> SongEntries {
+        SongEntries(parse::parse(paths))
+    }
+
+    /// Prints the top `num` of an `asp`
+    ///
+    /// * `asp` - [Aspect::Songs] (affected by [display::SUM_ALBUMS]) for top songs, [Aspect::Albums] for top albums and
+    /// [Aspect::Artists] for top artists
+    /// * `num` - number of displayed top aspects.
+    /// Will automatically change to total number of that aspect if `num` is higher than that
+    ///
+    /// Wrapper for [display::print_top()]
+    fn print_top(&self, asp: Aspect, num: usize) {
+        display::print_top(self, asp, num)
+    }
+
+    /// Prints top songs or albums from an artist
+    ///
+    /// * `asp` - [Aspect::Songs] for top songs and [Aspect::Albums] for top albums
+    /// * `artist` - the [Artist] you want the top songs/albums from
+    /// * `num` - number of displayed top aspects.
+    /// Will automatically change to total number of that aspect if `num` is higher than that
+    ///
+    /// Wrapper for [display::print_top_from_artist()]
+    fn print_top_from_artist(&self, asp: Aspect, artist: &Artist, num: usize) {
+        display::print_top_from_artist(self, asp, artist, num)
+    }
+
+    /// Prints top songs from an album
+    ///
+    /// * `album` - the [Album] you want the top songs from
+    /// * `num` - number of displayed top songs.
+    /// Will automatically change to total number of songs from that album if `num` is higher than that
+    ///
+    /// Wrapper for [display::print_top_from_album()]
+    fn print_top_from_album(&self, album: &Album, num: usize) {
+        display::print_top_from_album(self, album, num)
+    }
+
+    /// Prints a specfic aspect
+    ///
+    /// * `asp` - the aspect you want informationa about containing the
+    /// relevant struct
+    ///
+    /// Wrapper for [display::print_aspect()]
+    fn print_aspect(&self, asp: AspectFull) {
+        display::print_aspect(self, asp)
+    }
 }
 
 /// A more specific version of [crate::parse::Entry]
