@@ -233,8 +233,8 @@ impl SongEntries {
 
     /// Adds search capability
     ///
-    /// Use with methods from [Find]: `.artist()`, `.album()`,
-    /// `.song_from_album()` and `.song()`
+    /// Use with methods from [Find]: [`.artist()`](Find::artist()), [`.album()`](Find::album()),
+    /// [`.song_from_album()`](Find::song_from_album()) and [`.song()`](Find::song())
     pub fn find(&self) -> Find {
         Find(self)
     }
