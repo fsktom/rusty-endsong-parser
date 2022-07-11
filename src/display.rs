@@ -130,6 +130,17 @@ fn leading_whitespace(num: usize, max_num: usize) -> String {
     format!("{}#{}", order_format, num)
 }
 
+/// basically [Song] but without the [Album] field
+/// used in [print_top] if [SUM_ALBUMS] is set to true
+/// and in [find_song]
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+struct SongJustArtist {
+    /// Name of the song
+    name: String,
+    /// Artist of the song
+    artist: Artist,
+}
+
 /// Used by [print_top_helper()]
 #[allow(clippy::needless_range_loop)]
 fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
@@ -149,15 +160,6 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     }
 
     if SUM_ALBUMS {
-        /// basically [Song] but without the [Album] field
-        #[derive(PartialEq, Eq, Hash, Debug, Clone)]
-        struct SongJustArtist {
-            /// Name of the song
-            name: String,
-            /// Artist of the song
-            artist: Artist,
-        }
-
         let mut songs_artist: HashMap<SongJustArtist, u32> = HashMap::new();
 
         /// tuple struct containing an Album with the amount of plays
@@ -429,42 +431,122 @@ fn print_album(album: HashMap<Song, u32>) {
     }
 }
 
-/// TODO
-#[allow(dead_code)]
-pub fn find() {
-    todo!()
+/// Searches the entries for if the given artist exists in the dataset
+pub fn find_artist(entries: &Vec<SongEntry>, artist_name: String) -> Option<Artist> {
+    let usr_artist = Artist::new(artist_name);
+
+    for entry in entries {
+        // .to_lowercase() so that user input capitalization doesn't matter
+        if entry
+            .artist
+            .to_lowercase()
+            .eq(&usr_artist.name.to_lowercase())
+        {
+            return Some(usr_artist);
+        }
+    }
+    None
 }
 
-/// TODO
-#[allow(unused_variables)]
-#[allow(dead_code)]
-fn find_artist(artist_name: String) -> Option<Artist> {
-    todo!()
+/// Searches the entries for if the given album exists in the dataset
+pub fn find_album(
+    entries: &Vec<SongEntry>,
+    album_name: String,
+    artist_name: String,
+) -> Option<Album> {
+    let usr_album = Album::new(album_name, artist_name);
+
+    for entry in entries {
+        // .to_lowercase() so that user input capitalization doesn't matter
+        if entry.album.to_lowercase().eq(&usr_album.name)
+            && entry
+                .artist
+                .to_lowercase()
+                .eq(&usr_album.artist.name.to_lowercase())
+        {
+            return Some(usr_album);
+        }
+    }
+    None
 }
 
-/// TODO
-#[allow(unused_variables)]
-#[allow(dead_code)]
-fn find_album(album_name: String, artist_name: String) -> Option<Album> {
-    todo!()
-}
-
-/// TODO
-#[allow(unused_variables)]
-#[allow(dead_code)]
-fn find_song(song_name: String, artist_name: String) -> Option<Vec<Song>> {
-    todo!()
-}
-
-/// TODO
-#[allow(unused_variables)]
-#[allow(dead_code)]
-fn find_song_from_album(
+/// Searches the entries for if the given song (in that specific album)
+/// exists in the dataset
+pub fn find_song_from_album(
+    entries: &Vec<SongEntry>,
     song_name: String,
     album_name: String,
     artist_name: String,
 ) -> Option<Song> {
-    todo!()
+    // .to_lowercase() so that user input capitalization doesn't matter
+    let usr_song = Song::new(
+        song_name.to_lowercase(),
+        album_name.to_lowercase(),
+        artist_name.to_lowercase(),
+    );
+
+    for entry in entries {
+        if Song::new(
+            entry.track.clone().to_lowercase(),
+            entry.album.clone().to_lowercase(),
+            entry.artist.clone().to_lowercase(),
+        )
+        .eq(&usr_song)
+        {
+            // but here so that the version with proper
+            // capitalization is returned
+            return Some(Song::new(
+                entry.track.clone(),
+                entry.album.clone(),
+                entry.artist.clone(),
+            ));
+        }
+    }
+    None
+}
+
+/// Searches the dataset for multiple versions of a song
+///
+/// Returns a [Vec<Song>] containing an instance
+/// of [Song] for every album it's been found in
+pub fn find_song(
+    entries: &Vec<SongEntry>,
+    song_name: String,
+    artist_name: String,
+) -> Option<Vec<Song>> {
+    let usr_song = SongJustArtist {
+        name: song_name,
+        artist: Artist::new(artist_name),
+    };
+
+    let mut song_versions: Vec<Song> = Vec::new();
+
+    for entry in entries {
+        // .to_lowercase() so that user input capitalization doesn't matter
+        if entry.track.to_lowercase().eq(&usr_song.name.to_lowercase())
+            && entry
+                .artist
+                .to_lowercase()
+                .eq(&usr_song.artist.name.to_lowercase())
+        {
+            let song_v = Song::new(
+                entry.track.clone(),
+                entry.album.clone(),
+                entry.artist.clone(),
+            );
+            if !song_versions.contains(&song_v) {
+                song_versions.push(song_v);
+            }
+        }
+    }
+
+    println!("{:?}", song_versions);
+
+    if !song_versions.is_empty() {
+        return Some(song_versions);
+    }
+
+    None
 }
 
 // https://doc.rust-lang.org/book/ch11-03-test-organization.html#unit-tests

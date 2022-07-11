@@ -230,6 +230,9 @@ impl SongEntries {
     pub fn print_aspect(&self, asp: AspectFull) {
         display::print_aspect(self, asp)
     }
+
+    // Searches for if the given aspect exists within the dataset
+    // pub fn find() {}
 }
 
 /// A more specific version of [crate::parse::Entry]
