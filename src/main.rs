@@ -23,10 +23,9 @@ use types::Aspect;
 use types::AspectFull;
 use types::SongEntries;
 
-/// Currently just tests various [crate::display] functions
-/// after deserializing the endsong.json files using
-/// [crate::parse::parse()] or its wrapper method
-/// implemented in [SongEntries::new()]
+/// Intializes the data,
+/// tests some functions using [test()] and
+/// starts the shell instance
 fn main() {
     // this is only temporary -> later on these files should be added by CLI args
     // or both options!
@@ -47,6 +46,14 @@ fn main() {
 
     let entries = SongEntries::new(paths);
 
+    test(&entries);
+
+    ui::start(&entries);
+}
+
+/// tests various [crate::display] functions
+/// or its wrapper associated methods from [SongEntries]
+fn test(entries: &SongEntries) {
     entries.print_top(Aspect::default(), 10);
     entries.print_top(Aspect::Albums, 10);
     entries.print_top(Aspect::Artists, 10);
@@ -82,6 +89,4 @@ fn main() {
         "Frozen Winds Of Thyraxia".to_string(),
         "Wizardthrone".to_string(),
     ));
-
-    ui::start(&entries);
 }
