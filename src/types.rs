@@ -63,6 +63,7 @@ impl Artist {
     }
 }
 impl Display for Artist {
+    /// Formats the struct in "<artist_name>" format
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.name)
     }
@@ -95,6 +96,7 @@ impl Album {
     }
 }
 impl Display for Album {
+    /// Formats the struct in "<artist_name> - <album_name>" format
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} - {}", self.artist.name, self.name)
     }
@@ -129,6 +131,7 @@ impl Song {
     }
 }
 impl Display for Song {
+    /// Formats the struct in "<artist_name> - <song_name> (<album_name>)" format
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
