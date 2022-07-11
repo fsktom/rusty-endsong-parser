@@ -8,16 +8,12 @@ use rustyline::{error::ReadlineError, ColorMode, Config, Editor};
 
 /// Starts the CLI/shell instance
 pub fn start(entries: &SongEntries) {
-    // I SWEAR TO GOD THIS IS ACCIDENTAL THAT THE STRINGS ARE THE SAME LENGTH
-    // WTF?!? HOW AM I SO LUCKY XDD
-    // I DIDN'T NOTICE THIS UNTIL 20mins LATER
     println!("=== INTERACTIVE MODE ACTIVATED ===");
     println!("PRESS 'CTRL+C' TO EXIT THE PROGRAM");
     println!("TYPE 'help' FOR AVAILABLE COMMANDS");
-    // https://old.reddit.com/r/rust/comments/vrdmuf/introducing_my_first_rust_project_trane_an/
-    // => https://github.com/trane-project/trane-cli
-    // ==> https://github.com/kkawakam/rustyline
 
+    // inspired by
+    // https://github.com/trane-project/trane-cli/blob/master/src/main.rs
     let config = Config::builder()
         .auto_add_history(true)
         .color_mode(ColorMode::Enabled)
