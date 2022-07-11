@@ -231,8 +231,74 @@ impl SongEntries {
         display::print_aspect(self, asp)
     }
 
-    // Searches for if the given aspect exists within the dataset
-    // pub fn find() {}
+    /// Adds search capability
+    ///
+    /// Use with methods from [Find]: `.artist()`, `.album()`,
+    /// `.song_from_album()` and `.song()`
+    pub fn find(&self) -> Find {
+        Find(self)
+    }
+}
+
+/// Used by [SongEntries] as a wrapper for
+/// [display::find_artist()], [display::find_album()],
+/// [display::find_song_from_album()] and [display::find_song()]
+///
+/// # Examples
+///
+/// ```
+/// let entries = SongEntries::new(paths);
+/// dbg!(entries.find().artist("Sabaton".to_string()));
+/// ```
+pub struct Find<'a>(&'a SongEntries);
+
+// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
+// so that when you use &self it refers to &self.0 (SongEntries,
+// which itself refers to Vec<SongEntry> xDD
+impl<'a> std::ops::Deref for Find<'a> {
+    type Target = SongEntries;
+    fn deref(&self) -> &SongEntries {
+        self.0
+    }
+}
+
+impl<'a> Find<'a> {
+    /// Searches the entries for if the given artist exists in the dataset
+    ///
+    /// Wrapper for [display::find_artist()]
+    pub fn artist(&self, artist_name: String) -> Option<Artist> {
+        display::find_artist(self, artist_name)
+    }
+
+    /// Searches the entries for if the given album exists in the dataset
+    ///
+    /// Wrapper for [display::find_album()]
+    pub fn album(&self, album_name: String, artist_name: String) -> Option<Album> {
+        display::find_album(self, album_name, artist_name)
+    }
+
+    /// Searches the entries for if the given song (in that specific album)
+    /// exists in the dataset
+    ///
+    /// Wrapper for [display::find_song_from_album()]
+    pub fn song_from_album(
+        &self,
+        song_name: String,
+        album_name: String,
+        artist_name: String,
+    ) -> Option<Song> {
+        display::find_song_from_album(self, song_name, album_name, artist_name)
+    }
+
+    /// Searches the dataset for multiple versions of a song
+    ///
+    /// Returns a [Vec<Song>] containing an instance
+    /// of [Song] for every album it's been found in
+    ///
+    /// Wrapper for [display::find_song()]
+    pub fn song(&self, song_name: String, artist_name: String) -> Option<Vec<Song>> {
+        display::find_song(self, song_name, artist_name)
+    }
 }
 
 /// A more specific version of [crate::parse::Entry]

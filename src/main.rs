@@ -64,30 +64,21 @@ fn main() {
     println!();
     entries.print_aspect(AspectFull::Song(&final_solution));
 
-    dbg!(display::find_artist(&entries, "Sabaton".to_string()));
-    dbg!(display::find_album(
-        &entries,
-        "Coat of Arms".to_string(),
-        "Sabaton".to_string()
-    ));
-    dbg!(display::find_song_from_album(
-        &entries,
+    dbg!(entries.find().artist("Sabaton".to_string()));
+    dbg!(entries
+        .find()
+        .album("COAT OF ARMS".to_string(), "sabaton".to_string(),));
+    dbg!(entries.find().song_from_album(
         "The FINAL SOLutiOn".to_string(),
         "COAT OF ARMS".to_string(),
         "sabaton".to_string(),
     ));
-    dbg!(display::find_artist(
-        &entries,
-        "daduasdy712e qyw7".to_string()
-    ));
+    dbg!(entries.find().artist("daduasdy712e qyw7".to_string()));
     // here to test whether it finds the multiple versions of this song (from many albums)
     // btw.. fuck Wizardthrone for releasing singles one after the other with each
     // containing all the songs that were in the previous one ffs
-    dbg!(display::find_song(
-        &entries,
+    dbg!(entries.find().song(
         "Frozen Winds Of Thyraxia".to_string(),
         "Wizardthrone".to_string(),
     ));
-
-    // entries.print_aspect(AspectFull::Artist(&types::Artist::from_str("Wizardthrone")));
 }

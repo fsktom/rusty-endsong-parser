@@ -454,17 +454,14 @@ pub fn find_album(
     album_name: String,
     artist_name: String,
 ) -> Option<Album> {
-    let usr_album = Album::new(album_name, artist_name);
+    // .to_lowercase() so that user input capitalization doesn't matter
+    let usr_album = Album::new(album_name.to_lowercase(), artist_name.to_lowercase());
 
     for entry in entries {
-        // .to_lowercase() so that user input capitalization doesn't matter
-        if entry.album.to_lowercase().eq(&usr_album.name)
-            && entry
-                .artist
-                .to_lowercase()
-                .eq(&usr_album.artist.name.to_lowercase())
-        {
-            return Some(usr_album);
+        if Album::new(entry.album.to_lowercase(), entry.artist.to_lowercase()).eq(&usr_album) {
+            // but here so that the version with proper
+            // capitalization is returned
+            return Some(Album::new(entry.album.clone(), entry.artist.clone()));
         }
     }
     None
@@ -539,8 +536,6 @@ pub fn find_song(
             }
         }
     }
-
-    println!("{:?}", song_versions);
 
     if !song_versions.is_empty() {
         return Some(song_versions);
