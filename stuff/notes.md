@@ -2,7 +2,21 @@
 
 ## Documentation
 
-[rustdoc book article about writing documentation](https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html)
+- [Rust By Example article](https://doc.rust-lang.org/rust-by-example/meta/doc.html)
+- [The Rust Book: Making Useful Documentation Comments][book]
+- [The rustdoc Book][rustdoc-book]
+- [The Reference: Doc comments][ref-comments]
+- [RFC 1574: API Documentation Conventions][api-conv]
+- [RFC 1946: Relative links to other items from doc comments (intra-rustdoc links)][intra-links]
+- [Is there any documentation style guide for comments? (reddit)][reddit]
+
+[markdown]: https://en.wikipedia.org/wiki/Markdown
+[book]: https://doc.rust-lang.org/book/ch14-02-publishing-to-crates-io.html#making-useful-documentation-comments
+[ref-comments]: https://doc.rust-lang.org/stable/reference/comments.html#doc-comments
+[rustdoc-book]: https://doc.rust-lang.org/rustdoc/index.html
+[api-conv]: https://rust-lang.github.io/rfcs/1574-more-api-documentation-conventions.html#appendix-a-full-conventions-text
+[intra-links]: https://rust-lang.github.io/rfcs/1946-intra-rustdoc-links.html
+[reddit]: https://www.reddit.com/r/rust/comments/ahb50s/is_there_any_documentation_style_guide_for/
 
 ### Running documentation locally
 
