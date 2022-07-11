@@ -2,6 +2,8 @@
 
 ## Documentation
 
+[rustdoc book article about writing documentation](https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html)
+
 ### Running documentation locally
 
 - [Article I used](https://dev.to/deciduously/prepare-your-rust-api-docs-for-github-pages-2n5i)
