@@ -433,16 +433,12 @@ fn print_album(album: HashMap<Song, u32>) {
 
 /// Searches the entries for if the given artist exists in the dataset
 pub fn find_artist(entries: &Vec<SongEntry>, artist_name: String) -> Option<Artist> {
-    let usr_artist = Artist::new(artist_name);
+    let usr_artist = Artist::new(artist_name.to_lowercase());
 
     for entry in entries {
         // .to_lowercase() so that user input capitalization doesn't matter
-        if entry
-            .artist
-            .to_lowercase()
-            .eq(&usr_artist.name.to_lowercase())
-        {
-            return Some(usr_artist);
+        if entry.artist.to_lowercase().eq(&usr_artist.name) {
+            return Some(Artist::new(entry.artist.clone()));
         }
     }
     None
