@@ -17,10 +17,11 @@
 mod display;
 mod parse;
 mod types;
+mod ui;
 
-use crate::types::Aspect;
-use crate::types::AspectFull;
-use crate::types::SongEntries;
+use types::Aspect;
+use types::AspectFull;
+use types::SongEntries;
 
 /// Currently just tests various [crate::display] functions
 /// after deserializing the endsong.json files using
@@ -81,4 +82,6 @@ fn main() {
         "Frozen Winds Of Thyraxia".to_string(),
         "Wizardthrone".to_string(),
     ));
+
+    ui::start(&entries);
 }
