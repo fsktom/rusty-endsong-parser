@@ -72,20 +72,52 @@ pub fn start(entries: &SongEntries) {
 fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
     let inp = inp.as_str();
     match inp {
-        "help" => help(),
-        "print artist" => {
+        "help" | "h" => help(),
+        "print artist" | "part" => {
+            println!("Artist name?");
             // makes the prompt cyan and the rest default color
             let line = rl.readline("  \x1b[1;36m>>\x1b[0m ");
             match line {
-                Ok(usr_input) => {
-                    let art_opt = entries.find().artist(usr_input);
-                    match art_opt {
-                        Some(art) => entries.print_aspect(AspectFull::Artist(&art)),
-                        None => {
-                            println!("Sorry, I couldn't find any artist with that name!")
+                Ok(usr_input) => match entries.find().artist(usr_input) {
+                    Some(art) => {
+                        entries.print_aspect(AspectFull::Artist(&art));
+                    }
+                    None => println!("Sorry, I couldn't find any artist with that name!"),
+                },
+                Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+            }
+        }
+        "print album" | "palb" => {
+            println!("Artist name?");
+            // makes the prompt cyan and the rest default color
+            let line = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+            match line {
+                Ok(usr_input_art) => match entries.find().artist(usr_input_art) {
+                    Some(art) => {
+                        println!("Album name?");
+                        let line_alb = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+
+                        match line_alb {
+                            Ok(usr_input_alb) => {
+                                match entries.find().album(usr_input_alb, art.name) {
+                                    Some(alb) => {
+                                        entries.print_aspect(AspectFull::Album(&alb));
+                                    }
+                                    None => {
+                                        println!("Sorry, I couldn't find any album with that name!")
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                println!(
+                                    "Something went wrong! Please try again. Error code: {}",
+                                    e
+                                )
+                            }
                         }
                     }
-                }
+                    None => println!("Sorry, I couldn't find any artist with that name!"),
+                },
                 Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
             }
         }
@@ -96,11 +128,24 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
 /// Prints the available commands to the [std::io::stdout]
 fn help() {
     let mut commands: HashMap<&str, &str> = HashMap::new();
-    commands.insert("help", "prints this command list");
+    // alias in pink! \x1b[1;35m
+    commands.insert(
+        "help",
+        "prints this command list
+        \t\x1b[1;35malias: h",
+    );
     commands.insert(
         "print artist",
-        "prints every album from the artist -
-        \topens another prompt where you input the artist name",
+        "prints every album from the artist
+        \topens another prompt where you input the artist name
+        \t\x1b[1;35malias: part",
+    );
+    commands.insert(
+        "print album",
+        "prints every song from the album -
+        \topens another prompt where you input the artist name
+        \tand then the album name
+        \t\x1b[1;35malias: palb",
     );
 
     for (k, v) in commands {
