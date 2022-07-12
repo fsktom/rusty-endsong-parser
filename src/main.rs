@@ -77,11 +77,14 @@ fn test(entries: &SongEntries) {
         .find()
         .album("COAT OF ARMS".to_string(), "sabaton".to_string(),)
         .unwrap());
-    dbg!(entries.find().song_from_album(
-        "The FINAL SOLutiOn".to_string(),
-        "COAT OF ARMS".to_string(),
-        "sabaton".to_string(),
-    ));
+    dbg!(entries
+        .find()
+        .song_from_album(
+            "The FINAL SOLutiOn".to_string(),
+            "COAT OF ARMS".to_string(),
+            "sabaton".to_string(),
+        )
+        .unwrap());
     match entries.find().artist("daduasdy712e qyw7".to_string()) {
         Ok(art) => {
             dbg!(art);

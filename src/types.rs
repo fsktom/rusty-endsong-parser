@@ -253,6 +253,10 @@ impl SongEntries {
 /// let entries = SongEntries::new(paths);
 /// dbg!(entries.find().artist("Sabaton".to_string()));
 /// ```
+///
+/// # Errors
+///
+/// Methods can return an [Err] with [NotFoundError]
 pub struct Find<'a>(&'a SongEntries);
 
 // https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
@@ -272,9 +276,9 @@ impl<'a> Find<'a> {
     ///
     /// # Errors
     ///
-    /// This function will return an [Err] with [ArtistNotFoundError]
+    /// This function will return an [Err] with [NotFoundError::Artist]
     /// if it cannot find an artist with the given name
-    pub fn artist(&self, artist_name: String) -> Result<Artist, ArtistNotFoundError> {
+    pub fn artist(&self, artist_name: String) -> Result<Artist, NotFoundError> {
         display::find_artist(self, artist_name)
     }
 
@@ -284,13 +288,9 @@ impl<'a> Find<'a> {
     ///
     /// # Errors
     ///
-    /// This function will return an [Err] with [AlbumNotFoundError]
+    /// This function will return an [Err] with [NotFoundError::Album]
     /// if it cannot find an album with the given name and artist
-    pub fn album(
-        &self,
-        album_name: String,
-        artist_name: String,
-    ) -> Result<Album, AlbumNotFoundError> {
+    pub fn album(&self, album_name: String, artist_name: String) -> Result<Album, NotFoundError> {
         display::find_album(self, album_name, artist_name)
     }
 
@@ -298,12 +298,18 @@ impl<'a> Find<'a> {
     /// exists in the dataset
     ///
     /// Wrapper for [display::find_song_from_album()]
+    ///
+    /// # Errors
+    ///
+    /// This function will return an [Err] with [NotFoundError::Song]
+    /// if it cannot find a song with the given name from the
+    /// given album and artist
     pub fn song_from_album(
         &self,
         song_name: String,
         album_name: String,
         artist_name: String,
-    ) -> Option<Song> {
+    ) -> Result<Song, NotFoundError> {
         display::find_song_from_album(self, song_name, album_name, artist_name)
     }
 
@@ -318,28 +324,48 @@ impl<'a> Find<'a> {
     }
 }
 
-/// Error raised by [display::find_artist()] or its wrapper method [Find::artist()]
-/// if it cannot find an artist with the given name
+/// Errors raised by `display::find_*` functions and [Find] methods
+/// when they don't find an [Artist], [Album] or [Song]
+///
+/// loosely based on [std::io::ErrorKind]
 #[derive(Debug)]
-pub struct ArtistNotFoundError;
-/// Error message: "Sorry, I couldn't find any artist with that name!"
-impl Display for ArtistNotFoundError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Sorry, I couldn't find any artist with that name!")
-    }
+pub enum NotFoundError {
+    /// Artist with that name was not found
+    ///
+    /// Error message: "Sorry, I couldn't find any artist with that name!"
+    Artist,
+    /// Album with that name from that artist was not found
+    ///
+    /// Error message: "Sorry, I couldn't find any album with that name
+    /// from that artist!"
+    Album,
+    /// Song with that name from that album and artist was not found
+    ///
+    /// Error message:
+    /// "Sorry, I couldn't find any song with
+    /// that name from that album and artist!"
+    Song,
 }
-
-/// Error raised by [display::find_album()] or its wrapper method [Find::album()]
-/// if it cannot find an album with the given name and artist
-#[derive(Debug)]
-pub struct AlbumNotFoundError;
-/// Error message: "Sorry, I couldn't find any album with that name from that artist!"
-impl Display for AlbumNotFoundError {
+impl Display for NotFoundError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Sorry, I couldn't find any album with that name from that artist!"
-        )
+        match self {
+            NotFoundError::Artist => {
+                write!(f, "Sorry, I couldn't find any artist with that name!")
+            }
+            NotFoundError::Album => {
+                write!(
+                    f,
+                    "Sorry, I couldn't find any album with that name from that artist!"
+                )
+            }
+            NotFoundError::Song => {
+                write!(
+                    f,
+                    "Sorry, I couldn't find any song with
+                    that name from that album and artist!"
+                )
+            }
+        }
     }
 }
 

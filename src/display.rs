@@ -6,9 +6,9 @@ use std::collections::HashMap;
 use crate::types::Aspect;
 use crate::types::AspectFull;
 use crate::types::Music;
+use crate::types::NotFoundError;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
-use crate::types::{AlbumNotFoundError, ArtistNotFoundError};
 
 /// If set to true, it will sum up the plays of one song across multiple
 /// albums it may be in
@@ -438,12 +438,9 @@ fn print_album(album: HashMap<Song, u32>) {
 ///
 /// # Errors
 ///
-/// This function will return an [Err] with [ArtistNotFoundError]
+/// This function will return an [Err] with [NotFoundError::Artist]
 /// if it cannot find an artist with the given name
-pub fn find_artist(
-    entries: &Vec<SongEntry>,
-    artist_name: String,
-) -> Result<Artist, ArtistNotFoundError> {
+pub fn find_artist(entries: &Vec<SongEntry>, artist_name: String) -> Result<Artist, NotFoundError> {
     let usr_artist = Artist::new(artist_name.to_lowercase());
 
     for entry in entries {
@@ -452,7 +449,7 @@ pub fn find_artist(
             return Ok(Artist::new(entry.artist.clone()));
         }
     }
-    Err(ArtistNotFoundError)
+    Err(NotFoundError::Artist)
 }
 
 /// Searches the entries for if the given album exists in the dataset
@@ -461,13 +458,13 @@ pub fn find_artist(
 ///
 /// # Errors
 ///
-/// This function will return an [Err] with [AlbumNotFoundError]
+/// This function will return an [Err] with [NotFoundError::Album]
 /// if it cannot find an album with the given name and artist
 pub fn find_album(
     entries: &Vec<SongEntry>,
     album_name: String,
     artist_name: String,
-) -> Result<Album, AlbumNotFoundError> {
+) -> Result<Album, NotFoundError> {
     // .to_lowercase() so that user input capitalization doesn't matter
     let usr_album = Album::new(album_name.to_lowercase(), artist_name.to_lowercase());
 
@@ -478,7 +475,7 @@ pub fn find_album(
             return Ok(Album::new(entry.album.clone(), entry.artist.clone()));
         }
     }
-    Err(AlbumNotFoundError)
+    Err(NotFoundError::Album)
 }
 
 /// Searches the entries for if the given song (in that specific album)
@@ -488,7 +485,7 @@ pub fn find_song_from_album(
     song_name: String,
     album_name: String,
     artist_name: String,
-) -> Option<Song> {
+) -> Result<Song, NotFoundError> {
     // .to_lowercase() so that user input capitalization doesn't matter
     let usr_song = Song::new(
         song_name.to_lowercase(),
@@ -506,14 +503,14 @@ pub fn find_song_from_album(
         {
             // but here so that the version with proper
             // capitalization is returned
-            return Some(Song::new(
+            return Ok(Song::new(
                 entry.track.clone(),
                 entry.album.clone(),
                 entry.artist.clone(),
             ));
         }
     }
-    None
+    Err(NotFoundError::Song)
 }
 
 /// Searches the dataset for multiple versions of a song
