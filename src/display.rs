@@ -434,6 +434,8 @@ fn print_album(album: HashMap<Song, u32>) {
 
 /// Searches the entries for if the given artist exists in the dataset
 ///
+/// Wrapped by [crate::types::Find::artist()]
+///
 /// # Errors
 ///
 /// This function will return an [Err] with [ArtistNotFoundError]
@@ -454,6 +456,8 @@ pub fn find_artist(
 }
 
 /// Searches the entries for if the given album exists in the dataset
+///
+/// Wrapped by [crate::types::Find::album()]
 ///
 /// # Errors
 ///
