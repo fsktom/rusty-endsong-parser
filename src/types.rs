@@ -8,7 +8,7 @@ use crate::display;
 use crate::parse;
 
 /// Algebraic data type similar to [Aspect]
-/// but used by functions such as [crate::display::print_aspect]
+/// but used by functions such as [display::print_aspect]
 /// to get more specfic data
 ///
 /// Each variant contains a reference to an instance of the aspect
@@ -23,7 +23,7 @@ pub enum AspectFull<'a> {
 
 // you can derive Default in Rust 1.62 https://github.com/rust-lang/rust/pull/94457/
 /// An enum that is among other things used by functions such as
-/// [crate::display::print_top] and its derivatives to know whether
+/// [display::print_top] and its derivatives to know whether
 /// to print top songs ([Aspect::Songs]), albums ([Aspect::Albums])
 /// or artists ([Aspect::Artists])
 #[derive(Default)]
@@ -39,7 +39,7 @@ pub enum Aspect {
     Songs,
 }
 
-/// Used for functions in [crate::display] that accept either
+/// Used for functions in [display] that accept either
 /// a [Song], [Album] or [Artist] struct
 pub trait Music: Display {}
 
@@ -142,7 +142,7 @@ impl Display for Song {
 }
 impl Music for Song {}
 
-/// A more specific version of [crate::parse::Entry]
+/// A more specific version of [parse::Entry]
 /// utilized by many functions here.
 /// Only for entries which are songs (there are also podcast entries)
 /// Contains the relevant metadata of each entry song entry in endsong.json
@@ -369,7 +369,7 @@ impl Display for NotFoundError {
     }
 }
 
-/// A more specific version of [crate::parse::Entry]
+/// A more specific version of [parse::Entry]
 /// for podcast entries.
 #[derive(Clone, Debug)]
 pub struct PodcastEntry {}
