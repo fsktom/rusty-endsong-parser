@@ -322,6 +322,7 @@ impl<'a> Find<'a> {
 /// if it cannot find an artist with the given name
 #[derive(Debug)]
 pub struct ArtistNotFoundError;
+/// Error message: "Sorry, I couldn't find any artist with that name!"
 impl Display for ArtistNotFoundError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Sorry, I couldn't find any artist with that name!")
@@ -332,6 +333,7 @@ impl Display for ArtistNotFoundError {
 /// if it cannot find an album with the given name and artist
 #[derive(Debug)]
 pub struct AlbumNotFoundError;
+/// Error message: "Sorry, I couldn't find any album with that name from that artist!"
 impl Display for AlbumNotFoundError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
