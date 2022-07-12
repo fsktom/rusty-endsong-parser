@@ -79,10 +79,10 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
             let line = rl.readline("  \x1b[1;36m>>\x1b[0m ");
             match line {
                 Ok(usr_input) => match entries.find().artist(usr_input) {
-                    Some(art) => {
+                    Ok(art) => {
                         entries.print_aspect(AspectFull::Artist(&art));
                     }
-                    None => println!("Sorry, I couldn't find any artist with that name!"),
+                    Err(e) => println!("{}", e),
                 },
                 Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
             }
@@ -93,19 +93,17 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
             let line = rl.readline("  \x1b[1;36m>>\x1b[0m ");
             match line {
                 Ok(usr_input_art) => match entries.find().artist(usr_input_art) {
-                    Some(art) => {
+                    Ok(art) => {
                         println!("Album name?");
                         let line_alb = rl.readline("  \x1b[1;36m>>\x1b[0m ");
 
                         match line_alb {
                             Ok(usr_input_alb) => {
                                 match entries.find().album(usr_input_alb, art.name) {
-                                    Some(alb) => {
+                                    Ok(alb) => {
                                         entries.print_aspect(AspectFull::Album(&alb));
                                     }
-                                    None => {
-                                        println!("Sorry, I couldn't find any album with that name!")
-                                    }
+                                    Err(e) => println!("{}", e),
                                 }
                             }
                             Err(e) => {
@@ -116,7 +114,7 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
                             }
                         }
                     }
-                    None => println!("Sorry, I couldn't find any artist with that name!"),
+                    Err(e) => println!("{}", e),
                 },
                 Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
             }

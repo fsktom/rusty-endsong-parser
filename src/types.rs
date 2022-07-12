@@ -269,14 +269,28 @@ impl<'a> Find<'a> {
     /// Searches the entries for if the given artist exists in the dataset
     ///
     /// Wrapper for [display::find_artist()]
-    pub fn artist(&self, artist_name: String) -> Option<Artist> {
+    ///
+    /// # Errors
+    ///
+    /// This function will return an [Err] with [ArtistNotFoundError]
+    /// if it cannot find an artist with the given name
+    pub fn artist(&self, artist_name: String) -> Result<Artist, ArtistNotFoundError> {
         display::find_artist(self, artist_name)
     }
 
     /// Searches the entries for if the given album exists in the dataset
     ///
     /// Wrapper for [display::find_album()]
-    pub fn album(&self, album_name: String, artist_name: String) -> Option<Album> {
+    ///
+    /// # Errors
+    ///
+    /// This function will return an [Err] with [AlbumNotFoundError]
+    /// if it cannot find an album with the given name and artist
+    pub fn album(
+        &self,
+        album_name: String,
+        artist_name: String,
+    ) -> Result<Album, AlbumNotFoundError> {
         display::find_album(self, album_name, artist_name)
     }
 
@@ -301,6 +315,29 @@ impl<'a> Find<'a> {
     /// Wrapper for [display::find_song()]
     pub fn song(&self, song_name: String, artist_name: String) -> Option<Vec<Song>> {
         display::find_song(self, song_name, artist_name)
+    }
+}
+
+/// Error raised by [display::find_artist()] or its wrapper method [Find::artist()]
+/// if it cannot find an artist with the given name
+#[derive(Debug)]
+pub struct ArtistNotFoundError;
+impl Display for ArtistNotFoundError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Sorry, I couldn't find any artist with that name!")
+    }
+}
+
+/// Error raised by [display::find_album()] or its wrapper method [Find::album()]
+/// if it cannot find an album with the given name and artist
+#[derive(Debug)]
+pub struct AlbumNotFoundError;
+impl Display for AlbumNotFoundError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Sorry, I couldn't find any album with that name from that artist!"
+        )
     }
 }
 

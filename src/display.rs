@@ -8,6 +8,7 @@ use crate::types::AspectFull;
 use crate::types::Music;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
+use crate::types::{AlbumNotFoundError, ArtistNotFoundError};
 
 /// If set to true, it will sum up the plays of one song across multiple
 /// albums it may be in
@@ -432,24 +433,37 @@ fn print_album(album: HashMap<Song, u32>) {
 }
 
 /// Searches the entries for if the given artist exists in the dataset
-pub fn find_artist(entries: &Vec<SongEntry>, artist_name: String) -> Option<Artist> {
+///
+/// # Errors
+///
+/// This function will return an [Err] with [ArtistNotFoundError]
+/// if it cannot find an artist with the given name
+pub fn find_artist(
+    entries: &Vec<SongEntry>,
+    artist_name: String,
+) -> Result<Artist, ArtistNotFoundError> {
     let usr_artist = Artist::new(artist_name.to_lowercase());
 
     for entry in entries {
         // .to_lowercase() so that user input capitalization doesn't matter
         if entry.artist.to_lowercase().eq(&usr_artist.name) {
-            return Some(Artist::new(entry.artist.clone()));
+            return Ok(Artist::new(entry.artist.clone()));
         }
     }
-    None
+    Err(ArtistNotFoundError)
 }
 
 /// Searches the entries for if the given album exists in the dataset
+///
+/// # Errors
+///
+/// This function will return an [Err] with [AlbumNotFoundError]
+/// if it cannot find an album with the given name and artist
 pub fn find_album(
     entries: &Vec<SongEntry>,
     album_name: String,
     artist_name: String,
-) -> Option<Album> {
+) -> Result<Album, AlbumNotFoundError> {
     // .to_lowercase() so that user input capitalization doesn't matter
     let usr_album = Album::new(album_name.to_lowercase(), artist_name.to_lowercase());
 
@@ -457,10 +471,10 @@ pub fn find_album(
         if Album::new(entry.album.to_lowercase(), entry.artist.to_lowercase()).eq(&usr_album) {
             // but here so that the version with proper
             // capitalization is returned
-            return Some(Album::new(entry.album.clone(), entry.artist.clone()));
+            return Ok(Album::new(entry.album.clone(), entry.artist.clone()));
         }
     }
-    None
+    Err(AlbumNotFoundError)
 }
 
 /// Searches the entries for if the given song (in that specific album)

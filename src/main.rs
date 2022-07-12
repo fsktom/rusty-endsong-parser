@@ -72,16 +72,24 @@ fn test(entries: &SongEntries) {
     println!();
     entries.print_aspect(AspectFull::Song(&final_solution));
 
-    dbg!(entries.find().artist("Sabaton".to_string()));
+    dbg!(entries.find().artist("Sabaton".to_string()).unwrap());
     dbg!(entries
         .find()
-        .album("COAT OF ARMS".to_string(), "sabaton".to_string(),));
+        .album("COAT OF ARMS".to_string(), "sabaton".to_string(),)
+        .unwrap());
     dbg!(entries.find().song_from_album(
         "The FINAL SOLutiOn".to_string(),
         "COAT OF ARMS".to_string(),
         "sabaton".to_string(),
     ));
-    dbg!(entries.find().artist("daduasdy712e qyw7".to_string()));
+    match entries.find().artist("daduasdy712e qyw7".to_string()) {
+        Ok(art) => {
+            dbg!(art);
+        }
+        Err(e) => {
+            dbg!(e);
+        }
+    }
     // here to test whether it finds the multiple versions of this song (from many albums)
     // btw.. fuck Wizardthrone for releasing singles one after the other with each
     // containing all the songs that were in the previous one ffs
