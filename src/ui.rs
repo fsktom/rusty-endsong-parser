@@ -74,57 +74,65 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
     match inp {
         "help" | "h" => help(),
         "print artist" | "part" => {
-            println!("Artist name?");
-            // makes the prompt cyan and the rest default color
-            let line = rl.readline("  \x1b[1;36m>>\x1b[0m ");
-            match line {
-                Ok(usr_input) => match entries.find().artist(usr_input) {
-                    Ok(art) => {
-                        entries.print_aspect(AspectFull::Artist(&art));
-                    }
-                    Err(e) => println!("{}", e),
-                },
-                Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
-            }
+            match_print_artist(entries, rl);
         }
         "print album" | "palb" => {
-            println!("Artist name?");
-            // makes the prompt cyan and the rest default color
-            let line = rl.readline("  \x1b[1;36m>>\x1b[0m ");
-            match line {
-                Ok(usr_input_art) => match entries.find().artist(usr_input_art) {
-                    Ok(art) => {
-                        println!("Album name?");
-                        let line_alb = rl.readline("  \x1b[1;36m>>\x1b[0m ");
-
-                        match line_alb {
-                            Ok(usr_input_alb) => {
-                                match entries.find().album(usr_input_alb, art.name) {
-                                    Ok(alb) => {
-                                        entries.print_aspect(AspectFull::Album(&alb));
-                                    }
-                                    Err(e) => println!("{}", e),
-                                }
-                            }
-                            Err(e) => {
-                                println!(
-                                    "Something went wrong! Please try again. Error code: {}",
-                                    e
-                                )
-                            }
-                        }
-                    }
-                    Err(e) => println!("{}", e),
-                },
-                Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
-            }
+            match_print_album(entries, rl);
         }
+        // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
             // \x1b[1;31m makes text red
             // \x1b[0m makes it the default color
             println!("Command not found! Type \x1b[1;31mhelp\x1b[0m to print available commands")
         }
+    }
+}
+
+/// Used by [match_input()] for `print artist` command
+fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) {
+    // prompt: artist name
+    println!("Artist name?");
+    // makes the prompt cyan and the rest default color
+    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    match line_art {
+        Ok(usr_input) => match entries.find().artist(usr_input) {
+            Ok(art) => {
+                entries.print_aspect(AspectFull::Artist(&art));
+            }
+            Err(e) => println!("{}", e),
+        },
+        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+    }
+}
+
+/// Used by [match_input()] for `print album` command
+fn match_print_album(entries: &SongEntries, rl: &mut Editor<()>) {
+    // 1st prompt: artist name
+    println!("Artist name?");
+    // makes the prompt cyan and the rest default color
+    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    match line_art {
+        Ok(usr_input_art) => match entries.find().artist(usr_input_art) {
+            Ok(art) => {
+                // 2nd prompt: album name
+                println!("Album name?");
+                let line_alb = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                match line_alb {
+                    Ok(usr_input_alb) => match entries.find().album(usr_input_alb, art.name) {
+                        Ok(alb) => {
+                            entries.print_aspect(AspectFull::Album(&alb));
+                        }
+                        Err(e) => println!("{}", e),
+                    },
+                    Err(e) => {
+                        println!("Something went wrong! Please try again. Error code: {}", e)
+                    }
+                }
+            }
+            Err(e) => println!("{}", e),
+        },
+        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
     }
 }
 
