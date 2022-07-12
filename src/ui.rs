@@ -119,7 +119,12 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
                 Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
             }
         }
-        _ => (),
+        "" => (),
+        _ => {
+            // \x1b[1;31m makes text red
+            // \x1b[0m makes it the default color
+            println!("Command not found! Type \x1b[1;31mhelp\x1b[0m to print available commands")
+        }
     }
 }
 
