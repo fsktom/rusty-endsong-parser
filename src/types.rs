@@ -361,8 +361,7 @@ impl Display for NotFoundError {
             NotFoundError::Song => {
                 write!(
                     f,
-                    "Sorry, I couldn't find any song with
-                    that name from that album and artist!"
+                    "Sorry, I couldn't find any song with that name from that album and artist!"
                 )
             }
         }
