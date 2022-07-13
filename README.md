@@ -2,6 +2,8 @@
 
 Better, more performant version of https://github.com/Filip-Tomasko/endsong-parser-python written in Rust
 
+[Rust cheat sheet](https://docs.google.com/document/d/1kQidzAlbqapu-WZTuw4Djik0uTqMZYyiMXTM9F21Dz4)
+
 ## Pages
 
 - [ideas](stuff/ideas.md)
