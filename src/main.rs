@@ -96,8 +96,11 @@ fn test(entries: &SongEntries) {
     // here to test whether it finds the multiple versions of this song (from many albums)
     // btw.. fuck Wizardthrone for releasing singles one after the other with each
     // containing all the songs that were in the previous one ffs
-    dbg!(entries.find().song(
-        "Frozen Winds Of Thyraxia".to_string(),
-        "Wizardthrone".to_string(),
-    ));
+    dbg!(entries
+        .find()
+        .song(
+            "Frozen Winds Of Thyraxia".to_string(),
+            "Wizardthrone".to_string(),
+        )
+        .unwrap());
 }

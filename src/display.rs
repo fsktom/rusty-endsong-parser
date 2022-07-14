@@ -521,7 +521,7 @@ pub fn find_song(
     entries: &Vec<SongEntry>,
     song_name: String,
     artist_name: String,
-) -> Option<Vec<Song>> {
+) -> Result<Vec<Song>, NotFoundError> {
     let usr_song = SongJustArtist {
         name: song_name,
         artist: Artist::new(artist_name),
@@ -549,10 +549,10 @@ pub fn find_song(
     }
 
     if !song_versions.is_empty() {
-        return Some(song_versions);
+        return Ok(song_versions);
     }
 
-    None
+    Err(NotFoundError::JustSong)
 }
 
 // https://doc.rust-lang.org/book/ch11-03-test-organization.html#unit-tests

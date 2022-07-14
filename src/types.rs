@@ -319,7 +319,7 @@ impl<'a> Find<'a> {
     /// of [Song] for every album it's been found in
     ///
     /// Wrapper for [display::find_song()]
-    pub fn song(&self, song_name: String, artist_name: String) -> Option<Vec<Song>> {
+    pub fn song(&self, song_name: String, artist_name: String) -> Result<Vec<Song>, NotFoundError> {
         display::find_song(self, song_name, artist_name)
     }
 }
@@ -345,6 +345,12 @@ pub enum NotFoundError {
     /// "Sorry, I couldn't find any song with
     /// that name from that album and artist!"
     Song,
+    /// Song with that name from that artist was not found
+    ///
+    /// Error message:
+    /// "Sorry, I couldn't find any song with
+    /// that name from that artist!"
+    JustSong,
 }
 impl Display for NotFoundError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -362,6 +368,12 @@ impl Display for NotFoundError {
                 write!(
                     f,
                     "Sorry, I couldn't find any song with that name from that album and artist!"
+                )
+            }
+            NotFoundError::JustSong => {
+                write!(
+                    f,
+                    "Sorry, I couldn't find any song with that name from that artist!"
                 )
             }
         }

@@ -76,6 +76,7 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
         "print artist" | "part" => match_print_artist(entries, rl),
         "print album" | "palb" => match_print_album(entries, rl),
         "print song" | "pson" => match_print_song(entries, rl),
+        "print songs" | "psons" => match_print_songs(entries, rl),
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -176,6 +177,50 @@ fn match_print_song(entries: &SongEntries, rl: &mut Editor<()>) {
     }
 }
 
+/// Used by [match_input()] for `print songs` command
+fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) {
+    // 1st prompt: artist name
+    println!("Artist name?");
+    // makes the prompt cyan and the rest default color
+    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    match line_art {
+        Ok(usr_input_art) => {
+            match entries.find().artist(usr_input_art) {
+                Ok(art) => {
+                    // 2nd prompt: song name
+                    println!("Song name?");
+                    let line_son = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                    match line_son {
+                        Ok(usr_input_son) => match entries.find().song(usr_input_son, art.name) {
+                            Ok(songs) => {
+                                if songs.len() == 1 {
+                                    entries.print_aspect(AspectFull::Song(&songs[0]))
+                                } else {
+                                    println!(
+                                        "I've found {} songs named {} from {}!",
+                                        songs.len(),
+                                        &songs[0].name,
+                                        &songs[0].album.artist.name
+                                    );
+                                    for song in songs {
+                                        entries.print_aspect(AspectFull::Song(&song))
+                                    }
+                                }
+                            }
+                            Err(e) => println!("{}", e),
+                        },
+                        Err(e) => {
+                            println!("Something went wrong! Please try again. Error code: {}", e)
+                        }
+                    }
+                }
+                Err(e) => println!("{}", e),
+            }
+        }
+        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+    }
+}
+
 /// Prints the available commands to the [std::io::stdout]
 fn help() {
     let mut commands: HashMap<&str, &str> = HashMap::new();
@@ -205,6 +250,13 @@ fn help() {
         \tand then the album name
         \tand then the song name
         \t\x1b[1;35malias: pson",
+    );
+    commands.insert(
+        "print songs",
+        "prints a song with all the albums it may be from -
+        \topens another prompt where you input the artist name
+        \tand then the song name
+        \t\x1b[1;35malias: psons",
     );
 
     for (k, v) in commands {
