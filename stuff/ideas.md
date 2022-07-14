@@ -16,6 +16,11 @@ maybe also `entries.print_top(Aspect::Songs, 10)` instead of the current
 
 => implemented!
 
+### Example `endsong.json`
+
+Strip your `endsong.json` file of private information and shorten it a bit
+to make an example `endsong.json` file to be used by people wanting to try this out
+
 ## Pure Theory
 
 - Web
