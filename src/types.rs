@@ -149,7 +149,7 @@ impl Music for Song {}
 #[derive(Clone, Debug)]
 pub struct SongEntry {
     /// the time at which the song has been played
-    pub timestamp: DateTime<chrono::FixedOffset>,
+    pub timestamp: DateTime<chrono_tz::Tz>,
     /// for how long the song has been played
     pub ms_played: u32,
     /// name of the song
