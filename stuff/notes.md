@@ -60,3 +60,4 @@ and in VSC:
 ### Benchmarking
 
 [With Criterion crate](https://youtu.be/eIB3Pd5LBkc)
+[use also `cargo criterion`](https://crates.io/crates/cargo-criterion)
