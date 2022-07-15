@@ -340,10 +340,19 @@ pub fn print_aspect(entries: &Vec<SongEntry>, asp: AspectFull) {
     match asp {
         AspectFull::Artist(art) => {
             println!("=== {} | {} plays ===", art, gather_artist(entries, art).1);
+            // TODO! currently print_artist uses the whole time for num of plays!!!
+            // e.g. printing Alestorm between 2022-01-01 and 2022-07-01
+            // on only `endsong_0.json`
+            // will print:
+            // === Alestorm between 2022-01-01CET and 2022-07-01CEST | 1 plays ===
+            // --- Alestorm - Sunset On The Golden Age | 3 plays ---
+            // #1: Alestorm - Drink (Sunset On The Golden Age) | 3 plays
+
             print_artist(entries, gather_albums_with_artist(entries, art));
         }
         AspectFull::Album(alb) => {
             println!("=== {} | {} plays ===", alb, gather_album(entries, alb).1);
+            // TODO! currently print_album uses the whole time for num of plays!!!
             print_album(gather_songs_with_album(entries, alb));
         }
         AspectFull::Song(son) => {
