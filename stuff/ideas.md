@@ -24,11 +24,12 @@ to make an example `endsong.json` file to be used by people wanting to try this 
 ## Pure Theory
 
 - plotting
-  - either "plotpy - crates.io: Rust Package Registry" https://crates.io/crates/plotpy
-  - or automatically call a Python script on your own https://www.reddit.com/r/rust/comments/8h22h3/graphing_in_rust/dygs2xt?utm_medium=android_app&utm_source=share&context=3 
+  - either "plotpy - crates.io: Rust Package Registry" <https://crates.io/crates/plotpy>
+  - or automatically call a Python script on your own <https://www.reddit.com/r/rust/comments/8h22h3/graphing_in_rust/dygs2xt?utm_medium=android_app&utm_source=share&context=3>
+  - see [this repo](https://github.com/bheisler/cargo-criterion) for `gnuplot` and `plotters` usage
 - Web
   - WASM?
-    - https://github.com/rustwasm/wasm-bindgen
+    - <https://github.com/rustwasm/wasm-bindgen>
   - Web as GUI
     - static HTML or local server?
   - for plotting
