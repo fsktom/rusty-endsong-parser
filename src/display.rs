@@ -264,7 +264,7 @@ fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<S
     songs
 }
 
-/// Used by [print_top_helper()] and [print_album()]
+/// Used by [print_top_helper()], [print_aspect()] and [print_album()]
 fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 

@@ -7,12 +7,12 @@ use crate::types::AspectFull;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
 
-use super::{print_album, print_artist};
+use super::print_album;
 use super::{AlbumPlays, ArtistPlays, SongPlays};
 
 /// Prints a specfic aspect
 ///
-/// Basically [print_aspect()] but with date limitations
+/// Basically [super::print_aspect()] but with date limitations
 ///
 /// * `asp` - the aspect you want informationa about containing the
 /// relevant struct
@@ -34,6 +34,8 @@ pub fn print_aspect_date(
             print_artist(
                 entries,
                 gather_albums_with_artist_date(entries, art, start, end),
+                start,
+                end,
             );
         }
         AspectFull::Album(alb) => {
@@ -53,9 +55,33 @@ pub fn print_aspect_date(
     }
 }
 
+/// Used by [print_aspect_date()]
+fn print_artist(
+    entries: &Vec<SongEntry>,
+    artist: HashMap<Album, u32>,
+    start: &DateTime<Tz>,
+    end: &DateTime<Tz>,
+) {
+    let mut artist_vec: Vec<(&Album, &u32)> = artist.iter().collect();
+    artist_vec.sort_by(|a, b| b.1.cmp(a.1));
+
+    for i in 0..artist_vec.len() {
+        let alb = artist_vec.get(i).unwrap().0;
+        let mus = gather_songs_with_album_date(entries, alb, start, end);
+        // calling gather_album here is unnecessary work
+        // it should add up the total plays somehwere else
+        println!(
+            "--- {} | {} plays ---",
+            alb,
+            gather_album_date(entries, alb, start, end).1
+        );
+        print_album(mus);
+    }
+}
+
 /// Counts up the plays of a single artist within a date frame
 ///
-/// Basically [gather_artist()] but with date functionality
+/// Basically [super::gather_artist()] but with date functionality
 fn gather_artist_date(
     entries: &Vec<SongEntry>,
     art: &Artist,
@@ -77,7 +103,7 @@ fn gather_artist_date(
 
 /// Counts up the plays of a single album within a date frame
 ///
-/// Basically [gather_album()] but with date functionality
+/// Basically [super::gather_album()] but with date functionality
 fn gather_album_date(
     entries: &Vec<SongEntry>,
     alb: &Album,
@@ -99,7 +125,7 @@ fn gather_album_date(
 
 /// Counts up the plays of a single song within a date frame
 ///
-/// Basically [gather_song()] but with date functionality
+/// Basically [super::gather_song()] but with date functionality
 fn gather_song_date(
     entries: &Vec<SongEntry>,
     son: &Song,
@@ -125,7 +151,7 @@ fn gather_song_date(
 
 /// Used by [print_aspect_date()]
 ///
-/// Basically [gather_albums_with_artist()] but with date functionality
+/// Basically [super::gather_albums_with_artist()] but with date functionality
 fn gather_albums_with_artist_date(
     entries: &Vec<SongEntry>,
     art: &Artist,
@@ -149,7 +175,7 @@ fn gather_albums_with_artist_date(
 
 /// Used by [print_aspect_date()]
 ///
-/// Basically [gather_songs_with_album()] but with date functionality
+/// Basically [super::gather_songs_with_album()] but with date functionality
 fn gather_songs_with_album_date(
     entries: &Vec<SongEntry>,
     alb: &Album,
