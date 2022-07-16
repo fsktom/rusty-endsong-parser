@@ -16,7 +16,7 @@ use super::{AlbumPlays, ArtistPlays, SongPlays};
 ///
 /// * `asp` - the aspect you want informationa about containing the
 /// relevant struct
-pub fn print_aspect_date(
+pub fn print_aspect(
     entries: &Vec<SongEntry>,
     asp: AspectFull,
     start: &DateTime<Tz>,

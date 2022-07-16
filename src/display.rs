@@ -12,7 +12,7 @@ use crate::types::{Album, Artist, Song};
 
 /// Module containing [display](self) functions with
 /// date functionality
-pub mod date;
+mod date;
 
 /// If set to true, it will sum up the plays of one song across multiple
 /// albums it may be in
@@ -566,6 +566,23 @@ pub fn find_song(
     }
 
     Err(NotFoundError::JustSong)
+}
+
+/// Prints a specfic aspect within a date frame
+///
+/// Basically [super::print_aspect()] but with date limitations
+///
+/// * `asp` - the aspect you want informationa about containing the
+/// relevant struct
+///
+/// Wrapper around [date::print_aspect()]
+pub fn print_aspect_date(
+    entries: &Vec<SongEntry>,
+    asp: AspectFull,
+    start: &chrono::DateTime<chrono_tz::Tz>,
+    end: &chrono::DateTime<chrono_tz::Tz>,
+) {
+    date::print_aspect(entries, asp, start, end);
 }
 
 // https://doc.rust-lang.org/book/ch11-03-test-organization.html#unit-tests

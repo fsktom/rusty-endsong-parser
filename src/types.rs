@@ -244,7 +244,7 @@ impl SongEntries {
     ///
     /// Wrapper for [display::print_aspect_date()]
     pub fn print_aspect_date(&self, asp: AspectFull, start: &DateTime<Tz>, end: &DateTime<Tz>) {
-        display::date::print_aspect_date(self, asp, start, end)
+        display::print_aspect_date(self, asp, start, end)
     }
 
     /// Adds search capability
