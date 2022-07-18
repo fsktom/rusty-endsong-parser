@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::SongEntry;
 
 /// responsible for time zone handling
+///
 /// see issue #4 <https://github.com/Filip-Tomasko/rusty-endsong-parser/issues/4>
 ///
 /// used by [parse_date()]
