@@ -83,7 +83,7 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
         "print artist date" | "partd" => match_print_artist_date(entries, rl),
         "print album date" | "palbd" => match_print_album_date(entries, rl),
         "print song date" | "psond" => match_print_song_date(entries, rl),
-        // "print songs date" | "psonsd" => match_print_songs_date(entries, rl),
+        "print songs date" | "psonsd" => match_print_songs_date(entries, rl),
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -322,7 +322,7 @@ fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                         alb.artist.name,
                                     ) {
                                         Ok(son) => {
-                                            // 3rd prompt: start date
+                                            // 4th prompt: start date
                                             println!("Start date? YYYY-MM-DD");
                                             // \x1b[1;31m makes the text red
                                             let line_start_date =
@@ -331,7 +331,7 @@ fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                                 Ok(usr_input) => {
                                                     match user_input_date_parser(usr_input) {
                                                         Ok(start_date) => {
-                                                            // 4th prompt: end date
+                                                            // 5th prompt: end date
                                                             println!("End date? YYYY-MM-DD");
                                                             let line_end_date = rl
                                                                 .readline("   \x1b[1;31m>\x1b[0m ");
@@ -412,6 +412,80 @@ fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) {
                             }
                             Err(e) => println!("{}", e),
                         },
+                        Err(e) => {
+                            println!("Something went wrong! Please try again. Error code: {}", e)
+                        }
+                    }
+                }
+                Err(e) => println!("{}", e),
+            }
+        }
+        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+    }
+}
+
+/// Used by [match_input()] for `print songs date` command
+fn match_print_songs_date(entries: &SongEntries, rl: &mut Editor<()>) {
+    // 1st prompt: artist name
+    println!("Artist name?");
+    // makes the prompt cyan and the rest default color
+    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    match line_art {
+        Ok(usr_input_art) => {
+            match entries.find().artist(usr_input_art) {
+                Ok(art) => {
+                    // 2nd prompt: song name
+                    println!("Song name?");
+                    let line_son = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                    match line_son {
+                        Ok(usr_input_son) => {
+                            match entries.find().song(usr_input_son, art.name) {
+                                Ok(songs) => {
+                                    // 2nd prompt: start date
+                                    println!("Start date? YYYY-MM-DD");
+                                    // \x1b[1;31m makes the text red
+                                    let line_start_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
+                                    match line_start_date {
+                    Ok(usr_input) => match user_input_date_parser(usr_input) {
+                        Ok(start_date) => {
+                            // 3rd prompt: end date
+                            println!("End date? YYYY-MM-DD");
+                            let line_end_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
+                            match line_end_date {
+                                Ok(usr_input) => match user_input_date_parser(usr_input) {
+                                    Ok(end_date) => {
+                                        if songs.len() == 1 {
+                                            entries.print_aspect_date(AspectFull::Song(&songs[0]), &start_date, &end_date)
+                                        } else {
+                                            println!(
+                                                "I've found {} songs named {} from {}!",
+                                                songs.len(),
+                                                &songs[0].name,
+                                                &songs[0].album.artist.name
+                                            );
+                                            for song in songs {
+                                                entries.print_aspect_date(AspectFull::Song(&song), &start_date, &end_date)
+                                            }
+                                        }
+                                    },
+                                    Err(_)=>println!("Invalid date! Make sure you input the date in YYYY-MM-DD format.")
+                                },
+                                Err(e) => println!(
+                                    "Something went wrong! Please try again. Error code: {}",
+                                    e
+                                ),
+                            }
+                        }
+                        Err(_) => println!(
+                            "Invalid date! Make sure you input the date in YYYY-MM-DD format."
+                        ),
+                    },
+                    Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+                }
+                                }
+                                Err(e) => println!("{}", e),
+                            }
+                        }
                         Err(e) => {
                             println!("Something went wrong! Please try again. Error code: {}", e)
                         }
