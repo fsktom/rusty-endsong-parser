@@ -50,7 +50,13 @@ pub fn print_aspect(
         }
         AspectFull::Song(son) => {
             let son = gather_song_date(entries, son, start, end);
-            println!("{} between {} and {} | {} plays", son.0, start, end, son.1);
+            println!(
+                "{} between {} and {} | {} plays",
+                son.0,
+                start.date(),
+                end.date(),
+                son.1
+            );
         }
     }
 }
