@@ -498,6 +498,8 @@ fn match_print_songs_date(entries: &SongEntries, rl: &mut Editor<()>) {
     }
 }
 
+/// Used by [match_input()] for `help` command
+///
 /// Prints the available commands to the [std::io::stdout]
 fn help() {
     let mut commands: HashMap<&str, &str> = HashMap::new();
