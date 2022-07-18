@@ -17,6 +17,19 @@ macro_rules! inv_date {
     };
 }
 
+/// For ReadlineErrors
+///
+/// `println!("Something went wrong! Please try again. Error code: {}", e)`
+#[macro_export]
+macro_rules! rle {
+    ($error:ident) => {
+        println!(
+            "Something went wrong! Please try again. Error code: {}",
+            $error
+        )
+    };
+}
+
 /// Starts the CLI/shell instance
 pub fn start(entries: &SongEntries) {
     println!("=== INTERACTIVE MODE ACTIVATED ===");
@@ -113,7 +126,7 @@ fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) {
             Ok(art) => entries.print_aspect(AspectFull::Artist(&art)),
             Err(e) => println!("{}", e),
         },
-        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+        Err(e) => rle!(e),
     }
 }
 
@@ -147,20 +160,17 @@ fn match_print_artist_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                     ),
                                     Err(_) => inv_date!(),
                                 },
-                                Err(e) => println!(
-                                    "Something went wrong! Please try again. Error code: {}",
-                                    e
-                                ),
+                                Err(e) => rle!(e),
                             }
                         }
                         Err(_) => inv_date!(),
                     },
-                    Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+                    Err(e) => rle!(e),
                 }
             }
             Err(e) => println!("{}", e),
         },
-        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+        Err(e) => rle!(e),
     }
 }
 
@@ -181,14 +191,12 @@ fn match_print_album(entries: &SongEntries, rl: &mut Editor<()>) {
                         Ok(alb) => entries.print_aspect(AspectFull::Album(&alb)),
                         Err(e) => println!("{}", e),
                     },
-                    Err(e) => {
-                        println!("Something went wrong! Please try again. Error code: {}", e)
-                    }
+                    Err(e) => rle!(e),
                 }
             }
             Err(e) => println!("{}", e),
         },
-        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+        Err(e) => rle!(e),
     }
 }
 
@@ -230,30 +238,22 @@ fn match_print_album_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                                     Err(_) => inv_date!(),
                                                 }
                                             }
-                                            Err(e) => println!(
-                                    "Something went wrong! Please try again. Error code: {}",
-                                    e
-                                ),
+                                            Err(e) => rle!(e),
                                         }
                                     }
                                     Err(_) => inv_date!(),
                                 },
-                                Err(e) => println!(
-                                    "Something went wrong! Please try again. Error code: {}",
-                                    e
-                                ),
+                                Err(e) => rle!(e),
                             }
                         }
                         Err(e) => println!("{}", e),
                     },
-                    Err(e) => {
-                        println!("Something went wrong! Please try again. Error code: {}", e)
-                    }
+                    Err(e) => rle!(e),
                 }
             }
             Err(e) => println!("{}", e),
         },
-        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+        Err(e) => rle!(e),
     }
 }
 
@@ -285,22 +285,18 @@ fn match_print_song(entries: &SongEntries, rl: &mut Editor<()>) {
                                         Ok(son) => entries.print_aspect(AspectFull::Song(&son)),
                                         Err(e) => println!("{}", e),
                                     },
-                                    Err(e) => {
-                                        println!("Something went wrong! Please try again. Error code: {}", e)
-                                    }
+                                    Err(e) => rle!(e),
                                 }
                             }
                             Err(e) => println!("{}", e),
                         },
-                        Err(e) => {
-                            println!("Something went wrong! Please try again. Error code: {}", e)
-                        }
+                        Err(e) => rle!(e),
                     }
                 }
                 Err(e) => println!("{}", e),
             }
         }
-        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+        Err(e) => rle!(e),
     }
 }
 
@@ -354,40 +350,30 @@ fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                     },
                                     Err(_)=>inv_date!()
                                 },
-                                Err(e) => println!(
-                                    "Something went wrong! Please try again. Error code: {}",
-                                    e
-                                ),
+                                Err(e) => rle!(e),
                             }
                                                             }
                                                             Err(_) => inv_date!(),
                                                         }
                                                     }
-                                                    Err(e) => println!(
-                                    "Something went wrong! Please try again. Error code: {}",
-                                    e
-                                ),
+                                                    Err(e) => rle!(e),
                                                 }
                                             }
                                             Err(e) => println!("{}", e),
                                         },
-                                        Err(e) => {
-                                            println!("Something went wrong! Please try again. Error code: {}", e)
-                                        }
+                                        Err(e) => rle!(e),
                                     }
                                 }
                                 Err(e) => println!("{}", e),
                             }
                         }
-                        Err(e) => {
-                            println!("Something went wrong! Please try again. Error code: {}", e)
-                        }
+                        Err(e) => rle!(e),
                     }
                 }
                 Err(e) => println!("{}", e),
             }
         }
-        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+        Err(e) => rle!(e),
     }
 }
 
@@ -423,15 +409,13 @@ fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) {
                             }
                             Err(e) => println!("{}", e),
                         },
-                        Err(e) => {
-                            println!("Something went wrong! Please try again. Error code: {}", e)
-                        }
+                        Err(e) => rle!(e),
                     }
                 }
                 Err(e) => println!("{}", e),
             }
         }
-        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+        Err(e) => rle!(e),
     }
 }
 
@@ -457,53 +441,59 @@ fn match_print_songs_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                     // \x1b[1;31m makes the text red
                                     let line_start_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
                                     match line_start_date {
-                    Ok(usr_input) => match user_input_date_parser(usr_input) {
-                        Ok(start_date) => {
-                            // 4th prompt: end date
-                            println!("End date? YYYY-MM-DD");
-                            let line_end_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
-                            match line_end_date {
-                                Ok(usr_input) => match user_input_date_parser(usr_input) {
-                                    Ok(end_date) => {
-                                        if songs.len() == 1 {
-                                            entries.print_aspect_date(AspectFull::Song(&songs[0]), &start_date, &end_date)
-                                        } else {
-                                            println!(
+                                        Ok(usr_input) => match user_input_date_parser(usr_input) {
+                                            Ok(start_date) => {
+                                                // 4th prompt: end date
+                                                println!("End date? YYYY-MM-DD");
+                                                let line_end_date =
+                                                    rl.readline("   \x1b[1;31m>\x1b[0m ");
+                                                match line_end_date {
+                                                    Ok(usr_input) => {
+                                                        match user_input_date_parser(usr_input) {
+                                                            Ok(end_date) => {
+                                                                if songs.len() == 1 {
+                                                                    entries.print_aspect_date(
+                                                                        AspectFull::Song(&songs[0]),
+                                                                        &start_date,
+                                                                        &end_date,
+                                                                    )
+                                                                } else {
+                                                                    println!(
                                                 "I've found {} songs named {} from {}!",
                                                 songs.len(),
                                                 &songs[0].name,
                                                 &songs[0].album.artist.name
                                             );
-                                            for song in songs {
-                                                entries.print_aspect_date(AspectFull::Song(&song), &start_date, &end_date)
+                                                                    for song in songs {
+                                                                        entries.print_aspect_date(
+                                                                            AspectFull::Song(&song),
+                                                                            &start_date,
+                                                                            &end_date,
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+                                                            Err(_) => inv_date!(),
+                                                        }
+                                                    }
+                                                    Err(e) => rle!(e),
+                                                }
                                             }
-                                        }
-                                    },
-                                    Err(_)=>inv_date!()
-                                },
-                                Err(e) => println!(
-                                    "Something went wrong! Please try again. Error code: {}",
-                                    e
-                                ),
-                            }
-                        }
-                        Err(_) => inv_date!(),
-                    },
-                    Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
-                }
+                                            Err(_) => inv_date!(),
+                                        },
+                                        Err(e) => rle!(e),
+                                    }
                                 }
                                 Err(e) => println!("{}", e),
                             }
                         }
-                        Err(e) => {
-                            println!("Something went wrong! Please try again. Error code: {}", e)
-                        }
+                        Err(e) => rle!(e),
                     }
                 }
                 Err(e) => println!("{}", e),
             }
         }
-        Err(e) => println!("Something went wrong! Please try again. Error code: {}", e),
+        Err(e) => rle!(e),
     }
 }
 
