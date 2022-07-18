@@ -441,14 +441,14 @@ fn match_print_songs_date(entries: &SongEntries, rl: &mut Editor<()>) {
                         Ok(usr_input_son) => {
                             match entries.find().song(usr_input_son, art.name) {
                                 Ok(songs) => {
-                                    // 2nd prompt: start date
+                                    // 3rd prompt: start date
                                     println!("Start date? YYYY-MM-DD");
                                     // \x1b[1;31m makes the text red
                                     let line_start_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
                                     match line_start_date {
                     Ok(usr_input) => match user_input_date_parser(usr_input) {
                         Ok(start_date) => {
-                            // 3rd prompt: end date
+                            // 4th prompt: end date
                             println!("End date? YYYY-MM-DD");
                             let line_end_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
                             match line_end_date {
