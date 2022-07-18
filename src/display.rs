@@ -570,7 +570,7 @@ pub fn find_song(
 
 /// Prints a specfic aspect within a date frame
 ///
-/// Basically [super::print_aspect()] but with date limitations
+/// Basically [print_aspect()] but with date limitations
 ///
 /// * `asp` - the aspect you want informationa about containing the
 /// relevant struct

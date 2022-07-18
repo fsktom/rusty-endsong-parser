@@ -17,9 +17,23 @@ macro_rules! inv_date {
     };
 }
 
-/// For ReadlineErrors
+/// For [ReadlineError]s
 ///
 /// `println!("Something went wrong! Please try again. Error code: {}", e)`
+///
+/// Used when matching [Editor::readline] ([Result<String, ReadlineError>])
+/// and printing the error message
+///
+/// # Examples
+///
+/// ```
+/// let mut rl = Editor::<()>::new();
+/// let line = rl.readline(">>> ");
+/// match line {
+///    Ok(usr_input) => (),
+///    Err(e) => rle!(e),
+///}
+/// ```
 #[macro_export]
 macro_rules! rle {
     ($error:ident) => {

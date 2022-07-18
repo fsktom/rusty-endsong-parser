@@ -61,7 +61,7 @@ pub fn print_aspect(
     }
 }
 
-/// Used by [print_aspect_date()]
+/// Used by [print_aspect()]
 fn print_artist(
     entries: &Vec<SongEntry>,
     artist: HashMap<Album, u32>,
@@ -155,7 +155,7 @@ fn gather_song_date(
     song_asp
 }
 
-/// Used by [print_aspect_date()]
+/// Used by [print_aspect()]
 ///
 /// Basically [super::gather_albums_with_artist()] but with date functionality
 fn gather_albums_with_artist_date(
@@ -179,7 +179,7 @@ fn gather_albums_with_artist_date(
     albums
 }
 
-/// Used by [print_aspect_date()]
+/// Used by [print_aspect()]
 ///
 /// Basically [super::gather_songs_with_album()] but with date functionality
 fn gather_songs_with_album_date(
