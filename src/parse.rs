@@ -5,11 +5,19 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
-use chrono::DateTime;
+use chrono::{DateTime, TimeZone};
 
+use chrono_tz::Tz;
 use serde::{Deserialize, Serialize};
 
 use crate::types::SongEntry;
+
+/// responsible for time zone handling
+///
+/// see issue #4 <https://github.com/Filip-Tomasko/rusty-endsong-parser/issues/4>
+///
+/// used by [parse_date()]
+pub const LOCATION_TZ: chrono_tz::Tz = chrono_tz::Europe::Berlin;
 
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
 // null values are either skipped (defaulted to unit tuple or are an Option)
@@ -98,10 +106,6 @@ fn parse_single(path: String) -> Vec<SongEntry> {
         }
     }
 
-    // println!("{:?}\nNum of song entries: {}", songs, songs.len());
-
-    // println!("Num of non-song? entries: {}", podcasts.len());
-
     songs
 }
 
@@ -137,10 +141,7 @@ fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
         return Err(entry);
     }
     Ok(SongEntry {
-        // RFC 3339 is basically ISO 8601
-        // and the timestamp in endsong.json is in
-        // "2016-07-21T01:02:07Z" format
-        timestamp: DateTime::parse_from_rfc3339(&entry.ts).unwrap(),
+        timestamp: parse_date(&entry.ts),
         ms_played: entry.ms_played as u32,
         track: parse_option(entry.master_metadata_track_name),
         album: parse_option(entry.master_metadata_album_album_name),
@@ -155,4 +156,16 @@ fn parse_option(opt: Option<String>) -> String {
         Some(data) => data,
         None => String::from("n/a"),
     }
+}
+
+/// Used by [entry_to_songentry()]
+/// for parsing the date from an entry in `endsong.json`
+/// and adjusting for time zone and dst
+///
+/// Relies on [LOCATION_TZ]
+pub fn parse_date(ts: &str) -> DateTime<Tz> {
+    // timestamp is in "2016-07-21T01:02:07Z" format
+    // in UTC!!!!!!!!!
+    let ts = DateTime::parse_from_rfc3339(ts).unwrap();
+    LOCATION_TZ.from_utc_datetime(&ts.naive_utc())
 }

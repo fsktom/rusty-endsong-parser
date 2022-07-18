@@ -19,9 +19,12 @@ mod parse;
 mod types;
 mod ui;
 
+use chrono::TimeZone;
 use types::Aspect;
 use types::AspectFull;
 use types::SongEntries;
+
+use crate::parse::LOCATION_TZ;
 
 /// Intializes the data,
 /// tests some functions using [test()] and
@@ -103,4 +106,15 @@ fn test(entries: &SongEntries) {
             "Wizardthrone".to_string(),
         )
         .unwrap());
+
+    let start_date = LOCATION_TZ
+        .datetime_from_str("2020-01-01T01:01:01Z", "%Y-%m-%dT%H:%M:%SZ")
+        .unwrap();
+    let end_date = LOCATION_TZ
+        .datetime_from_str("2022-07-01T01:01:01Z", "%Y-%m-%dT%H:%M:%SZ")
+        .unwrap();
+
+    entries.print_aspect_date(AspectFull::Artist(&powerwolf), &start_date, &end_date);
+    entries.print_aspect_date(AspectFull::Album(&coat), &start_date, &end_date);
+    entries.print_aspect_date(AspectFull::Song(&final_solution), &start_date, &end_date);
 }

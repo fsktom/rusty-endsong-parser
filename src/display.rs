@@ -10,6 +10,10 @@ use crate::types::NotFoundError;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
 
+/// Module containing [display](self) functions with
+/// date functionality
+mod date;
+
 /// If set to true, it will sum up the plays of one song across multiple
 /// albums it may be in
 ///
@@ -260,7 +264,7 @@ fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<S
     songs
 }
 
-/// Used by [print_top_helper()] and [print_album()]
+/// Used by [print_top_helper()], [print_aspect()] and [print_album()]
 fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
@@ -294,7 +298,7 @@ fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
     albums
 }
 
-/// Used by [print_top_helper()]
+/// Used by [print_top_helper()] and [print_aspect()]
 fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
@@ -337,10 +341,19 @@ pub fn print_aspect(entries: &Vec<SongEntry>, asp: AspectFull) {
     match asp {
         AspectFull::Artist(art) => {
             println!("=== {} | {} plays ===", art, gather_artist(entries, art).1);
+            // TODO! currently print_artist uses the whole time for num of plays!!!
+            // e.g. printing Alestorm between 2022-01-01 and 2022-07-01
+            // on only `endsong_0.json`
+            // will print:
+            // === Alestorm between 2022-01-01CET and 2022-07-01CEST | 1 plays ===
+            // --- Alestorm - Sunset On The Golden Age | 3 plays ---
+            // #1: Alestorm - Drink (Sunset On The Golden Age) | 3 plays
+
             print_artist(entries, gather_albums_with_artist(entries, art));
         }
         AspectFull::Album(alb) => {
             println!("=== {} | {} plays ===", alb, gather_album(entries, alb).1);
+            // TODO! currently print_album uses the whole time for num of plays!!!
             print_album(gather_songs_with_album(entries, alb));
         }
         AspectFull::Song(son) => {
@@ -553,6 +566,23 @@ pub fn find_song(
     }
 
     Err(NotFoundError::JustSong)
+}
+
+/// Prints a specfic aspect within a date frame
+///
+/// Basically [print_aspect()] but with date limitations
+///
+/// * `asp` - the aspect you want informationa about containing the
+/// relevant struct
+///
+/// Wrapper around [date::print_aspect()]
+pub fn print_aspect_date(
+    entries: &Vec<SongEntry>,
+    asp: AspectFull,
+    start: &chrono::DateTime<chrono_tz::Tz>,
+    end: &chrono::DateTime<chrono_tz::Tz>,
+) {
+    date::print_aspect(entries, asp, start, end);
 }
 
 // https://doc.rust-lang.org/book/ch11-03-test-organization.html#unit-tests

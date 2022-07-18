@@ -3,6 +3,7 @@
 use std::fmt::Display;
 
 use chrono::DateTime;
+use chrono_tz::Tz;
 
 use crate::display;
 use crate::parse;
@@ -149,7 +150,7 @@ impl Music for Song {}
 #[derive(Clone, Debug)]
 pub struct SongEntry {
     /// the time at which the song has been played
-    pub timestamp: DateTime<chrono::FixedOffset>,
+    pub timestamp: DateTime<chrono_tz::Tz>,
     /// for how long the song has been played
     pub ms_played: u32,
     /// name of the song
@@ -232,6 +233,18 @@ impl SongEntries {
     /// Wrapper for [display::print_aspect()]
     pub fn print_aspect(&self, asp: AspectFull) {
         display::print_aspect(self, asp)
+    }
+
+    /// Prints a specfic aspect
+    ///
+    /// Basically [SongEntries::print_aspect()] but with date limitations
+    ///
+    /// * `asp` - the aspect you want informationa about containing the
+    /// relevant struct
+    ///
+    /// Wrapper for [display::print_aspect_date()]
+    pub fn print_aspect_date(&self, asp: AspectFull, start: &DateTime<Tz>, end: &DateTime<Tz>) {
+        display::print_aspect_date(self, asp, start, end)
     }
 
     /// Adds search capability
