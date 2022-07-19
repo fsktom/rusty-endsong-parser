@@ -44,6 +44,28 @@ macro_rules! rle {
     };
 }
 
+/// Prompt used for top-level shell commands
+///
+/// green `>>>`
+// https://bixense.com/clicolors/
+// \x1b[1;32m makes ">>>" green
+// \x1b[0m makes user input default color again
+const PROMPT_COMMAND: &str = "\x1b[1;32m>>>\x1b[0m ";
+
+/// Prompt used for main arguments like artist, album and song name
+///
+/// cyan `  >>`
+// \x1b[1;36m makes ">>" cyan
+// \x1b[0m makes user input default color again
+const PROMPT_MAIN: &str = "  \x1b[1;36m>>\x1b[0m ";
+
+/// Prompt used for additional arguments like the date range
+///
+/// red `   >`
+// \x1b[1;31m makes ">" red
+// \x1b[0m makes user input default color again
+const PROMPT_SECONDARY: &str = "   \x1b[1;31m>\x1b[0m ";
+
 /// Starts the CLI/shell instance
 pub fn start(entries: &SongEntries) {
     println!("=== INTERACTIVE MODE ACTIVATED ===");
@@ -77,10 +99,7 @@ pub fn start(entries: &SongEntries) {
     }
 
     loop {
-        // https://bixense.com/clicolors/
-        // \x1b[1;32m makes ">>>" green
-        // \x1b[0m makes user input default color again
-        let line = rl.readline("\x1b[1;32m>>>\x1b[0m ");
+        let line = rl.readline(PROMPT_COMMAND);
         match line {
             Ok(usr_input) => match_input(usr_input, entries, &mut rl),
             Err(ReadlineError::Interrupted) => {
@@ -133,8 +152,7 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
 fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) {
     // prompt: artist name
     println!("Artist name?");
-    // makes the prompt cyan and the rest default color
-    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    let line_art = rl.readline(PROMPT_MAIN);
     match line_art {
         Ok(usr_input) => match entries.find().artist(usr_input) {
             Ok(art) => entries.print_aspect(AspectFull::Artist(&art)),
@@ -150,21 +168,19 @@ fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) {
 fn match_print_artist_date(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
-    // makes the prompt cyan and the rest default color
-    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    let line_art = rl.readline(PROMPT_MAIN);
     match line_art {
         Ok(usr_input) => match entries.find().artist(usr_input) {
             Ok(art) => {
                 // 2nd prompt: start date
                 println!("Start date? YYYY-MM-DD");
-                // \x1b[1;31m makes the text red
-                let line_start_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
+                let line_start_date = rl.readline(PROMPT_SECONDARY);
                 match line_start_date {
                     Ok(usr_input) => match user_input_date_parser(usr_input) {
                         Ok(start_date) => {
                             // 3rd prompt: end date
                             println!("End date? YYYY-MM-DD");
-                            let line_end_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
+                            let line_end_date = rl.readline(PROMPT_SECONDARY);
                             match line_end_date {
                                 Ok(usr_input) => match user_input_date_parser(usr_input) {
                                     Ok(end_date) => entries.print_aspect_date(
@@ -192,14 +208,13 @@ fn match_print_artist_date(entries: &SongEntries, rl: &mut Editor<()>) {
 fn match_print_album(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
-    // makes the prompt cyan and the rest default color
-    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    let line_art = rl.readline(PROMPT_MAIN);
     match line_art {
         Ok(usr_input_art) => match entries.find().artist(usr_input_art) {
             Ok(art) => {
                 // 2nd prompt: album name
                 println!("Album name?");
-                let line_alb = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                let line_alb = rl.readline(PROMPT_MAIN);
                 match line_alb {
                     Ok(usr_input_alb) => match entries.find().album(usr_input_alb, art.name) {
                         Ok(alb) => entries.print_aspect(AspectFull::Album(&alb)),
@@ -220,27 +235,25 @@ fn match_print_album(entries: &SongEntries, rl: &mut Editor<()>) {
 fn match_print_album_date(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
-    // makes the prompt cyan and the rest default color
-    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    let line_art = rl.readline(PROMPT_MAIN);
     match line_art {
         Ok(usr_input_art) => match entries.find().artist(usr_input_art) {
             Ok(art) => {
                 // 2nd prompt: album name
                 println!("Album name?");
-                let line_alb = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                let line_alb = rl.readline(PROMPT_MAIN);
                 match line_alb {
                     Ok(usr_input_alb) => match entries.find().album(usr_input_alb, art.name) {
                         Ok(alb) => {
                             // 3rd prompt: start date
                             println!("Start date? YYYY-MM-DD");
-                            // \x1b[1;31m makes the text red
-                            let line_start_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
+                            let line_start_date = rl.readline(PROMPT_SECONDARY);
                             match line_start_date {
                                 Ok(usr_input) => match user_input_date_parser(usr_input) {
                                     Ok(start_date) => {
                                         // 4th prompt: end date
                                         println!("End date? YYYY-MM-DD");
-                                        let line_end_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
+                                        let line_end_date = rl.readline(PROMPT_SECONDARY);
                                         match line_end_date {
                                             Ok(usr_input) => {
                                                 match user_input_date_parser(usr_input) {
@@ -275,21 +288,20 @@ fn match_print_album_date(entries: &SongEntries, rl: &mut Editor<()>) {
 fn match_print_song(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
-    // makes the prompt cyan and the rest default color
-    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    let line_art = rl.readline(PROMPT_MAIN);
     match line_art {
         Ok(usr_input_art) => {
             match entries.find().artist(usr_input_art) {
                 Ok(art) => {
                     // 2nd prompt: album name
                     println!("Album name?");
-                    let line_alb = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                    let line_alb = rl.readline(PROMPT_MAIN);
                     match line_alb {
                         Ok(usr_input_alb) => match entries.find().album(usr_input_alb, art.name) {
                             Ok(alb) => {
                                 // 3rd prompt: song name
                                 println!("Song name?");
-                                let line_son = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                                let line_son = rl.readline(PROMPT_MAIN);
                                 match line_son {
                                     Ok(usr_input_son) => match entries.find().song_from_album(
                                         usr_input_son,
@@ -320,22 +332,21 @@ fn match_print_song(entries: &SongEntries, rl: &mut Editor<()>) {
 fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
-    // makes the prompt cyan and the rest default color
-    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    let line_art = rl.readline(PROMPT_MAIN);
     match line_art {
         Ok(usr_input_art) => {
             match entries.find().artist(usr_input_art) {
                 Ok(art) => {
                     // 2nd prompt: album name
                     println!("Album name?");
-                    let line_alb = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                    let line_alb = rl.readline(PROMPT_MAIN);
                     match line_alb {
                         Ok(usr_input_alb) => {
                             match entries.find().album(usr_input_alb, art.name) {
                                 Ok(alb) => {
                                     // 3rd prompt: song name
                                     println!("Song name?");
-                                    let line_son = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                                    let line_son = rl.readline(PROMPT_MAIN);
                                     match line_son {
                                         Ok(usr_input_son) => match entries.find().song_from_album(
                                             usr_input_son,
@@ -345,18 +356,15 @@ fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                             Ok(son) => {
                                                 // 4th prompt: start date
                                                 println!("Start date? YYYY-MM-DD");
-                                                // \x1b[1;31m makes the text red
-                                                let line_start_date =
-                                                    rl.readline("   \x1b[1;31m>\x1b[0m ");
+                                                let line_start_date = rl.readline(PROMPT_SECONDARY);
                                                 match line_start_date {
                                                     Ok(usr_input) => {
                                                         match user_input_date_parser(usr_input) {
                                                             Ok(start_date) => {
                                                                 // 5th prompt: end date
                                                                 println!("End date? YYYY-MM-DD");
-                                                                let line_end_date = rl.readline(
-                                                                    "   \x1b[1;31m>\x1b[0m ",
-                                                                );
+                                                                let line_end_date =
+                                                                    rl.readline(PROMPT_SECONDARY);
                                                                 match line_end_date {
                                 Ok(usr_input) => match user_input_date_parser(usr_input) {
                                     Ok(end_date) => {
@@ -395,15 +403,14 @@ fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) {
 fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
-    // makes the prompt cyan and the rest default color
-    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    let line_art = rl.readline(PROMPT_MAIN);
     match line_art {
         Ok(usr_input_art) => {
             match entries.find().artist(usr_input_art) {
                 Ok(art) => {
                     // 2nd prompt: song name
                     println!("Song name?");
-                    let line_son = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                    let line_son = rl.readline(PROMPT_MAIN);
                     match line_son {
                         Ok(usr_input_son) => match entries.find().song(usr_input_son, art.name) {
                             Ok(songs) => {
@@ -437,30 +444,27 @@ fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) {
 fn match_print_songs_date(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
-    // makes the prompt cyan and the rest default color
-    let line_art = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+    let line_art = rl.readline(PROMPT_MAIN);
     match line_art {
         Ok(usr_input_art) => {
             match entries.find().artist(usr_input_art) {
                 Ok(art) => {
                     // 2nd prompt: song name
                     println!("Song name?");
-                    let line_son = rl.readline("  \x1b[1;36m>>\x1b[0m ");
+                    let line_son = rl.readline(PROMPT_MAIN);
                     match line_son {
                         Ok(usr_input_son) => {
                             match entries.find().song(usr_input_son, art.name) {
                                 Ok(songs) => {
                                     // 3rd prompt: start date
                                     println!("Start date? YYYY-MM-DD");
-                                    // \x1b[1;31m makes the text red
-                                    let line_start_date = rl.readline("   \x1b[1;31m>\x1b[0m ");
+                                    let line_start_date = rl.readline(PROMPT_SECONDARY);
                                     match line_start_date {
                                         Ok(usr_input) => match user_input_date_parser(usr_input) {
                                             Ok(start_date) => {
                                                 // 4th prompt: end date
                                                 println!("End date? YYYY-MM-DD");
-                                                let line_end_date =
-                                                    rl.readline("   \x1b[1;31m>\x1b[0m ");
+                                                let line_end_date = rl.readline(PROMPT_SECONDARY);
                                                 match line_end_date {
                                                     Ok(usr_input) => {
                                                         match user_input_date_parser(usr_input) {
