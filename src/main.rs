@@ -13,6 +13,7 @@
 #![forbid(rustdoc::invalid_codeblock_attributes)]
 #![forbid(rustdoc::invalid_rust_codeblocks)]
 #![forbid(rustdoc::bare_urls)]
+#![forbid(clippy::pedantic)]
 
 mod display;
 mod parse;
