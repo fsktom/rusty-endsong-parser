@@ -61,3 +61,4 @@ to make an example `endsong.json` file to be used by people wanting to try this 
 - [tui-rs](https://github.com/fdehau/tui-rs) for terminal UI?!?
 - do something about different artists having the same name...
   - but that would require the use of the Spotify API -> inefficient
+- [rspotify](https://github.com/ramsayleung/rspotify) for Spotify API
