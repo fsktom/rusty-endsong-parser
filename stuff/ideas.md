@@ -21,6 +21,15 @@ maybe also `entries.print_top(Aspect::Songs, 10)` instead of the current
 Strip your `endsong.json` file of private information and shorten it a bit
 to make an example `endsong.json` file to be used by people wanting to try this out
 
+### Ignore entries below a certain threshold of listening time
+
+An option where you set a perctange. E.g. if you played a song for less than 30% of its entire length, this listen is ignored.
+
+Where it would take the max song length from? Go through all these song entries and see which one has got the
+highest `ms_played`.
+
+Problem: it would need to go through all songs for maximum `ms_played` and then again to select which ones should be ignored (performance impact?)
+
 ## Pure Theory
 
 - plotting
