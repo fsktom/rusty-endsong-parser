@@ -71,3 +71,4 @@ Problem: it would need to go through all songs for maximum `ms_played` and then 
 - do something about different artists having the same name...
   - but that would require the use of the Spotify API -> inefficient
 - [rspotify](https://github.com/ramsayleung/rspotify) for Spotify API
+- [indicatif](https://old.reddit.com/r/rust/comments/wbswks/indicatif_017_reduces_overhead_95x/) for progress bar (when going through the `endsong.json` files?
