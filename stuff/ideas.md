@@ -72,3 +72,4 @@ Problem: it would need to go through all songs for maximum `ms_played` and then 
   - but that would require the use of the Spotify API -> inefficient
 - [rspotify](https://github.com/ramsayleung/rspotify) for Spotify API
 - [indicatif](https://old.reddit.com/r/rust/comments/wbswks/indicatif_017_reduces_overhead_95x/) for progress bar (when going through the `endsong.json` files?
+- [cargo-mutants](https://old.reddit.com/r/rust/comments/wc2xqd/cargomutants_029_finds_poorlytested_code_faster/) for testing?
