@@ -2,6 +2,12 @@
 
 ## Plausible
 
+### Comparisons
+Instead of having separate struts for Songs without
+Album and Songs with Album, have one and just
+add a method that would compare with album and another
+that would compare without album.
+
 ### Traits, associated functions etc
 
 [Inspiration video](https://youtu.be/bnnacleqg6k)
