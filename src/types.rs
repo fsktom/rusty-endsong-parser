@@ -146,6 +146,7 @@ impl Music for Song {}
 /// A more specific version of [`parse::Entry`]
 /// utilized by many functions here.
 /// Only for entries which are songs (there are also podcast entries)
+///
 /// Contains the relevant metadata of each entry song entry in endsong.json
 #[derive(Clone, Debug)]
 pub struct SongEntry {
