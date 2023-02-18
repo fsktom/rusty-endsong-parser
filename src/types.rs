@@ -198,7 +198,7 @@ impl SongEntries {
     /// Will automatically change to total number of that aspect if `num` is higher than that
     ///
     /// Wrapper for [`display::print_top`()]
-    pub fn print_top(&self, asp: Aspect, num: usize) {
+    pub fn print_top(&self, asp: &Aspect, num: usize) {
         display::print_top(self, asp, num);
     }
 
@@ -210,7 +210,7 @@ impl SongEntries {
     /// Will automatically change to total number of that aspect if `num` is higher than that
     ///
     /// Wrapper for [`display::print_top_from_artist`()]
-    pub fn print_top_from_artist(&self, asp: Aspect, artist: &Artist, num: usize) {
+    pub fn print_top_from_artist(&self, asp: &Aspect, artist: &Artist, num: usize) {
         display::print_top_from_artist(self, asp, artist, num);
     }
 
@@ -231,7 +231,7 @@ impl SongEntries {
     /// relevant struct
     ///
     /// Wrapper for [`display::print_aspect`()]
-    pub fn print_aspect(&self, asp: AspectFull) {
+    pub fn print_aspect(&self, asp: &AspectFull) {
         display::print_aspect(self, asp);
     }
 
@@ -243,7 +243,7 @@ impl SongEntries {
     /// relevant struct
     ///
     /// Wrapper for [`display::print_aspect_date`()]
-    pub fn print_aspect_date(&self, asp: AspectFull, start: &DateTime<Tz>, end: &DateTime<Tz>) {
+    pub fn print_aspect_date(&self, asp: &AspectFull, start: &DateTime<Tz>, end: &DateTime<Tz>) {
         display::print_aspect_date(self, asp, start, end);
     }
 
@@ -291,7 +291,7 @@ impl<'a> Find<'a> {
     ///
     /// This function will return an [Err] with [`NotFoundError::Artist`]
     /// if it cannot find an artist with the given name
-    pub fn artist(&self, artist_name: String) -> Result<Artist, NotFoundError> {
+    pub fn artist(&self, artist_name: &str) -> Result<Artist, NotFoundError> {
         display::find_artist(self, artist_name)
     }
 
@@ -303,7 +303,7 @@ impl<'a> Find<'a> {
     ///
     /// This function will return an [Err] with [`NotFoundError::Album`]
     /// if it cannot find an album with the given name and artist
-    pub fn album(&self, album_name: String, artist_name: String) -> Result<Album, NotFoundError> {
+    pub fn album(&self, album_name: &str, artist_name: &str) -> Result<Album, NotFoundError> {
         display::find_album(self, album_name, artist_name)
     }
 
@@ -319,9 +319,9 @@ impl<'a> Find<'a> {
     /// given album and artist
     pub fn song_from_album(
         &self,
-        song_name: String,
-        album_name: String,
-        artist_name: String,
+        song_name: &str,
+        album_name: &str,
+        artist_name: &str,
     ) -> Result<Song, NotFoundError> {
         display::find_song_from_album(self, song_name, album_name, artist_name)
     }

@@ -59,38 +59,31 @@ fn main() {
 /// tests various [`crate::display`] functions
 /// or its wrapper associated methods from [`SongEntries`]
 fn test(entries: &SongEntries) {
-    entries.print_top(Aspect::default(), 10);
-    entries.print_top(Aspect::Albums, 10);
-    entries.print_top(Aspect::Artists, 10);
+    entries.print_top(&Aspect::default(), 10);
+    entries.print_top(&Aspect::Albums, 10);
+    entries.print_top(&Aspect::Artists, 10);
 
     let powerwolf = types::Artist::new(String::from("Powerwolf"));
-    entries.print_top_from_artist(Aspect::Songs, &powerwolf, 10);
-    entries.print_top_from_artist(Aspect::Albums, &powerwolf, 10);
+    entries.print_top_from_artist(&Aspect::Songs, &powerwolf, 10);
+    entries.print_top_from_artist(&Aspect::Albums, &powerwolf, 10);
 
     let coat = types::Album::from_str("Coat of Arms", "Sabaton");
     entries.print_top_from_album(&coat, 50);
 
     let final_solution = types::Song::from_str("The Final Solution", "Coat of Arms", "Sabaton");
-    entries.print_aspect(AspectFull::Artist(&types::Artist::from_str("Sabaton")));
+    entries.print_aspect(&AspectFull::Artist(&types::Artist::from_str("Sabaton")));
     println!();
-    entries.print_aspect(AspectFull::Album(&coat));
+    entries.print_aspect(&AspectFull::Album(&coat));
     println!();
-    entries.print_aspect(AspectFull::Song(&final_solution));
+    entries.print_aspect(&AspectFull::Song(&final_solution));
 
-    dbg!(entries.find().artist("Sabaton".to_string()).unwrap());
+    dbg!(entries.find().artist("Sabaton").unwrap());
+    dbg!(entries.find().album("COAT OF ARMS", "sabaton").unwrap());
     dbg!(entries
         .find()
-        .album("COAT OF ARMS".to_string(), "sabaton".to_string(),)
+        .song_from_album("The FINAL SOLutiOn", "COAT OF ARMS", "sabaton",)
         .unwrap());
-    dbg!(entries
-        .find()
-        .song_from_album(
-            "The FINAL SOLutiOn".to_string(),
-            "COAT OF ARMS".to_string(),
-            "sabaton".to_string(),
-        )
-        .unwrap());
-    match entries.find().artist("daduasdy712e qyw7".to_string()) {
+    match entries.find().artist("daduasdy712e qyw7") {
         Ok(art) => {
             dbg!(art);
         }
@@ -116,7 +109,7 @@ fn test(entries: &SongEntries) {
         .datetime_from_str("2022-07-01T01:01:01Z", "%Y-%m-%dT%H:%M:%SZ")
         .unwrap();
 
-    entries.print_aspect_date(AspectFull::Artist(&powerwolf), &start_date, &end_date);
-    entries.print_aspect_date(AspectFull::Album(&coat), &start_date, &end_date);
-    entries.print_aspect_date(AspectFull::Song(&final_solution), &start_date, &end_date);
+    entries.print_aspect_date(&AspectFull::Artist(&powerwolf), &start_date, &end_date);
+    entries.print_aspect_date(&AspectFull::Album(&coat), &start_date, &end_date);
+    entries.print_aspect_date(&AspectFull::Song(&final_solution), &start_date, &end_date);
 }

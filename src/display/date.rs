@@ -18,7 +18,7 @@ use super::{AlbumPlays, ArtistPlays, SongPlays};
 /// relevant struct
 pub fn print_aspect(
     entries: &Vec<SongEntry>,
-    asp: AspectFull,
+    asp: &AspectFull,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) {
@@ -33,7 +33,7 @@ pub fn print_aspect(
             );
             print_artist(
                 entries,
-                gather_albums_with_artist_date(entries, art, start, end),
+                &gather_albums_with_artist_date(entries, art, start, end),
                 start,
                 end,
             );
@@ -46,7 +46,7 @@ pub fn print_aspect(
                 end.date(),
                 gather_album_date(entries, alb, start, end).1
             );
-            print_album(gather_songs_with_album_date(entries, alb, start, end));
+            print_album(&gather_songs_with_album_date(entries, alb, start, end));
         }
         AspectFull::Song(son) => {
             let son = gather_song_date(entries, son, start, end);
@@ -64,7 +64,7 @@ pub fn print_aspect(
 /// Used by [`print_aspect`()]
 fn print_artist(
     entries: &Vec<SongEntry>,
-    artist: HashMap<Album, u32>,
+    artist: &HashMap<Album, u32>,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) {
@@ -81,7 +81,7 @@ fn print_artist(
             alb,
             gather_album_date(entries, alb, start, end).1
         );
-        print_album(mus);
+        print_album(&mus);
     }
 }
 

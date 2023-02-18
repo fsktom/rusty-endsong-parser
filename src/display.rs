@@ -28,21 +28,21 @@ pub const SUM_ALBUMS: bool = true;
 /// * `asp` - [`Aspect::Songs`] (affected by [`SUM_ALBUMS`]) for top songs, [`Aspect::Albums`] for top albums and
 /// [`Aspect::Artists`] for top artists
 /// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
-pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
+pub fn print_top(entries: &Vec<SongEntry>, asp: &Aspect, num: usize) {
     match asp {
         Aspect::Songs => {
             println!("=== TOP {num} SONGS ===");
-            print_top_helper(gather_songs(entries), num);
+            print_top_helper(&gather_songs(entries), num);
             println!();
         }
         Aspect::Albums => {
             println!("=== TOP {num} ALBUMS ===");
-            print_top_helper(gather_albums(entries), num);
+            print_top_helper(&gather_albums(entries), num);
             println!();
         }
         Aspect::Artists => {
             println!("=== TOP {num} ARTISTS ===");
-            print_top_helper(gather_artists(entries), num);
+            print_top_helper(&gather_artists(entries), num);
             println!();
         }
     }
@@ -53,19 +53,19 @@ pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
 /// * `asp` - [`Aspect::Songs`] for top songs and [`Aspect::Albums`] for top albums
 /// * `artist` - the [Artist] you want the top songs/albums from
 /// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
-pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: Aspect, artist: &Artist, num: usize) {
+pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: &Aspect, artist: &Artist, num: usize) {
     match asp {
         Aspect::Songs => {
             println!("=== TOP {num} SONGS FROM {artist} ===");
-            print_top_helper(gather_songs_with_artist(entries, artist), num);
+            print_top_helper(&gather_songs_with_artist(entries, artist), num);
             println!();
         }
         Aspect::Albums => {
             println!("=== TOP {num} ALBUMS FROM {artist} ===");
-            print_top_helper(gather_albums_with_artist(entries, artist), num);
+            print_top_helper(&gather_albums_with_artist(entries, artist), num);
             println!();
         }
-        _ => println!("gay"),
+        Aspect::Artists => println!("gay"),
     }
 }
 
@@ -76,12 +76,12 @@ pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: Aspect, artist: &Art
 /// Will automatically change to total number of songs from that album if `num` is higher than that
 pub fn print_top_from_album(entries: &Vec<SongEntry>, album: &Album, num: usize) {
     println!("=== TOP {num} SONGS FROM {album} ===");
-    print_top_helper(gather_songs_with_album(entries, album), num);
+    print_top_helper(&gather_songs_with_album(entries, album), num);
     println!();
 }
 
 /// Used by [`print_top`()]
-fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
+fn print_top_helper<T: Music>(music_dict: &HashMap<T, u32>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
     let mut music_vec: Vec<(&T, &u32)> = music_dict.iter().collect();
     music_vec.sort_by(|a, b| b.1.cmp(a.1));
@@ -165,8 +165,6 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     }
 
     if SUM_ALBUMS {
-        let mut songs_artist: HashMap<SongJustArtist, u32> = HashMap::new();
-
         /// tuple struct containing an Album with the amount of plays
         #[derive(PartialEq, Eq, Hash, Debug, Clone)]
         struct AlbumPlays(Album, u32);
@@ -181,6 +179,9 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
             /// the amount of plays in each album
             albums: Vec<AlbumPlays>,
         }
+
+        let mut songs_artist: HashMap<SongJustArtist, u32> = HashMap::new();
+
         // to know which album the song had highest amount of plays from
         // that album will be then displayed in () after the song name
         // but the number of plays that will be displayed will be a sum of
@@ -337,7 +338,7 @@ struct SongPlays(Song, u32);
 ///
 /// * `asp` - the aspect you want informationa about containing the
 /// relevant struct
-pub fn print_aspect(entries: &Vec<SongEntry>, asp: AspectFull) {
+pub fn print_aspect(entries: &Vec<SongEntry>, asp: &AspectFull) {
     match asp {
         AspectFull::Artist(art) => {
             println!("=== {} | {} plays ===", art, gather_artist(entries, art).1);
@@ -349,12 +350,12 @@ pub fn print_aspect(entries: &Vec<SongEntry>, asp: AspectFull) {
             // --- Alestorm - Sunset On The Golden Age | 3 plays ---
             // #1: Alestorm - Drink (Sunset On The Golden Age) | 3 plays
 
-            print_artist(entries, gather_albums_with_artist(entries, art));
+            print_artist(entries, &gather_albums_with_artist(entries, art));
         }
         AspectFull::Album(alb) => {
             println!("=== {} | {} plays ===", alb, gather_album(entries, alb).1);
             // TODO! currently print_album uses the whole time for num of plays!!!
-            print_album(gather_songs_with_album(entries, alb));
+            print_album(&gather_songs_with_album(entries, alb));
         }
         AspectFull::Song(son) => {
             let son = gather_song(entries, son);
@@ -413,7 +414,7 @@ fn gather_song(entries: &Vec<SongEntry>, son: &Song) -> SongPlays {
 }
 
 /// Used by [`print_aspect`()]
-fn print_artist(entries: &Vec<SongEntry>, artist: HashMap<Album, u32>) {
+fn print_artist(entries: &Vec<SongEntry>, artist: &HashMap<Album, u32>) {
     let mut artist_vec: Vec<(&Album, &u32)> = artist.iter().collect();
     artist_vec.sort_by(|a, b| b.1.cmp(a.1));
 
@@ -423,12 +424,12 @@ fn print_artist(entries: &Vec<SongEntry>, artist: HashMap<Album, u32>) {
         // calling gather_album here is unnecessary work
         // it should add up the total plays somehwere else
         println!("--- {} | {} plays ---", alb, gather_album(entries, alb).1);
-        print_album(mus);
+        print_album(&mus);
     }
 }
 
 /// Used by [`print_aspect`()]
-fn print_album(album: HashMap<Song, u32>) {
+fn print_album(album: &HashMap<Song, u32>) {
     let mut album_vec: Vec<(&Song, &u32)> = album.iter().collect();
     album_vec.sort_by(|a, b| b.1.cmp(a.1));
 
@@ -441,7 +442,7 @@ fn print_album(album: HashMap<Song, u32>) {
             leading_whitespace(i + 1, album_vec.len()),
             m,
             n
-        )
+        );
     }
 }
 
@@ -453,7 +454,7 @@ fn print_album(album: HashMap<Song, u32>) {
 ///
 /// This function will return an [Err] with [`NotFoundError::Artist`]
 /// if it cannot find an artist with the given name
-pub fn find_artist(entries: &Vec<SongEntry>, artist_name: String) -> Result<Artist, NotFoundError> {
+pub fn find_artist(entries: &Vec<SongEntry>, artist_name: &str) -> Result<Artist, NotFoundError> {
     let usr_artist = Artist::new(artist_name.to_lowercase());
 
     for entry in entries {
@@ -475,8 +476,8 @@ pub fn find_artist(entries: &Vec<SongEntry>, artist_name: String) -> Result<Arti
 /// if it cannot find an album with the given name and artist
 pub fn find_album(
     entries: &Vec<SongEntry>,
-    album_name: String,
-    artist_name: String,
+    album_name: &str,
+    artist_name: &str,
 ) -> Result<Album, NotFoundError> {
     // .to_lowercase() so that user input capitalization doesn't matter
     let usr_album = Album::new(album_name.to_lowercase(), artist_name.to_lowercase());
@@ -495,9 +496,9 @@ pub fn find_album(
 /// exists in the dataset
 pub fn find_song_from_album(
     entries: &Vec<SongEntry>,
-    song_name: String,
-    album_name: String,
-    artist_name: String,
+    song_name: &str,
+    album_name: &str,
+    artist_name: &str,
 ) -> Result<Song, NotFoundError> {
     // .to_lowercase() so that user input capitalization doesn't matter
     let usr_song = Song::new(
@@ -578,7 +579,7 @@ pub fn find_song(
 /// Wrapper around [`date::print_aspect`()]
 pub fn print_aspect_date(
     entries: &Vec<SongEntry>,
-    asp: AspectFull,
+    asp: &AspectFull,
     start: &chrono::DateTime<chrono_tz::Tz>,
     end: &chrono::DateTime<chrono_tz::Tz>,
 ) {

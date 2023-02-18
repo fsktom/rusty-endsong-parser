@@ -95,8 +95,8 @@ pub struct Entry {
 }
 
 /// Parses a single `endsong.json` file into a usable format
-fn parse_single(path: String) -> Vec<SongEntry> {
-    let u = read_entries_from_file(&path).unwrap_or_else(|_| panic!("File {} is invalid!", &path));
+fn parse_single(path: &str) -> Vec<SongEntry> {
+    let u = read_entries_from_file(path).unwrap_or_else(|_| panic!("File {} is invalid!", &path));
     let mut songs: Vec<SongEntry> = Vec::new();
     let mut podcasts: Vec<Entry> = Vec::new();
     for entry in u {
@@ -113,7 +113,7 @@ fn parse_single(path: String) -> Vec<SongEntry> {
 pub fn parse(paths: Vec<String>) -> Vec<SongEntry> {
     let mut song_entries: Vec<SongEntry> = Vec::new();
     for path in paths {
-        let mut one = parse_single(path);
+        let mut one = parse_single(&path);
         song_entries.append(&mut one);
     }
     song_entries
@@ -163,6 +163,7 @@ fn parse_option(opt: Option<String>) -> String {
 /// and adjusting for time zone and dst
 ///
 /// Relies on [`LOCATION_TZ`]
+#[allow(clippy::module_name_repetitions)]
 pub fn parse_date(ts: &str) -> DateTime<Tz> {
     // timestamp is in "2016-07-21T01:02:07Z" format
     // in UTC!!!!!!!!!
