@@ -194,24 +194,22 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
                 artist: k.album.artist.clone(),
             };
 
-            match songs_artist.get(&song_just_artist) {
+            if let Some(plays) = songs_artist.get(&song_just_artist) {
                 // if it finds something it means that the song
                 // only from a different album already exists
-                Some(plays) => {
-                    *songs_artist.entry(song_just_artist.clone()).or_insert(0) += *plays;
 
-                    let temp = changed.get_mut(&song_just_artist).unwrap();
-                    temp.albums.push(AlbumPlays(k.album.clone(), *v));
-                }
+                *songs_artist.entry(song_just_artist.clone()).or_insert(0) += *plays;
+
+                let temp = changed.get_mut(&song_just_artist).unwrap();
+                temp.albums.push(AlbumPlays(k.album.clone(), *v));
+            } else {
                 // if it doesn't find anything, it's the first appearance of that song
-                None => {
-                    songs_artist.insert(song_just_artist.clone(), *v);
-                    let salb = SongAlbums {
-                        name: k.name.clone(),
-                        albums: vec![AlbumPlays(k.album.clone(), *v)],
-                    };
-                    changed.insert(song_just_artist.clone(), salb);
-                }
+                songs_artist.insert(song_just_artist.clone(), *v);
+                let salb = SongAlbums {
+                    name: k.name.clone(),
+                    albums: vec![AlbumPlays(k.album.clone(), *v)],
+                };
+                changed.insert(song_just_artist.clone(), salb);
             }
         }
 
@@ -240,7 +238,6 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
             songs.insert(son, total);
         }
     }
-
     songs
 }
 
