@@ -27,8 +27,8 @@ pub fn print_aspect(
             println!(
                 "=== {} between {} and {} | {} plays ===",
                 art,
-                start.date(),
-                end.date(),
+                start.date_naive(),
+                end.date_naive(),
                 gather_artist_date(entries, art, start, end).1
             );
             print_artist(
@@ -42,8 +42,8 @@ pub fn print_aspect(
             println!(
                 "=== {} between {} and {} | {} plays ===",
                 alb,
-                start.date(),
-                end.date(),
+                start.date_naive(),
+                end.date_naive(),
                 gather_album_date(entries, alb, start, end).1
             );
             print_album(&gather_songs_with_album_date(entries, alb, start, end));
@@ -53,8 +53,8 @@ pub fn print_aspect(
             println!(
                 "{} between {} and {} | {} plays",
                 son.0,
-                start.date(),
-                end.date(),
+                start.date_naive(),
+                end.date_naive(),
                 son.1
             );
         }
