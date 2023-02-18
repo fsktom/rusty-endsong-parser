@@ -334,7 +334,7 @@ impl<'a> Find<'a> {
 
     /// Searches the dataset for multiple versions of a song
     ///
-    /// Returns a [Vec<Song>] containing an instance
+    /// Returns a [`Vec<Song>`] containing an instance
     /// of [Song] for every album it's been found in
     ///
     /// Wrapper for [`display::find_song`()]

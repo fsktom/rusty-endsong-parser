@@ -526,7 +526,7 @@ pub fn find_song_from_album(
 
 /// Searches the dataset for multiple versions of a song
 ///
-/// Returns a [Vec<Song>] containing an instance
+/// Returns a [`Vec<Song>`] containing an instance
 /// of [Song] for every album it's been found in
 pub fn find_song(
     entries: &Vec<SongEntry>,
