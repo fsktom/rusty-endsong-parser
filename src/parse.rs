@@ -169,8 +169,7 @@ fn parse_option(opt: Option<String>) -> String {
 /// and adjusting for time zone and dst
 ///
 /// Relies on [`LOCATION_TZ`]
-#[allow(clippy::module_name_repetitions)]
-pub fn parse_date(ts: &str) -> DateTime<Tz> {
+fn parse_date(ts: &str) -> DateTime<Tz> {
     // timestamp is in "2016-07-21T01:02:07Z" format
     // in UTC!!!!!!!!!
     let ts = DateTime::parse_from_rfc3339(ts).unwrap();
