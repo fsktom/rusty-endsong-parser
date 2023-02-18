@@ -43,13 +43,13 @@ fn main() {
     let root = "/Users/filip/Other/Endsong/";
     let paths: Vec<String> = vec![
         format!("{root}endsong_0.json"),
-        // format!("{}endsong_1.json", root),
-        // format!("{}endsong_2.json", root),
-        // format!("{}endsong_3.json", root),
-        // format!("{}endsong_4.json", root),
-        // format!("{}endsong_5.json", root),
-        // format!("{}endsong_6.json", root),
-        // format!("{}endsong_7.json", root),
+        // format!("{root}endsong_1.json"),
+        // format!("{root}endsong_2.json"),
+        // format!("{root}endsong_3.json"),
+        // format!("{root}endsong_4.json"),
+        // format!("{root}endsong_5.json"),
+        // format!("{root}endsong_6.json"),
+        // format!("{root}endsong_7.json"),
     ];
 
     let entries = SongEntries::new(paths);
