@@ -99,7 +99,7 @@ fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
         let mus = music_vec.get(i).unwrap();
         let m = mus.0;
         let n = mus.1;
-        println!("{}: {} | {} plays", leading_whitespace(i + 1, ind), m, n)
+        println!("{}: {} | {} plays", leading_whitespace(i + 1, ind), m, n);
     }
 }
 
@@ -224,9 +224,9 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
                 let mut plays = 0;
                 for alb in 0..albs.len() {
                     if albs[alb].1 > plays {
-                        plays = albs[alb].1
+                        plays = albs[alb].1;
                     }
-                    total += albs[alb].1
+                    total += albs[alb].1;
                 }
                 &albs[0]
             };

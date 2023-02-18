@@ -143,7 +143,7 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
         _ => {
             // \x1b[1;31m makes text red
             // \x1b[0m makes it the default color
-            println!("Command not found! Type \x1b[1;31mhelp\x1b[0m to print available commands")
+            println!("Command not found! Type \x1b[1;31mhelp\x1b[0m to print available commands");
         }
     }
 }
@@ -366,14 +366,18 @@ fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                                                 let line_end_date =
                                                                     rl.readline(PROMPT_SECONDARY);
                                                                 match line_end_date {
-                                Ok(usr_input) => match user_input_date_parser(usr_input) {
-                                    Ok(end_date) => {
-                                        entries.print_aspect_date(AspectFull::Song(&son), &start_date, &end_date)
-                                    },
-                                    Err(_)=>inv_date!()
-                                },
-                                Err(e) => rle!(e),
-                            }
+                                                                    Ok(usr_input) => {
+                                                                        match user_input_date_parser(
+                                                                            usr_input,
+                                                                        ) {
+                                                                            Ok(end_date) => {
+                                                                                entries.print_aspect_date(AspectFull::Song(&son), &start_date, &end_date);
+                                                                            }
+                                                                            Err(_) => inv_date!(),
+                                                                        }
+                                                                    }
+                                                                    Err(e) => rle!(e),
+                                                                }
                                                             }
                                                             Err(_) => inv_date!(),
                                                         }
@@ -415,7 +419,7 @@ fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) {
                         Ok(usr_input_son) => match entries.find().song(usr_input_son, art.name) {
                             Ok(songs) => {
                                 if songs.len() == 1 {
-                                    entries.print_aspect(AspectFull::Song(&songs[0]))
+                                    entries.print_aspect(AspectFull::Song(&songs[0]));
                                 } else {
                                     println!(
                                         "I've found {} songs named {} from {}!",
@@ -424,7 +428,7 @@ fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) {
                                         &songs[0].album.artist.name
                                     );
                                     for song in songs {
-                                        entries.print_aspect(AspectFull::Song(&song))
+                                        entries.print_aspect(AspectFull::Song(&song));
                                     }
                                 }
                             }
@@ -474,7 +478,7 @@ fn match_print_songs_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                                                         AspectFull::Song(&songs[0]),
                                                                         &start_date,
                                                                         &end_date,
-                                                                    )
+                                                                    );
                                                                 } else {
                                                                     println!(
                                                 "I've found {} songs named {} from {}!",
@@ -487,7 +491,7 @@ fn match_print_songs_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                                                             AspectFull::Song(&song),
                                                                             &start_date,
                                                                             &end_date,
-                                                                        )
+                                                                        );
                                                                     }
                                                                 }
                                                             }
@@ -590,7 +594,7 @@ fn help() {
 
     for (k, v) in commands {
         // makes the command itself red and the rest default color
-        println!("\x1b[1;31m{k}\x1b[0m =>\t{v}")
+        println!("\x1b[1;31m{k}\x1b[0m =>\t{v}");
     }
 }
 

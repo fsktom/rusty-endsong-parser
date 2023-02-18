@@ -114,7 +114,7 @@ pub fn parse(paths: Vec<String>) -> Vec<SongEntry> {
     let mut song_entries: Vec<SongEntry> = Vec::new();
     for path in paths {
         let mut one = parse_single(path);
-        song_entries.append(&mut one)
+        song_entries.append(&mut one);
     }
     song_entries
 }

@@ -199,7 +199,7 @@ impl SongEntries {
     ///
     /// Wrapper for [`display::print_top`()]
     pub fn print_top(&self, asp: Aspect, num: usize) {
-        display::print_top(self, asp, num)
+        display::print_top(self, asp, num);
     }
 
     /// Prints top songs or albums from an artist
@@ -211,7 +211,7 @@ impl SongEntries {
     ///
     /// Wrapper for [`display::print_top_from_artist`()]
     pub fn print_top_from_artist(&self, asp: Aspect, artist: &Artist, num: usize) {
-        display::print_top_from_artist(self, asp, artist, num)
+        display::print_top_from_artist(self, asp, artist, num);
     }
 
     /// Prints top songs from an album
@@ -222,7 +222,7 @@ impl SongEntries {
     ///
     /// Wrapper for [`display::print_top_from_album`()]
     pub fn print_top_from_album(&self, album: &Album, num: usize) {
-        display::print_top_from_album(self, album, num)
+        display::print_top_from_album(self, album, num);
     }
 
     /// Prints a specfic aspect
@@ -232,7 +232,7 @@ impl SongEntries {
     ///
     /// Wrapper for [`display::print_aspect`()]
     pub fn print_aspect(&self, asp: AspectFull) {
-        display::print_aspect(self, asp)
+        display::print_aspect(self, asp);
     }
 
     /// Prints a specfic aspect
@@ -244,7 +244,7 @@ impl SongEntries {
     ///
     /// Wrapper for [`display::print_aspect_date`()]
     pub fn print_aspect_date(&self, asp: AspectFull, start: &DateTime<Tz>, end: &DateTime<Tz>) {
-        display::print_aspect_date(self, asp, start, end)
+        display::print_aspect_date(self, asp, start, end);
     }
 
     /// Adds search capability
