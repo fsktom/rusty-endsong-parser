@@ -14,9 +14,6 @@
 #![deny(rustdoc::invalid_rust_codeblocks)]
 #![deny(rustdoc::bare_urls)]
 #![deny(clippy::pedantic)]
-#![allow(clippy::cast_precision_loss)]
-#![allow(clippy::cast_sign_loss)]
-#![allow(clippy::cast_possible_truncation)]
 
 mod display;
 mod parse;
