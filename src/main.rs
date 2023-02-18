@@ -3,17 +3,17 @@
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //!
 //! CLI application with which you can analyze Spotify endsong.json files
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
 // To require working docs
-#![forbid(missing_docs)]
-#![forbid(clippy::missing_docs_in_private_items)]
-#![forbid(rustdoc::broken_intra_doc_links)]
-#![forbid(rustdoc::private_intra_doc_links)]
-#![forbid(rustdoc::missing_crate_level_docs)]
-#![forbid(rustdoc::invalid_codeblock_attributes)]
-#![forbid(rustdoc::invalid_rust_codeblocks)]
-#![forbid(rustdoc::bare_urls)]
-#![forbid(clippy::pedantic)]
+#![deny(missing_docs)]
+#![deny(clippy::missing_docs_in_private_items)]
+#![deny(rustdoc::broken_intra_doc_links)]
+#![deny(rustdoc::private_intra_doc_links)]
+#![deny(rustdoc::missing_crate_level_docs)]
+#![deny(rustdoc::invalid_codeblock_attributes)]
+#![deny(rustdoc::invalid_rust_codeblocks)]
+#![deny(rustdoc::bare_urls)]
+#![deny(clippy::pedantic)]
 #![allow(clippy::cast_precision_loss)]
 #![allow(clippy::cast_sign_loss)]
 #![allow(clippy::cast_possible_truncation)]
