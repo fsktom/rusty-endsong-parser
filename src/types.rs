@@ -9,7 +9,7 @@ use crate::display;
 use crate::parse;
 
 /// Algebraic data type similar to [Aspect]
-/// but used by functions such as [display::print_aspect]
+/// but used by functions such as [`display::print_aspect`]
 /// to get more specfic data
 ///
 /// Each variant contains a reference to an instance of the aspect
@@ -24,9 +24,9 @@ pub enum AspectFull<'a> {
 
 // you can derive Default in Rust 1.62 https://github.com/rust-lang/rust/pull/94457/
 /// An enum that is among other things used by functions such as
-/// [display::print_top] and its derivatives to know whether
-/// to print top songs ([Aspect::Songs]), albums ([Aspect::Albums])
-/// or artists ([Aspect::Artists])
+/// [`display::print_top`] and its derivatives to know whether
+/// to print top songs ([`Aspect::Songs`]), albums ([`Aspect::Albums`])
+/// or artists ([`Aspect::Artists`])
 #[derive(Default)]
 pub enum Aspect {
     /// to print top artists
@@ -64,7 +64,7 @@ impl Artist {
     }
 }
 impl Display for Artist {
-    /// Formats the struct in "<artist_name>" format
+    /// Formats the struct in "<`artist_name`>" format
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.name)
     }
@@ -97,7 +97,7 @@ impl Album {
     }
 }
 impl Display for Album {
-    /// Formats the struct in "<artist_name> - <album_name>" format
+    /// Formats the struct in "<`artist_name`> - <`album_name`>" format
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} - {}", self.artist.name, self.name)
     }
@@ -132,7 +132,7 @@ impl Song {
     }
 }
 impl Display for Song {
-    /// Formats the struct in "<artist_name> - <song_name> (<album_name>)" format
+    /// Formats the struct in "<`artist_name`> - <`song_name`> (<`album_name`>)" format
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -143,7 +143,7 @@ impl Display for Song {
 }
 impl Music for Song {}
 
-/// A more specific version of [parse::Entry]
+/// A more specific version of [`parse::Entry`]
 /// utilized by many functions here.
 /// Only for entries which are songs (there are also podcast entries)
 /// Contains the relevant metadata of each entry song entry in endsong.json
@@ -163,7 +163,7 @@ pub struct SongEntry {
     pub id: String,
 }
 
-/// Struct containing a vector of [SongEntry]
+/// Struct containing a vector of [`SongEntry`]
 ///
 /// Fundamental for the use of this program
 pub struct SongEntries(Vec<SongEntry>);
@@ -183,7 +183,7 @@ impl std::ops::DerefMut for SongEntries {
 }
 
 impl SongEntries {
-    /// Creates an instance of SongEntries
+    /// Creates an instance of `SongEntries`
     ///
     /// * `paths` - a vector containing paths to each `endsong.json` file
     pub fn new(paths: Vec<String>) -> SongEntries {
@@ -192,24 +192,24 @@ impl SongEntries {
 
     /// Prints the top `num` of an `asp`
     ///
-    /// * `asp` - [Aspect::Songs] (affected by [display::SUM_ALBUMS]) for top songs, [Aspect::Albums] for top albums and
-    /// [Aspect::Artists] for top artists
+    /// * `asp` - [`Aspect::Songs`] (affected by [`display::SUM_ALBUMS`]) for top songs, [`Aspect::Albums`] for top albums and
+    /// [`Aspect::Artists`] for top artists
     /// * `num` - number of displayed top aspects.
     /// Will automatically change to total number of that aspect if `num` is higher than that
     ///
-    /// Wrapper for [display::print_top()]
+    /// Wrapper for [`display::print_top`()]
     pub fn print_top(&self, asp: Aspect, num: usize) {
         display::print_top(self, asp, num)
     }
 
     /// Prints top songs or albums from an artist
     ///
-    /// * `asp` - [Aspect::Songs] for top songs and [Aspect::Albums] for top albums
+    /// * `asp` - [`Aspect::Songs`] for top songs and [`Aspect::Albums`] for top albums
     /// * `artist` - the [Artist] you want the top songs/albums from
     /// * `num` - number of displayed top aspects.
     /// Will automatically change to total number of that aspect if `num` is higher than that
     ///
-    /// Wrapper for [display::print_top_from_artist()]
+    /// Wrapper for [`display::print_top_from_artist`()]
     pub fn print_top_from_artist(&self, asp: Aspect, artist: &Artist, num: usize) {
         display::print_top_from_artist(self, asp, artist, num)
     }
@@ -220,7 +220,7 @@ impl SongEntries {
     /// * `num` - number of displayed top songs.
     /// Will automatically change to total number of songs from that album if `num` is higher than that
     ///
-    /// Wrapper for [display::print_top_from_album()]
+    /// Wrapper for [`display::print_top_from_album`()]
     pub fn print_top_from_album(&self, album: &Album, num: usize) {
         display::print_top_from_album(self, album, num)
     }
@@ -230,19 +230,19 @@ impl SongEntries {
     /// * `asp` - the aspect you want informationa about containing the
     /// relevant struct
     ///
-    /// Wrapper for [display::print_aspect()]
+    /// Wrapper for [`display::print_aspect`()]
     pub fn print_aspect(&self, asp: AspectFull) {
         display::print_aspect(self, asp)
     }
 
     /// Prints a specfic aspect
     ///
-    /// Basically [SongEntries::print_aspect()] but with date limitations
+    /// Basically [`SongEntries::print_aspect`()] but with date limitations
     ///
     /// * `asp` - the aspect you want informationa about containing the
     /// relevant struct
     ///
-    /// Wrapper for [display::print_aspect_date()]
+    /// Wrapper for [`display::print_aspect_date`()]
     pub fn print_aspect_date(&self, asp: AspectFull, start: &DateTime<Tz>, end: &DateTime<Tz>) {
         display::print_aspect_date(self, asp, start, end)
     }
@@ -256,9 +256,9 @@ impl SongEntries {
     }
 }
 
-/// Used by [SongEntries] as a wrapper for
-/// [display::find_artist()], [display::find_album()],
-/// [display::find_song_from_album()] and [display::find_song()]
+/// Used by [`SongEntries`] as a wrapper for
+/// [`display::find_artist`()], [`display::find_album`()],
+/// [`display::find_song_from_album`()] and [`display::find_song`()]
 ///
 /// # Examples
 ///
@@ -269,7 +269,7 @@ impl SongEntries {
 ///
 /// # Errors
 ///
-/// Methods can return an [Err] with [NotFoundError]
+/// Methods can return an [Err] with [`NotFoundError`]
 pub struct Find<'a>(&'a SongEntries);
 
 // https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
@@ -285,11 +285,11 @@ impl<'a> std::ops::Deref for Find<'a> {
 impl<'a> Find<'a> {
     /// Searches the entries for if the given artist exists in the dataset
     ///
-    /// Wrapper for [display::find_artist()]
+    /// Wrapper for [`display::find_artist`()]
     ///
     /// # Errors
     ///
-    /// This function will return an [Err] with [NotFoundError::Artist]
+    /// This function will return an [Err] with [`NotFoundError::Artist`]
     /// if it cannot find an artist with the given name
     pub fn artist(&self, artist_name: String) -> Result<Artist, NotFoundError> {
         display::find_artist(self, artist_name)
@@ -297,11 +297,11 @@ impl<'a> Find<'a> {
 
     /// Searches the entries for if the given album exists in the dataset
     ///
-    /// Wrapper for [display::find_album()]
+    /// Wrapper for [`display::find_album`()]
     ///
     /// # Errors
     ///
-    /// This function will return an [Err] with [NotFoundError::Album]
+    /// This function will return an [Err] with [`NotFoundError::Album`]
     /// if it cannot find an album with the given name and artist
     pub fn album(&self, album_name: String, artist_name: String) -> Result<Album, NotFoundError> {
         display::find_album(self, album_name, artist_name)
@@ -310,11 +310,11 @@ impl<'a> Find<'a> {
     /// Searches the entries for if the given song (in that specific album)
     /// exists in the dataset
     ///
-    /// Wrapper for [display::find_song_from_album()]
+    /// Wrapper for [`display::find_song_from_album`()]
     ///
     /// # Errors
     ///
-    /// This function will return an [Err] with [NotFoundError::Song]
+    /// This function will return an [Err] with [`NotFoundError::Song`]
     /// if it cannot find a song with the given name from the
     /// given album and artist
     pub fn song_from_album(
@@ -331,7 +331,7 @@ impl<'a> Find<'a> {
     /// Returns a [Vec<Song>] containing an instance
     /// of [Song] for every album it's been found in
     ///
-    /// Wrapper for [display::find_song()]
+    /// Wrapper for [`display::find_song`()]
     pub fn song(&self, song_name: String, artist_name: String) -> Result<Vec<Song>, NotFoundError> {
         display::find_song(self, song_name, artist_name)
     }
@@ -340,7 +340,7 @@ impl<'a> Find<'a> {
 /// Errors raised by `display::find_*` functions and [Find] methods
 /// when they don't find an [Artist], [Album] or [Song]
 ///
-/// loosely based on [std::io::ErrorKind]
+/// loosely based on [`std::io::ErrorKind`]
 #[derive(Debug)]
 pub enum NotFoundError {
     /// Artist with that name was not found
@@ -393,7 +393,7 @@ impl Display for NotFoundError {
     }
 }
 
-/// A more specific version of [parse::Entry]
+/// A more specific version of [`parse::Entry`]
 /// for podcast entries.
 #[derive(Clone, Debug)]
 pub struct PodcastEntry {}

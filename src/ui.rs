@@ -17,11 +17,11 @@ macro_rules! inv_date {
     };
 }
 
-/// For [ReadlineError]s
+/// For [`ReadlineError`]s
 ///
 /// `println!("Something went wrong! Please try again. Error code: {}", e)`
 ///
-/// Used when matching [Editor::readline] ([Result<String, ReadlineError>])
+/// Used when matching [`Editor::readline`] ([Result<String, `ReadlineError`>])
 /// and printing the error message
 ///
 /// # Examples
@@ -87,14 +87,14 @@ pub fn start(entries: &SongEntries) {
         match std::fs::File::create(history_path) {
             Ok(_) => {}
             Err(e) => {
-                eprintln!("Failed to create history file: {}", e);
+                eprintln!("Failed to create history file: {e}");
             }
         }
     }
     match rl.load_history(history_path) {
         Ok(_) => (),
         Err(e) => {
-            eprintln!("Failed to load history file at .rep_history: {}", e);
+            eprintln!("Failed to load history file at .rep_history: {e}");
         }
     }
 
@@ -111,7 +111,7 @@ pub fn start(entries: &SongEntries) {
                 break;
             }
             Err(err) => {
-                println!("Error: {:?}", err);
+                println!("Error: {err:?}");
                 break;
             }
         }
@@ -120,7 +120,7 @@ pub fn start(entries: &SongEntries) {
     match rl.save_history(history_path) {
         Ok(_) => (),
         Err(e) => {
-            eprintln!("Failed to save history to file .trane_history: {}", e);
+            eprintln!("Failed to save history to file .trane_history: {e}");
         }
     }
 }
@@ -148,7 +148,7 @@ fn match_input(inp: String, entries: &SongEntries, rl: &mut Editor<()>) {
     }
 }
 
-/// Used by [match_input()] for `print artist` command
+/// Used by [`match_input`()] for `print artist` command
 fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) {
     // prompt: artist name
     println!("Artist name?");
@@ -156,15 +156,15 @@ fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) {
     match line_art {
         Ok(usr_input) => match entries.find().artist(usr_input) {
             Ok(art) => entries.print_aspect(AspectFull::Artist(&art)),
-            Err(e) => println!("{}", e),
+            Err(e) => println!("{e}"),
         },
         Err(e) => rle!(e),
     }
 }
 
-/// Used by [match_input()] for `print artist date` command
+/// Used by [`match_input`()] for `print artist date` command
 ///
-/// Basically [match_print_artist()] but with date functionality
+/// Basically [`match_print_artist`()] but with date functionality
 fn match_print_artist_date(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -198,13 +198,13 @@ fn match_print_artist_date(entries: &SongEntries, rl: &mut Editor<()>) {
                     Err(e) => rle!(e),
                 }
             }
-            Err(e) => println!("{}", e),
+            Err(e) => println!("{e}"),
         },
         Err(e) => rle!(e),
     }
 }
 
-/// Used by [match_input()] for `print album` command
+/// Used by [`match_input`()] for `print album` command
 fn match_print_album(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -218,20 +218,20 @@ fn match_print_album(entries: &SongEntries, rl: &mut Editor<()>) {
                 match line_alb {
                     Ok(usr_input_alb) => match entries.find().album(usr_input_alb, art.name) {
                         Ok(alb) => entries.print_aspect(AspectFull::Album(&alb)),
-                        Err(e) => println!("{}", e),
+                        Err(e) => println!("{e}"),
                     },
                     Err(e) => rle!(e),
                 }
             }
-            Err(e) => println!("{}", e),
+            Err(e) => println!("{e}"),
         },
         Err(e) => rle!(e),
     }
 }
 
-/// Used by [match_input()] for `print album date` command
+/// Used by [`match_input`()] for `print album date` command
 ///
-/// Basically [match_print_album()] but with date functionality
+/// Basically [`match_print_album`()] but with date functionality
 fn match_print_album_date(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -273,18 +273,18 @@ fn match_print_album_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                 Err(e) => rle!(e),
                             }
                         }
-                        Err(e) => println!("{}", e),
+                        Err(e) => println!("{e}"),
                     },
                     Err(e) => rle!(e),
                 }
             }
-            Err(e) => println!("{}", e),
+            Err(e) => println!("{e}"),
         },
         Err(e) => rle!(e),
     }
 }
 
-/// Used by [match_input()] for `print song` command
+/// Used by [`match_input`()] for `print song` command
 fn match_print_song(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -309,26 +309,26 @@ fn match_print_song(entries: &SongEntries, rl: &mut Editor<()>) {
                                         alb.artist.name,
                                     ) {
                                         Ok(son) => entries.print_aspect(AspectFull::Song(&son)),
-                                        Err(e) => println!("{}", e),
+                                        Err(e) => println!("{e}"),
                                     },
                                     Err(e) => rle!(e),
                                 }
                             }
-                            Err(e) => println!("{}", e),
+                            Err(e) => println!("{e}"),
                         },
                         Err(e) => rle!(e),
                     }
                 }
-                Err(e) => println!("{}", e),
+                Err(e) => println!("{e}"),
             }
         }
         Err(e) => rle!(e),
     }
 }
 
-/// Used by [match_input()] for `print song date` command
+/// Used by [`match_input`()] for `print song date` command
 ///
-/// Basically [match_print_song()] but with date functionality
+/// Basically [`match_print_song`()] but with date functionality
 fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -381,25 +381,25 @@ fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                                     Err(e) => rle!(e),
                                                 }
                                             }
-                                            Err(e) => println!("{}", e),
+                                            Err(e) => println!("{e}"),
                                         },
                                         Err(e) => rle!(e),
                                     }
                                 }
-                                Err(e) => println!("{}", e),
+                                Err(e) => println!("{e}"),
                             }
                         }
                         Err(e) => rle!(e),
                     }
                 }
-                Err(e) => println!("{}", e),
+                Err(e) => println!("{e}"),
             }
         }
         Err(e) => rle!(e),
     }
 }
 
-/// Used by [match_input()] for `print songs` command
+/// Used by [`match_input`()] for `print songs` command
 fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -428,19 +428,19 @@ fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) {
                                     }
                                 }
                             }
-                            Err(e) => println!("{}", e),
+                            Err(e) => println!("{e}"),
                         },
                         Err(e) => rle!(e),
                     }
                 }
-                Err(e) => println!("{}", e),
+                Err(e) => println!("{e}"),
             }
         }
         Err(e) => rle!(e),
     }
 }
 
-/// Used by [match_input()] for `print songs date` command
+/// Used by [`match_input`()] for `print songs date` command
 fn match_print_songs_date(entries: &SongEntries, rl: &mut Editor<()>) {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -502,22 +502,22 @@ fn match_print_songs_date(entries: &SongEntries, rl: &mut Editor<()>) {
                                         Err(e) => rle!(e),
                                     }
                                 }
-                                Err(e) => println!("{}", e),
+                                Err(e) => println!("{e}"),
                             }
                         }
                         Err(e) => rle!(e),
                     }
                 }
-                Err(e) => println!("{}", e),
+                Err(e) => println!("{e}"),
             }
         }
         Err(e) => rle!(e),
     }
 }
 
-/// Used by [match_input()] for `help` command
+/// Used by [`match_input`()] for `help` command
 ///
-/// Prints the available commands to the [std::io::stdout]
+/// Prints the available commands to the [`std::io::stdout`]
 fn help() {
     let mut commands: HashMap<&str, &str> = HashMap::new();
     // alias in pink! \x1b[1;35m
@@ -590,14 +590,14 @@ fn help() {
 
     for (k, v) in commands {
         // makes the command itself red and the rest default color
-        println!("\x1b[1;31m{}\x1b[0m =>\t{}", k, v)
+        println!("\x1b[1;31m{k}\x1b[0m =>\t{v}")
     }
 }
 
 /// used by `*_date` functions in this module for when the user inputs a date
 fn user_input_date_parser(usr_input: String) -> Result<DateTime<Tz>, chrono::format::ParseError> {
     // usr_input should be in YYYY-MM-DD format
-    let date_str = format!("{}T00:00:00Z", usr_input);
+    let date_str = format!("{usr_input}T00:00:00Z");
 
     // "%FT%TZ" is equivalent to "%Y-%m-%dT%H:%M:%SZ"
     // see <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>

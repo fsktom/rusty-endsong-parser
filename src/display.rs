@@ -1,6 +1,6 @@
 //! Module responsible for displaying the contents of endsong.json files
 //! in a human-readable format (e.g. as 100 most played songs)
-//! to the [std::io::stdout]
+//! to the [`std::io::stdout`]
 use std::collections::HashMap;
 
 use crate::types::Aspect;
@@ -17,7 +17,7 @@ mod date;
 /// If set to true, it will sum up the plays of one song across multiple
 /// albums it may be in
 ///
-/// Only applies to printing top songs with [print_top()]!
+/// Only applies to printing top songs with [`print_top`()]!
 ///
 /// The album displayed in the parantheses will be the one it has the
 /// highest amount of listens from
@@ -25,23 +25,23 @@ pub const SUM_ALBUMS: bool = true;
 
 /// Prints the top `num` of an `asp`
 ///
-/// * `asp` - [Aspect::Songs] (affected by [SUM_ALBUMS]) for top songs, [Aspect::Albums] for top albums and
-/// [Aspect::Artists] for top artists
+/// * `asp` - [`Aspect::Songs`] (affected by [`SUM_ALBUMS`]) for top songs, [`Aspect::Albums`] for top albums and
+/// [`Aspect::Artists`] for top artists
 /// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
 pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
     match asp {
         Aspect::Songs => {
-            println!("=== TOP {} SONGS ===", num);
+            println!("=== TOP {num} SONGS ===");
             print_top_helper(gather_songs(entries), num);
             println!();
         }
         Aspect::Albums => {
-            println!("=== TOP {} ALBUMS ===", num);
+            println!("=== TOP {num} ALBUMS ===");
             print_top_helper(gather_albums(entries), num);
             println!();
         }
         Aspect::Artists => {
-            println!("=== TOP {} ARTISTS ===", num);
+            println!("=== TOP {num} ARTISTS ===");
             print_top_helper(gather_artists(entries), num);
             println!();
         }
@@ -50,18 +50,18 @@ pub fn print_top(entries: &Vec<SongEntry>, asp: Aspect, num: usize) {
 
 /// Prints top songs or albums from an artist
 ///
-/// * `asp` - [Aspect::Songs] for top songs and [Aspect::Albums] for top albums
+/// * `asp` - [`Aspect::Songs`] for top songs and [`Aspect::Albums`] for top albums
 /// * `artist` - the [Artist] you want the top songs/albums from
 /// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
 pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: Aspect, artist: &Artist, num: usize) {
     match asp {
         Aspect::Songs => {
-            println!("=== TOP {} SONGS FROM {} ===", num, artist);
+            println!("=== TOP {num} SONGS FROM {artist} ===");
             print_top_helper(gather_songs_with_artist(entries, artist), num);
             println!();
         }
         Aspect::Albums => {
-            println!("=== TOP {} ALBUMS FROM {} ===", num, artist);
+            println!("=== TOP {num} ALBUMS FROM {artist} ===");
             print_top_helper(gather_albums_with_artist(entries, artist), num);
             println!();
         }
@@ -75,12 +75,12 @@ pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: Aspect, artist: &Art
 /// * `num` - number of displayed top songs.
 /// Will automatically change to total number of songs from that album if `num` is higher than that
 pub fn print_top_from_album(entries: &Vec<SongEntry>, album: &Album, num: usize) {
-    println!("=== TOP {} SONGS FROM {} ===", num, album);
+    println!("=== TOP {num} SONGS FROM {album} ===");
     print_top_helper(gather_songs_with_album(entries, album), num);
     println!();
 }
 
-/// Used by [print_top()]
+/// Used by [`print_top`()]
 fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
     let mut music_vec: Vec<(&T, &u32)> = music_dict.iter().collect();
@@ -132,12 +132,12 @@ fn leading_whitespace(num: usize, max_num: usize) -> String {
         num_of_zero -= 1;
     }
 
-    format!("{}#{}", order_format, num)
+    format!("{order_format}#{num}")
 }
 
 /// basically [Song] but without the [Album] field
-/// used in [print_top] if [SUM_ALBUMS] is set to true
-/// and in [find_song]
+/// used in [`print_top`] if [`SUM_ALBUMS`] is set to true
+/// and in [`find_song`]
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 struct SongJustArtist {
     /// Name of the song
@@ -146,7 +146,7 @@ struct SongJustArtist {
     artist: Artist,
 }
 
-/// Used by [print_top_helper()]
+/// Used by [`print_top_helper`()]
 #[allow(clippy::needless_range_loop)]
 fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
@@ -187,7 +187,7 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
         // the plays from all albums
         let mut changed: HashMap<SongJustArtist, SongAlbums> = HashMap::new();
 
-        for (k, v) in songs.iter() {
+        for (k, v) in &songs {
             let song_just_artist = SongJustArtist {
                 name: k.name.clone(),
                 artist: k.album.artist.clone(),
@@ -214,7 +214,7 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
             }
         }
 
-        for (k, v) in changed.iter() {
+        for (k, v) in &changed {
             let albs = &v.albums;
 
             // the first album will be taken if both have
@@ -243,7 +243,7 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     songs
 }
 
-/// Used by [print_top_helper()]
+/// Used by [`print_top_helper`()]
 fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
@@ -264,7 +264,7 @@ fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<S
     songs
 }
 
-/// Used by [print_top_helper()], [print_aspect()] and [print_album()]
+/// Used by [`print_top_helper`()], [`print_aspect`()] and [`print_album`()]
 fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
@@ -285,7 +285,7 @@ fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Son
     songs
 }
 
-/// Used by [print_top_helper()]
+/// Used by [`print_top_helper`()]
 fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
@@ -298,7 +298,7 @@ fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
     albums
 }
 
-/// Used by [print_top_helper()] and [print_aspect()]
+/// Used by [`print_top_helper`()] and [`print_aspect`()]
 fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
@@ -313,7 +313,7 @@ fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<
     albums
 }
 
-/// Used by [print_top_helper()]
+/// Used by [`print_top_helper`()]
 fn gather_artists(entries: &Vec<SongEntry>) -> HashMap<Artist, u32> {
     let mut artists: HashMap<Artist, u32> = HashMap::new();
 
@@ -412,7 +412,7 @@ fn gather_song(entries: &Vec<SongEntry>, son: &Song) -> SongPlays {
     song_asp
 }
 
-/// Used by [print_aspect()]
+/// Used by [`print_aspect`()]
 fn print_artist(entries: &Vec<SongEntry>, artist: HashMap<Album, u32>) {
     let mut artist_vec: Vec<(&Album, &u32)> = artist.iter().collect();
     artist_vec.sort_by(|a, b| b.1.cmp(a.1));
@@ -427,7 +427,7 @@ fn print_artist(entries: &Vec<SongEntry>, artist: HashMap<Album, u32>) {
     }
 }
 
-/// Used by [print_aspect()]
+/// Used by [`print_aspect`()]
 fn print_album(album: HashMap<Song, u32>) {
     let mut album_vec: Vec<(&Song, &u32)> = album.iter().collect();
     album_vec.sort_by(|a, b| b.1.cmp(a.1));
@@ -447,11 +447,11 @@ fn print_album(album: HashMap<Song, u32>) {
 
 /// Searches the entries for if the given artist exists in the dataset
 ///
-/// Wrapped by [crate::types::Find::artist()]
+/// Wrapped by [`crate::types::Find::artist`()]
 ///
 /// # Errors
 ///
-/// This function will return an [Err] with [NotFoundError::Artist]
+/// This function will return an [Err] with [`NotFoundError::Artist`]
 /// if it cannot find an artist with the given name
 pub fn find_artist(entries: &Vec<SongEntry>, artist_name: String) -> Result<Artist, NotFoundError> {
     let usr_artist = Artist::new(artist_name.to_lowercase());
@@ -467,11 +467,11 @@ pub fn find_artist(entries: &Vec<SongEntry>, artist_name: String) -> Result<Arti
 
 /// Searches the entries for if the given album exists in the dataset
 ///
-/// Wrapped by [crate::types::Find::album()]
+/// Wrapped by [`crate::types::Find::album`()]
 ///
 /// # Errors
 ///
-/// This function will return an [Err] with [NotFoundError::Album]
+/// This function will return an [Err] with [`NotFoundError::Album`]
 /// if it cannot find an album with the given name and artist
 pub fn find_album(
     entries: &Vec<SongEntry>,
@@ -570,12 +570,12 @@ pub fn find_song(
 
 /// Prints a specfic aspect within a date frame
 ///
-/// Basically [print_aspect()] but with date limitations
+/// Basically [`print_aspect`()] but with date limitations
 ///
 /// * `asp` - the aspect you want informationa about containing the
 /// relevant struct
 ///
-/// Wrapper around [date::print_aspect()]
+/// Wrapper around [`date::print_aspect`()]
 pub fn print_aspect_date(
     entries: &Vec<SongEntry>,
     asp: AspectFull,

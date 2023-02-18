@@ -16,7 +16,7 @@ use crate::types::SongEntry;
 ///
 /// see issue #4 <https://github.com/Filip-Tomasko/rusty-endsong-parser/issues/4>
 ///
-/// used by [parse_date()]
+/// used by [`parse_date`()]
 pub const LOCATION_TZ: chrono_tz::Tz = chrono_tz::Europe::Berlin;
 
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
@@ -27,8 +27,8 @@ pub const LOCATION_TZ: chrono_tz::Tz = chrono_tz::Europe::Berlin;
 /// Raw because it's directly the deserialization from endsong.json
 ///
 /// These are later "converted" to
-/// [crate::types::SongEntry] if they represent a song or to
-/// [crate::types::PodcastEntry] if they represent a podcast (TBD)
+/// [`crate::types::SongEntry`] if they represent a song or to
+/// [`crate::types::PodcastEntry`] if they represent a podcast (TBD)
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Entry {
     /// timestamp in `"YYY-MM-DD 13:30:30"` format
@@ -133,7 +133,7 @@ fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn
     Ok(full_entries)
 }
 
-/// Converts the genral [Entry] to a more specific [SongEntry]
+/// Converts the genral [Entry] to a more specific [`SongEntry`]
 fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
     // to remove podcast entries
     // if the track is null, so are album and artist
@@ -142,7 +142,7 @@ fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
     }
     Ok(SongEntry {
         timestamp: parse_date(&entry.ts),
-        ms_played: entry.ms_played as u32,
+        ms_played: entry.ms_played,
         track: parse_option(entry.master_metadata_track_name),
         album: parse_option(entry.master_metadata_album_album_name),
         artist: parse_option(entry.master_metadata_album_artist_name),
@@ -150,7 +150,7 @@ fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
     })
 }
 
-/// Used by [entry_to_songentry()]
+/// Used by [`entry_to_songentry`()]
 fn parse_option(opt: Option<String>) -> String {
     match opt {
         Some(data) => data,
@@ -158,11 +158,11 @@ fn parse_option(opt: Option<String>) -> String {
     }
 }
 
-/// Used by [entry_to_songentry()]
+/// Used by [`entry_to_songentry`()]
 /// for parsing the date from an entry in `endsong.json`
 /// and adjusting for time zone and dst
 ///
-/// Relies on [LOCATION_TZ]
+/// Relies on [`LOCATION_TZ`]
 pub fn parse_date(ts: &str) -> DateTime<Tz> {
     // timestamp is in "2016-07-21T01:02:07Z" format
     // in UTC!!!!!!!!!

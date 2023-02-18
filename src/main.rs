@@ -39,7 +39,7 @@ fn main() {
     // let root = "/home/filip/Other/SpotifyData/2022-06/";
     let root = "/Users/filip/Other/Endsong/";
     let paths: Vec<String> = vec![
-        format!("{}endsong_0.json", root),
+        format!("{root}endsong_0.json"),
         // format!("{}endsong_1.json", root),
         // format!("{}endsong_2.json", root),
         // format!("{}endsong_3.json", root),
@@ -56,8 +56,8 @@ fn main() {
     ui::start(&entries);
 }
 
-/// tests various [crate::display] functions
-/// or its wrapper associated methods from [SongEntries]
+/// tests various [`crate::display`] functions
+/// or its wrapper associated methods from [`SongEntries`]
 fn test(entries: &SongEntries) {
     entries.print_top(Aspect::default(), 10);
     entries.print_top(Aspect::Albums, 10);
