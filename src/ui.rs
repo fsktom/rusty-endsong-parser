@@ -80,7 +80,7 @@ pub fn start(entries: &SongEntries) {
         .history_ignore_space(true)
         .build();
 
-    let mut rl = Editor::<()>::with_config(config);
+    let mut rl = Editor::<()>::with_config(config).expect("Sorry, there's been an error!");
 
     let history_path = std::path::Path::new(".rep_history");
     if !history_path.exists() {
