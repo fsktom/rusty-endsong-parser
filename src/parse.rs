@@ -10,7 +10,7 @@ use chrono::{DateTime, TimeZone};
 use chrono_tz::Tz;
 use serde::{Deserialize, Serialize};
 
-use crate::types::SongEntry;
+use crate::types::{PodEntry, SongEntry};
 
 /// responsible for time zone handling
 ///
@@ -98,7 +98,7 @@ pub struct Entry {
 fn parse_single(path: &str) -> Vec<SongEntry> {
     let u = read_entries_from_file(path).unwrap_or_else(|_| panic!("File {} is invalid!", &path));
     let mut songs: Vec<SongEntry> = Vec::new();
-    let mut podcasts: Vec<Entry> = Vec::new();
+    let mut podcasts: Vec<PodEntry> = Vec::new();
     for entry in u {
         match entry_to_songentry(entry) {
             Ok(song) => songs.push(song),
@@ -134,11 +134,17 @@ fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn
 }
 
 /// Converts the genral [Entry] to a more specific [`SongEntry`]
-fn entry_to_songentry(entry: Entry) -> Result<SongEntry, Entry> {
+fn entry_to_songentry(entry: Entry) -> Result<SongEntry, PodEntry> {
     // to remove podcast entries
     // if the track is null, so are album and artist
     if parse_option(entry.master_metadata_track_name.clone()) == "n/a" {
-        return Err(entry);
+        // TODO! properly... not just a placeholder
+        // bc clippy::pednatic complained about returning
+        // big Result<SongEntry, Entry> with Entry being biiig
+        let pod = PodEntry {
+            id: "666".to_string(),
+        };
+        return Err(pod);
     }
     Ok(SongEntry {
         timestamp: parse_date(&entry.ts),

@@ -168,6 +168,12 @@ pub struct SongEntry {
 /// Fundamental for the use of this program
 pub struct SongEntries(Vec<SongEntry>);
 
+/// [`SongEntry`] but for podcasts
+pub struct PodEntry {
+    /// Spotify URI
+    pub id: String,
+}
+
 // https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
 // so that when you use &self it refers to &self.0 (Vec<SongEntry>)
 impl std::ops::Deref for SongEntries {
