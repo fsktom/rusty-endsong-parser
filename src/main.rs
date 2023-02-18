@@ -36,7 +36,8 @@ fn main() {
     // benchmark! =>
     // 1) paths as CLI args
     // 2) paths as part of compiled source code!
-    let root = "/home/filip/Other/SpotifyData/2022-06/";
+    // let root = "/home/filip/Other/SpotifyData/2022-06/";
+    let root = "/Users/filip/Other/Endsong/";
     let paths: Vec<String> = vec![
         format!("{}endsong_0.json", root),
         // format!("{}endsong_1.json", root),
