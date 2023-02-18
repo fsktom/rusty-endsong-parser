@@ -18,7 +18,7 @@ chrono-tz = "0.8"
 rustyline = "10.1"
 
 [dev-dependencies]
-criterion = "0.3"
+criterion = "0.4"
 
 [[bench]]
 name = "printing_top"
