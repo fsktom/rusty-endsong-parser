@@ -114,13 +114,8 @@ fn leading_whitespace(num: usize, max_num: usize) -> String {
     // https://github.com/Filip-Tomasko/endsong-parser-python/blob/main/src/endsong_parser.py#L551-L578
     let mut order_format = String::new();
 
-    // bc as of Rust 1.62 it doesn't support log10 on usize
-    // https://doc.rust-lang.org/std/primitive.usize.html#method.log10
-    let num = num as f64;
-    let max_num = max_num as f64;
-
-    let mut num_of_zero = max_num.log10().floor() as usize;
-    let digits = num.log10() as usize + 1;
+    let mut num_of_zero = max_num.ilog10();
+    let digits = num.ilog10() + 1;
 
     loop {
         if num_of_zero == 0 {
