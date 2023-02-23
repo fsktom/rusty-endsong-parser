@@ -107,7 +107,7 @@ fn print_top_helper<T: Music>(music_dict: &HashMap<T, u32>, num: usize) {
 /// or to `  #1` if Top 100 etc.
 ///
 /// # Arguments
-/// * `num` - position of the [AspectFull], must be >0
+/// * `num` - position of the [`AspectFull`], must be >0
 /// * `max_num` - the highest position you want to display,
 /// must be >0 and should be >=`num`
 ///
