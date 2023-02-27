@@ -1,5 +1,6 @@
 //! Module containg many types used throughout the program
 // https://doc.rust-lang.org/stable/book/ch06-01-defining-an-enum.html
+use std::error::Error;
 use std::fmt::Display;
 
 use chrono::DateTime;
@@ -399,6 +400,7 @@ impl Display for NotFoundError {
         }
     }
 }
+impl Error for NotFoundError {}
 
 /// A more specific version of [`parse::Entry`]
 /// for podcast entries.

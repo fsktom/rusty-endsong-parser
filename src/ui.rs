@@ -4,6 +4,7 @@ use crate::types::{AspectFull, SongEntries};
 use crate::LOCATION_TZ;
 
 use std::collections::HashMap;
+use std::error::Error;
 
 use chrono::{DateTime, TimeZone};
 use chrono_tz::Tz;
@@ -130,7 +131,10 @@ fn match_input(inp: &str, entries: &SongEntries, rl: &mut Editor<()>) {
     let inp = inp;
     match inp {
         "help" | "h" => help(),
-        "print artist" | "part" => match_print_artist(entries, rl),
+        "print artist" | "part" => match match_print_artist(entries, rl) {
+            Ok(_) => (),
+            Err(e) => println!("{e}"),
+        },
         "print album" | "palb" => match_print_album(entries, rl),
         "print song" | "pson" => match_print_song(entries, rl),
         "print songs" | "psons" => match_print_songs(entries, rl),
@@ -149,17 +153,21 @@ fn match_input(inp: &str, entries: &SongEntries, rl: &mut Editor<()>) {
 }
 
 /// Used by [`match_input`()] for `print artist` command
-fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) {
+fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
     // prompt: artist name
     println!("Artist name?");
-    let line_art = rl.readline(PROMPT_MAIN);
-    match line_art {
-        Ok(usr_input) => match entries.find().artist(&usr_input) {
-            Ok(art) => entries.print_aspect(&AspectFull::Artist(&art)),
-            Err(e) => println!("{e}"),
-        },
-        Err(e) => rle!(e),
-    }
+    let usr_input_art = match rl.readline(PROMPT_MAIN) {
+        Ok(usr_input) => usr_input,
+        Err(e) => return Err(Box::new(e)),
+    };
+
+    let art = match entries.find().artist(&usr_input_art) {
+        Ok(art) => art,
+        Err(e) => return Err(Box::new(e)),
+    };
+
+    entries.print_aspect(&AspectFull::Artist(&art));
+    Ok(())
 }
 
 /// Used by [`match_input`()] for `print artist date` command
