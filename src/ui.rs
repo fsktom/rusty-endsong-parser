@@ -156,15 +156,9 @@ fn match_input(inp: &str, entries: &SongEntries, rl: &mut Editor<()>) {
 fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
     // prompt: artist name
     println!("Artist name?");
-    let usr_input_art = match rl.readline(PROMPT_MAIN) {
-        Ok(usr_input) => usr_input,
-        Err(e) => return Err(Box::new(e)),
-    };
+    let usr_input_art = rl.readline(PROMPT_MAIN)?;
 
-    let art = match entries.find().artist(&usr_input_art) {
-        Ok(art) => art,
-        Err(e) => return Err(Box::new(e)),
-    };
+    let art = entries.find().artist(&usr_input_art)?;
 
     entries.print_aspect(&AspectFull::Artist(&art));
     Ok(())
