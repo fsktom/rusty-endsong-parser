@@ -144,12 +144,12 @@ fn match_print_artist_date(
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: start date
-    println!("Start date? YYYY-MM-DD");
+    println!("Start date? YYYY-MM-DD or 'start'");
     let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
     let start_date = user_input_date_parser(&usr_input_start_date)?;
 
     // 3rd prompt: end date
-    println!("End date? YYYY-MM-DD");
+    println!("End date? YYYY-MM-DD or 'now'");
     let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
     let end_date = user_input_date_parser(&usr_input_end_date)?;
 
@@ -191,12 +191,12 @@ fn match_print_album_date(
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
 
     // 3rd prompt: start date
-    println!("Start date? YYYY-MM-DD");
+    println!("Start date? YYYY-MM-DD or 'start'");
     let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
     let start_date = user_input_date_parser(&usr_input_start_date)?;
 
     // 4th prompt: end date
-    println!("End date? YYYY-MM-DD");
+    println!("End date? YYYY-MM-DD or 'now'");
     let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
     let end_date = user_input_date_parser(&usr_input_end_date)?;
 
@@ -249,12 +249,12 @@ fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(
         .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)?;
 
     // 4th prompt: start date
-    println!("Start date? YYYY-MM-DD");
+    println!("Start date? YYYY-MM-DD or 'start'");
     let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
     let start_date = user_input_date_parser(&usr_input_start_date)?;
 
     // 5th prompt: end date
-    println!("End date? YYYY-MM-DD");
+    println!("End date? YYYY-MM-DD or 'now'");
     let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
     let end_date = user_input_date_parser(&usr_input_end_date)?;
 
@@ -305,12 +305,12 @@ fn match_print_songs_date(
     let songs = entries.find().song(usr_input_son, art.name)?;
 
     // 3rd prompt: start date
-    println!("Start date? YYYY-MM-DD");
+    println!("Start date? YYYY-MM-DD or 'start'");
     let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
     let start_date = user_input_date_parser(&usr_input_start_date)?;
 
     // 4th prompt: end date
-    println!("End date? YYYY-MM-DD");
+    println!("End date? YYYY-MM-DD or 'now'");
     let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
     let end_date = user_input_date_parser(&usr_input_end_date)?;
 
@@ -409,9 +409,21 @@ fn help() {
 }
 
 /// used by `*_date` functions in this module for when the user inputs a date
+///
+/// # Arguments
+/// * `usr_input` - in YYYY-MM-DD format or 'now' or 'start'
 fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Tz>, chrono::format::ParseError> {
-    // usr_input should be in YYYY-MM-DD format
-    let date_str = format!("{usr_input}T00:00:00Z");
+    let date_str = match usr_input {
+        "now" => {
+            return Ok(LOCATION_TZ
+                .timestamp_millis_opt(chrono::offset::Local::now().timestamp_millis())
+                .unwrap())
+        }
+        // TODO! not hardcode this lol -> actual earlierst entry in endsong
+        "start" => String::from("1980-01-01T00:00:00Z"),
+        // usr_input should be in YYYY-MM-DD format
+        _ => format!("{usr_input}T00:00:00Z"),
+    };
 
     // "%FT%TZ" is equivalent to "%Y-%m-%dT%H:%M:%SZ"
     // see <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>
