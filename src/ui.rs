@@ -272,7 +272,7 @@ fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), B
     // 2nd prompt: song name
     println!("Song name?");
     let usr_input_son = rl.readline(PROMPT_MAIN)?;
-    let songs = entries.find().song(usr_input_son, art.name)?;
+    let songs = entries.find().song(&usr_input_son, &art.name)?;
 
     // if there are multiple songs with that name found
     if songs.len() > 1 {
@@ -302,7 +302,7 @@ fn match_print_songs_date(
     // 2nd prompt: song name
     println!("Song name?");
     let usr_input_son = rl.readline(PROMPT_MAIN)?;
-    let songs = entries.find().song(usr_input_son, art.name)?;
+    let songs = entries.find().song(&usr_input_son, &art.name)?;
 
     // 3rd prompt: start date
     println!("Start date? YYYY-MM-DD or 'start'");

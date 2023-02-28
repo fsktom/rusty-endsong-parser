@@ -340,7 +340,7 @@ impl<'a> Find<'a> {
     /// of [Song] for every album it's been found in
     ///
     /// Wrapper for [`display::find_song`()]
-    pub fn song(&self, song_name: String, artist_name: String) -> Result<Vec<Song>, NotFoundError> {
+    pub fn song(&self, song_name: &str, artist_name: &str) -> Result<Vec<Song>, NotFoundError> {
         display::find_song(self, song_name, artist_name)
     }
 }

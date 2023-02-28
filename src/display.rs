@@ -146,6 +146,15 @@ struct SongJustArtist {
     /// Artist of the song
     artist: Artist,
 }
+impl SongJustArtist {
+    /// Creates an instance of [`SongJustArtist`] with &str parameters
+    fn from_str(song_name: &str, artist_name: &str) -> SongJustArtist {
+        SongJustArtist {
+            name: song_name.to_owned(),
+            artist: Artist::from_str(artist_name),
+        }
+    }
+}
 
 /// Used by [`print_top_helper`()]
 #[allow(clippy::needless_range_loop)]
@@ -531,13 +540,10 @@ pub fn find_song_from_album(
 /// of [Song] for every album it's been found in
 pub fn find_song(
     entries: &Vec<SongEntry>,
-    song_name: String,
-    artist_name: String,
+    song_name: &str,
+    artist_name: &str,
 ) -> Result<Vec<Song>, NotFoundError> {
-    let usr_song = SongJustArtist {
-        name: song_name,
-        artist: Artist::new(artist_name),
-    };
+    let usr_song = SongJustArtist::from_str(song_name, artist_name);
 
     let mut song_versions: Vec<Song> = Vec::new();
 

@@ -96,10 +96,7 @@ fn test(entries: &SongEntries) {
     // containing all the songs that were in the previous one ffs
     dbg!(entries
         .find()
-        .song(
-            "Frozen Winds Of Thyraxia".to_string(),
-            "Wizardthrone".to_string(),
-        )
+        .song("Frozen Winds Of Thyraxia", "Wizardthrone",)
         .unwrap());
 
     let start_date = LOCATION_TZ
