@@ -67,7 +67,9 @@ pub fn start(entries: &SongEntries) {
     loop {
         let line = rl.readline(PROMPT_COMMAND);
         match line {
-            Ok(usr_input) => match_input(&usr_input, entries, &mut rl),
+            Ok(usr_input) => {
+                match_input(&usr_input, entries, &mut rl).unwrap_or_else(|e| println!("{e}"));
+            }
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");
                 break;
@@ -92,33 +94,21 @@ pub fn start(entries: &SongEntries) {
 }
 
 /// Decides what to do with user input
-fn match_input(inp: &str, entries: &SongEntries, rl: &mut Editor<()>) {
+fn match_input(
+    inp: &str,
+    entries: &SongEntries,
+    rl: &mut Editor<()>,
+) -> Result<(), Box<dyn Error>> {
     match inp {
         "help" | "h" => help(),
-        "print artist" | "part" => {
-            match_print_artist(entries, rl).unwrap_or_else(|e| println!("{e}"));
-        }
-        "print album" | "palb" => {
-            match_print_album(entries, rl).unwrap_or_else(|e| println!("{e}"));
-        }
-        "print song" | "pson" => {
-            match_print_song(entries, rl).unwrap_or_else(|e| println!("{e}"));
-        }
-        "print songs" | "psons" => {
-            match_print_songs(entries, rl).unwrap_or_else(|e| println!("{e}"));
-        }
-        "print artist date" | "partd" => {
-            match_print_artist_date(entries, rl).unwrap_or_else(|e| println!("{e}"));
-        }
-        "print album date" | "palbd" => {
-            match_print_album_date(entries, rl).unwrap_or_else(|e| println!("{e}"));
-        }
-        "print song date" | "psond" => {
-            match_print_song_date(entries, rl).unwrap_or_else(|e| println!("{e}"));
-        }
-        "print songs date" | "psonsd" => {
-            match_print_songs_date(entries, rl).unwrap_or_else(|e| println!("{e}"));
-        }
+        "print artist" | "part" => match_print_artist(entries, rl)?,
+        "print album" | "palb" => match_print_album(entries, rl)?,
+        "print song" | "pson" => match_print_song(entries, rl)?,
+        "print songs" | "psons" => match_print_songs(entries, rl)?,
+        "print artist date" | "partd" => match_print_artist_date(entries, rl)?,
+        "print album date" | "palbd" => match_print_album_date(entries, rl)?,
+        "print song date" | "psond" => match_print_song_date(entries, rl)?,
+        "print songs date" | "psonsd" => match_print_songs_date(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -127,6 +117,7 @@ fn match_input(inp: &str, entries: &SongEntries, rl: &mut Editor<()>) {
             println!("Command not found! Type \x1b[1;31mhelp\x1b[0m to print available commands");
         }
     }
+    Ok(())
 }
 
 /// Used by [`match_input`()] for `print artist` command
