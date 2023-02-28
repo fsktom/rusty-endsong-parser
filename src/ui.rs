@@ -95,38 +95,30 @@ pub fn start(entries: &SongEntries) {
 fn match_input(inp: &str, entries: &SongEntries, rl: &mut Editor<()>) {
     match inp {
         "help" | "h" => help(),
-        "print artist" | "part" => match match_print_artist(entries, rl) {
-            Ok(_) => (),
-            Err(e) => println!("{e}"),
-        },
-        "print album" | "palb" => match match_print_album(entries, rl) {
-            Ok(_) => (),
-            Err(e) => println!("{e}"),
-        },
-        "print song" | "pson" => match match_print_song(entries, rl) {
-            Ok(_) => (),
-            Err(e) => println!("{e}"),
-        },
-        "print songs" | "psons" => match match_print_songs(entries, rl) {
-            Ok(_) => (),
-            Err(e) => println!("{e}"),
-        },
-        "print artist date" | "partd" => match match_print_artist_date(entries, rl) {
-            Ok(_) => (),
-            Err(e) => println!("{e}"),
-        },
-        "print album date" | "palbd" => match match_print_album_date(entries, rl) {
-            Ok(_) => (),
-            Err(e) => println!("{e}"),
-        },
-        "print song date" | "psond" => match match_print_song_date(entries, rl) {
-            Ok(_) => (),
-            Err(e) => println!("{e}"),
-        },
-        "print songs date" | "psonsd" => match match_print_songs_date(entries, rl) {
-            Ok(_) => (),
-            Err(e) => println!("{e}"),
-        },
+        "print artist" | "part" => {
+            match_print_artist(entries, rl).unwrap_or_else(|e| println!("{e}"));
+        }
+        "print album" | "palb" => {
+            match_print_album(entries, rl).unwrap_or_else(|e| println!("{e}"));
+        }
+        "print song" | "pson" => {
+            match_print_song(entries, rl).unwrap_or_else(|e| println!("{e}"));
+        }
+        "print songs" | "psons" => {
+            match_print_songs(entries, rl).unwrap_or_else(|e| println!("{e}"));
+        }
+        "print artist date" | "partd" => {
+            match_print_artist_date(entries, rl).unwrap_or_else(|e| println!("{e}"));
+        }
+        "print album date" | "palbd" => {
+            match_print_album_date(entries, rl).unwrap_or_else(|e| println!("{e}"));
+        }
+        "print song date" | "psond" => {
+            match_print_song_date(entries, rl).unwrap_or_else(|e| println!("{e}"));
+        }
+        "print songs date" | "psonsd" => {
+            match_print_songs_date(entries, rl).unwrap_or_else(|e| println!("{e}"));
+        }
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
