@@ -429,3 +429,24 @@ fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Tz>, chrono::forma
     // see <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>
     LOCATION_TZ.datetime_from_str(&date_str, "%FT%TZ")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn date_parser() {
+        // correctly formatted input date
+        assert_eq!(
+            user_input_date_parser("2020-06-06").unwrap(),
+            LOCATION_TZ
+                .datetime_from_str("2020-06-06T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ")
+                .unwrap()
+        );
+        // https://users.rust-lang.org/t/idiomatic-way-of-testing-result-t-error/2171/4
+        assert!(user_input_date_parser("2020-06-06").is_ok());
+
+        // incorrectly formatted input date
+        assert!(user_input_date_parser("feer3er3").is_err());
+    }
+}
