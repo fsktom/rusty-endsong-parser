@@ -333,77 +333,99 @@ fn match_print_songs_date(
 ///
 /// Prints the available commands to the [`std::io::stdout`]
 fn help() {
-    let mut commands: HashMap<&str, &str> = HashMap::new();
     // alias in pink! \x1b[1;35m
-    commands.insert(
+    // actual command in red! \x1b[1;31m
+    // reset color with \x1b[0m
+
+    let mut meta_commands: HashMap<&str, &str> = HashMap::new();
+    meta_commands.insert(
         "help",
         "prints this command list
-        \t\x1b[1;35malias: h",
+        \t\x1b[1;35malias: h\x1b[0m",
     );
 
-    commands.insert(
+    let mut print_commands: HashMap<&str, &str> = HashMap::new();
+    print_commands.insert(
         "print artist",
         "prints every album from the artist
         \topens another prompt where you input the artist name
-        \t\x1b[1;35malias: part",
+        \t\x1b[1;35malias: part\x1b[0m",
     );
-    commands.insert(
+    print_commands.insert(
         "print album",
         "prints every song from the album
         \topens another prompt where you input the artist name
         \tand then the album name
-        \t\x1b[1;35malias: palb",
+        \t\x1b[1;35malias: palb\x1b[0m",
     );
-    commands.insert(
+    print_commands.insert(
         "print song",
         "prints a song
         \topens another prompt where you input the artist name
         \tand then the album name
         \tand then the song name
-        \t\x1b[1;35malias: pson",
+        \t\x1b[1;35malias: pson\x1b[0m",
     );
-    commands.insert(
+    print_commands.insert(
         "print songs",
         "prints a song with all the albums it may be from
         \topens another prompt where you input the artist name
         \tand then the song name
-        \t\x1b[1;35malias: psons",
+        \t\x1b[1;35malias: psons\x1b[0m",
     );
 
-    commands.insert(
+    print_commands.insert(
         "print artist date",
         "prints every album from the artist within a date range
         \topens another prompt where you input the artist name
         \tand then the date range
-        \t\x1b[1;35malias: partd",
+        \t\x1b[1;35malias: partd\x1b[0m",
     );
-    commands.insert(
+    print_commands.insert(
         "print album date",
         "prints every song from the album within a date range
         \topens another prompt where you input the artist name
         \tand then the album name
-        \t\x1b[1;35malias: palbd",
+        \t\x1b[1;35malias: palbd\x1b[0m",
     );
-    commands.insert(
+    print_commands.insert(
         "print song date",
         "prints a song within a date range
         \topens another prompt where you input the artist name
         \tand then the album name
         \tand then the song name
         \tand then the date range
-        \t\x1b[1;35malias: psond",
+        \t\x1b[1;35malias: psond\x1b[0m",
     );
-    commands.insert(
+    print_commands.insert(
         "print songs date",
         "prints a song with all the albums it may be from within a date range
         \topens another prompt where you input the artist name
         \tand then the song name
         \tand then the date range
-        \t\x1b[1;35malias: psonsd",
+        \t\x1b[1;35malias: psonsd\x1b[0m",
     );
 
-    for (k, v) in commands {
-        // makes the command itself red and the rest default color
+    let mut graph_commands: HashMap<&str, &str> = HashMap::new();
+    graph_commands.insert(
+        "graph placeholder",
+        "placeholder
+        \t\x1b[1;35malias: gphd\x1b[0m",
+    );
+
+    // actual printing of commands
+
+    for (k, v) in meta_commands {
+        println!("\x1b[1;31m{k}\x1b[0m =>\t{v}");
+    }
+
+    println!("\x1b[32m=== print commands ===");
+    for (k, v) in print_commands {
+        println!("\x1b[1;31m{k}\x1b[0m =>\t{v}");
+    }
+
+    println!("\x1b[32m=== graph commands ===");
+    for (k, v) in graph_commands {
         println!("\x1b[1;31m{k}\x1b[0m =>\t{v}");
     }
 }
