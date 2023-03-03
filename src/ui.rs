@@ -120,7 +120,7 @@ fn match_input(
     Ok(())
 }
 
-/// Used by [`match_input`()] for `print artist` command
+/// Used by [`match_input()`] for `print artist` command
 fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
     // prompt: artist name
     println!("Artist name?");
@@ -131,7 +131,7 @@ fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), 
     Ok(())
 }
 
-/// Used by [`match_input`()] for `print artist date` command
+/// Used by [`match_input()`] for `print artist date` command
 ///
 /// Basically [`match_print_artist`()] but with date functionality
 fn match_print_artist_date(
@@ -157,7 +157,7 @@ fn match_print_artist_date(
     Ok(())
 }
 
-/// Used by [`match_input`()] for `print album` command
+/// Used by [`match_input()`] for `print album` command
 fn match_print_album(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -173,7 +173,7 @@ fn match_print_album(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), B
     Ok(())
 }
 
-/// Used by [`match_input`()] for `print album date` command
+/// Used by [`match_input()`] for `print album date` command
 ///
 /// Basically [`match_print_album`()] but with date functionality
 fn match_print_album_date(
@@ -204,7 +204,7 @@ fn match_print_album_date(
     Ok(())
 }
 
-/// Used by [`match_input`()] for `print song` command
+/// Used by [`match_input()`] for `print song` command
 fn match_print_song(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -227,7 +227,7 @@ fn match_print_song(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Bo
     Ok(())
 }
 
-/// Used by [`match_input`()] for `print song date` command
+/// Used by [`match_input()`] for `print song date` command
 ///
 /// Basically [`match_print_song`()] but with date functionality
 fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
@@ -262,7 +262,7 @@ fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(
     Ok(())
 }
 
-/// Used by [`match_input`()] for `print songs` command
+/// Used by [`match_input()`] for `print songs` command
 fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -289,7 +289,7 @@ fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), B
     Ok(())
 }
 
-/// Used by [`match_input`()] for `print songs date` command
+/// Used by [`match_input()`] for `print songs date` command
 fn match_print_songs_date(
     entries: &SongEntries,
     rl: &mut Editor<()>,
@@ -329,7 +329,7 @@ fn match_print_songs_date(
     Ok(())
 }
 
-/// Used by [`match_input`()] for `help` command
+/// Used by [`match_input()`] for `help` command
 ///
 /// Prints the available commands to the [`std::io::stdout`]
 fn help() {

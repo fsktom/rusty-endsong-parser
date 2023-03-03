@@ -10,14 +10,14 @@ use crate::types::NotFoundError;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
 
-/// Module containing [display](self) functions with
+/// Module containing [`display`](self) functions with
 /// date functionality
 mod date;
 
 /// If set to true, it will sum up the plays of one song across multiple
 /// albums it may be in
 ///
-/// Only applies to printing top songs with [`print_top`()]!
+/// Only applies to printing top songs with [`print_top()`]!
 ///
 /// The album displayed in the parantheses will be the one it has the
 /// highest amount of listens from
@@ -51,7 +51,7 @@ pub fn print_top(entries: &Vec<SongEntry>, asp: &Aspect, num: usize) {
 /// Prints top songs or albums from an artist
 ///
 /// * `asp` - [`Aspect::Songs`] for top songs and [`Aspect::Albums`] for top albums
-/// * `artist` - the [Artist] you want the top songs/albums from
+/// * `artist` - the [`Artist`] you want the top songs/albums from
 /// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
 pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: &Aspect, artist: &Artist, num: usize) {
     match asp {
@@ -71,7 +71,7 @@ pub fn print_top_from_artist(entries: &Vec<SongEntry>, asp: &Aspect, artist: &Ar
 
 /// Prints top songs from an album
 ///
-/// * `album` - the [Album] you want the top songs from
+/// * `album` - the [`Album`] you want the top songs from
 /// * `num` - number of displayed top songs.
 /// Will automatically change to total number of songs from that album if `num` is higher than that
 pub fn print_top_from_album(entries: &Vec<SongEntry>, album: &Album, num: usize) {
@@ -80,7 +80,7 @@ pub fn print_top_from_album(entries: &Vec<SongEntry>, album: &Album, num: usize)
     println!();
 }
 
-/// Used by [`print_top`()]
+/// Used by [`print_top()`]
 fn print_top_helper<T: Music>(music_dict: &HashMap<T, u32>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
     let mut music_vec: Vec<(&T, &u32)> = music_dict.iter().collect();
@@ -136,7 +136,8 @@ fn leading_whitespace(num: usize, max_num: usize) -> String {
     format!("{order_format}#{num}")
 }
 
-/// basically [Song] but without the [Album] field
+/// Basically [`Song`] but without the [`album`][Song] field
+///
 /// used in [`print_top`] if [`SUM_ALBUMS`] is set to true
 /// and in [`find_song`]
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
@@ -156,7 +157,7 @@ impl SongJustArtist {
     }
 }
 
-/// Used by [`print_top_helper`()]
+/// Used by [`print_top_helper()`]
 #[allow(clippy::needless_range_loop)]
 fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
@@ -175,7 +176,7 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     }
 
     if SUM_ALBUMS {
-        /// tuple struct containing an Album with the amount of plays
+        /// Tuple struct containing an Album with the amount of plays
         #[derive(PartialEq, Eq, Hash, Debug, Clone)]
         struct AlbumPlays(Album, u32);
 
@@ -251,7 +252,7 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     songs
 }
 
-/// Used by [`print_top_helper`()]
+/// Used by [`print_top_helper()`]
 fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
@@ -272,7 +273,7 @@ fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<S
     songs
 }
 
-/// Used by [`print_top_helper`()], [`print_aspect`()] and [`print_album`()]
+/// Used by [`print_top_helper()`], [`print_aspect()`] and [`print_album()`]
 fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
@@ -293,7 +294,7 @@ fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Son
     songs
 }
 
-/// Used by [`print_top_helper`()]
+/// Used by [`print_top_helper()`]
 fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
@@ -306,7 +307,7 @@ fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
     albums
 }
 
-/// Used by [`print_top_helper`()] and [`print_aspect`()]
+/// Used by [`print_top_helper()`] and [`print_aspect()`]
 fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
@@ -321,7 +322,7 @@ fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<
     albums
 }
 
-/// Used by [`print_top_helper`()]
+/// Used by [`print_top_helper()`]
 fn gather_artists(entries: &Vec<SongEntry>) -> HashMap<Artist, u32> {
     let mut artists: HashMap<Artist, u32> = HashMap::new();
 
@@ -420,7 +421,7 @@ fn gather_song(entries: &Vec<SongEntry>, son: &Song) -> SongPlays {
     song_asp
 }
 
-/// Used by [`print_aspect`()]
+/// Used by [`print_aspect()`]
 fn print_artist(entries: &Vec<SongEntry>, artist: &HashMap<Album, u32>) {
     let mut artist_vec: Vec<(&Album, &u32)> = artist.iter().collect();
     artist_vec.sort_by(|a, b| b.1.cmp(a.1));
@@ -435,7 +436,7 @@ fn print_artist(entries: &Vec<SongEntry>, artist: &HashMap<Album, u32>) {
     }
 }
 
-/// Used by [`print_aspect`()]
+/// Used by [`print_aspect()`]
 fn print_album(album: &HashMap<Song, u32>) {
     let mut album_vec: Vec<(&Song, &u32)> = album.iter().collect();
     album_vec.sort_by(|a, b| b.1.cmp(a.1));
@@ -455,7 +456,7 @@ fn print_album(album: &HashMap<Song, u32>) {
 
 /// Searches the entries for if the given artist exists in the dataset
 ///
-/// Wrapped by [`crate::types::Find::artist`()]
+/// Wrapped by [`crate::types::Find::artist()`]
 ///
 /// # Errors
 ///
@@ -475,7 +476,7 @@ pub fn find_artist(entries: &Vec<SongEntry>, artist_name: &str) -> Result<Artist
 
 /// Searches the entries for if the given album exists in the dataset
 ///
-/// Wrapped by [`crate::types::Find::album`()]
+/// Wrapped by [`crate::types::Find::album()`]
 ///
 /// # Errors
 ///
@@ -537,7 +538,7 @@ pub fn find_song_from_album(
 /// Searches the dataset for multiple versions of a song
 ///
 /// Returns a [`Vec<Song>`] containing an instance
-/// of [Song] for every album it's been found in
+/// of [`Song`] for every album it's been found in
 pub fn find_song(
     entries: &Vec<SongEntry>,
     song_name: &str,
@@ -575,12 +576,12 @@ pub fn find_song(
 
 /// Prints a specfic aspect within a date frame
 ///
-/// Basically [`print_aspect`()] but with date limitations
+/// Basically [`print_aspect()`] but with date limitations
 ///
 /// * `asp` - the aspect you want informationa about containing the
 /// relevant struct
 ///
-/// Wrapper around [`date::print_aspect`()]
+/// Wrapper around [`date::print_aspect()`]
 pub fn print_aspect_date(
     entries: &Vec<SongEntry>,
     asp: &AspectFull,
