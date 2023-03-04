@@ -16,7 +16,7 @@ use crate::types::{PodEntry, SongEntry};
 ///
 /// see issue #4 <https://github.com/Filip-Tomasko/rusty-endsong-parser/issues/4>
 ///
-/// used by [`parse_date`()]
+/// used by [`parse_date()`]
 pub const LOCATION_TZ: chrono_tz::Tz = chrono_tz::Europe::Berlin;
 
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
@@ -156,7 +156,7 @@ fn entry_to_songentry(entry: Entry) -> Result<SongEntry, PodEntry> {
     })
 }
 
-/// Used by [`entry_to_songentry`()]
+/// Used by [`entry_to_songentry()`]
 fn parse_option(opt: Option<String>) -> String {
     match opt {
         Some(data) => data,
@@ -164,7 +164,7 @@ fn parse_option(opt: Option<String>) -> String {
     }
 }
 
-/// Used by [`entry_to_songentry`()]
+/// Used by [`entry_to_songentry()`]
 /// for parsing the date from an entry in `endsong.json`
 /// and adjusting for time zone and dst
 ///

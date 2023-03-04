@@ -12,7 +12,7 @@ use super::{AlbumPlays, ArtistPlays, SongPlays};
 
 /// Prints a specfic aspect
 ///
-/// Basically [`super::print_aspect`()] but with date limitations
+/// Basically [`super::print_aspect()`] but with date limitations
 ///
 /// * `asp` - the aspect you want informationa about containing the
 /// relevant struct
@@ -61,7 +61,7 @@ pub fn print_aspect(
     }
 }
 
-/// Used by [`print_aspect`()]
+/// Used by [`print_aspect()`]
 fn print_artist(
     entries: &Vec<SongEntry>,
     artist: &HashMap<Album, u32>,
@@ -87,7 +87,7 @@ fn print_artist(
 
 /// Counts up the plays of a single artist within a date frame
 ///
-/// Basically [`super::gather_artist`()] but with date functionality
+/// Basically [`super::gather_artist()`] but with date functionality
 fn gather_artist_date(
     entries: &Vec<SongEntry>,
     art: &Artist,
@@ -109,7 +109,7 @@ fn gather_artist_date(
 
 /// Counts up the plays of a single album within a date frame
 ///
-/// Basically [`super::gather_album`()] but with date functionality
+/// Basically [`super::gather_album()`] but with date functionality
 fn gather_album_date(
     entries: &Vec<SongEntry>,
     alb: &Album,
@@ -131,7 +131,7 @@ fn gather_album_date(
 
 /// Counts up the plays of a single song within a date frame
 ///
-/// Basically [`super::gather_song`()] but with date functionality
+/// Basically [`super::gather_song()`] but with date functionality
 fn gather_song_date(
     entries: &Vec<SongEntry>,
     son: &Song,
@@ -155,9 +155,9 @@ fn gather_song_date(
     song_asp
 }
 
-/// Used by [`print_aspect`()]
+/// Used by [`print_aspect()`]
 ///
-/// Basically [`super::gather_albums_with_artist`()] but with date functionality
+/// Basically [`super::gather_albums_with_artist()`] but with date functionality
 fn gather_albums_with_artist_date(
     entries: &Vec<SongEntry>,
     art: &Artist,
@@ -179,9 +179,9 @@ fn gather_albums_with_artist_date(
     albums
 }
 
-/// Used by [`print_aspect`()]
+/// Used by [`print_aspect()`]
 ///
-/// Basically [`super::gather_songs_with_album`()] but with date functionality
+/// Basically [`super::gather_songs_with_album()`] but with date functionality
 fn gather_songs_with_album_date(
     entries: &Vec<SongEntry>,
     alb: &Album,
