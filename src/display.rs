@@ -138,8 +138,8 @@ fn leading_whitespace(num: usize, max_num: usize) -> String {
 
 /// Basically [`Song`] but without the [`album`][Song] field
 ///
-/// used in [`print_top`] if [`SUM_ALBUMS`] is set to true
-/// and in [`find_song`]
+/// used in [`print_top()`] if [`SUM_ALBUMS`] is set to true
+/// and in [`find_song()`]
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 struct SongJustArtist {
     /// Name of the song
@@ -180,7 +180,7 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
         #[derive(PartialEq, Eq, Hash, Debug, Clone)]
         struct AlbumPlays(Album, u32);
 
-        /// contains the name of the song and
+        /// Contains the name of the song and
         /// a vector containg all the albums this song is in
         #[derive(PartialEq, Eq, Hash, Debug, Clone)]
         struct SongAlbums {
@@ -460,7 +460,7 @@ fn print_album(album: &HashMap<Song, u32>) {
 ///
 /// # Errors
 ///
-/// This function will return an [Err] with [`NotFoundError::Artist`]
+/// This function will return an [`Err`] with [`NotFoundError::Artist`]
 /// if it cannot find an artist with the given name
 pub fn find_artist(entries: &Vec<SongEntry>, artist_name: &str) -> Result<Artist, NotFoundError> {
     let usr_artist = Artist::new(artist_name.to_lowercase());
@@ -480,7 +480,7 @@ pub fn find_artist(entries: &Vec<SongEntry>, artist_name: &str) -> Result<Artist
 ///
 /// # Errors
 ///
-/// This function will return an [Err] with [`NotFoundError::Album`]
+/// This function will return an [`Err`] with [`NotFoundError::Album`]
 /// if it cannot find an album with the given name and artist
 pub fn find_album(
     entries: &Vec<SongEntry>,
