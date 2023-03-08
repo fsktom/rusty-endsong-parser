@@ -1,6 +1,6 @@
 //! Module responsible for handling the CLI
 
-use crate::types::{Aspect, AspectFull, SongEntries};
+use crate::types::{Aspect, AspectFull, NotFoundError, SongEntries};
 use crate::LOCATION_TZ;
 
 use std::collections::HashMap;
@@ -68,18 +68,18 @@ pub fn start(entries: &SongEntries) {
         let line = rl.readline(PROMPT_COMMAND);
         match line {
             Ok(usr_input) => {
-                match_input(&usr_input, entries, &mut rl).unwrap_or_else(|e| println!("{e}"));
+                match_input(&usr_input, entries, &mut rl).unwrap_or_else(|e| handle_error(&e));
             }
             Err(ReadlineError::Interrupted) => {
-                println!("CTRL-C");
+                eprintln!("CTRL-C");
                 break;
             }
             Err(ReadlineError::Eof) => {
-                println!("CTRL-D");
+                eprintln!("CTRL-D");
                 break;
             }
             Err(err) => {
-                println!("Error: {err:?}");
+                eprintln!("Error: {err:?}");
                 break;
             }
         }
@@ -90,6 +90,25 @@ pub fn start(entries: &SongEntries) {
         Err(e) => {
             eprintln!("Failed to save history to file .trane_history: {e}");
         }
+    }
+}
+
+/// Handles errors thrown by [`match_input()`] in [`start()`]
+///
+/// Prints error messages for [`NotFoundError`],
+/// [`ParseError`][`chrono::format::ParseError`],
+/// and [`ParseIntError`][`std::num::ParseIntError`]
+#[allow(clippy::borrowed_box)]
+fn handle_error(err: &Box<dyn Error>) {
+    // https://users.rust-lang.org/t/matching-errorkind-from-boxed-error/30667/3
+    // also thx ChatGPT
+    match err.as_ref() {
+        not_found if not_found.is::<NotFoundError>() => eprintln!("{not_found}"),
+        date if date.is::<chrono::format::ParseError>() => {
+            eprintln!("Invalid date! Make sure you input the date in YYYY-MM-DD format.");
+        }
+        num_parse if num_parse.is::<std::num::ParseIntError>() => eprintln!("Incorrect number!"),
+        _ => eprintln!("An error occured! - {err}",),
     }
 }
 
