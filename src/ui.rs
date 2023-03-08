@@ -1,6 +1,6 @@
 //! Module responsible for handling the CLI
 
-use crate::types::{AspectFull, SongEntries};
+use crate::types::{Aspect, AspectFull, SongEntries};
 use crate::LOCATION_TZ;
 
 use std::collections::HashMap;
@@ -109,6 +109,9 @@ fn match_input(
         "print album date" | "palbd" => match_print_album_date(entries, rl)?,
         "print song date" | "psond" => match_print_song_date(entries, rl)?,
         "print songs date" | "psonsd" => match_print_songs_date(entries, rl)?,
+        "print top artists" | "ptarts" => match_print_top_artists(entries, rl)?,
+        "print top albums" | "ptalbs" => match_print_top_albums(entries, rl)?,
+        "print top songs" | "ptsons" => match_print_top_songs(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -329,6 +332,45 @@ fn match_print_songs_date(
     Ok(())
 }
 
+/// Used by [`match_input()`] for `print top artists` command
+fn match_print_top_artists(
+    entries: &SongEntries,
+    rl: &mut Editor<()>,
+) -> Result<(), Box<dyn Error>> {
+    // prompt: top n
+    println!("How many Top artists?");
+    let usr_input_n = rl.readline(PROMPT_MAIN)?;
+    let num: usize = usr_input_n.parse()?;
+
+    entries.print_top(&Aspect::Artists, num);
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `print top albums` command
+fn match_print_top_albums(
+    entries: &SongEntries,
+    rl: &mut Editor<()>,
+) -> Result<(), Box<dyn Error>> {
+    // prompt: top n
+    println!("How many Top albums?");
+    let usr_input_n = rl.readline(PROMPT_MAIN)?;
+    let num: usize = usr_input_n.parse()?;
+
+    entries.print_top(&Aspect::Albums, num);
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `print top songs` command
+fn match_print_top_songs(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
+    // prompt: top n
+    println!("How many Top songs?");
+    let usr_input_n = rl.readline(PROMPT_MAIN)?;
+    let num: usize = usr_input_n.parse()?;
+
+    entries.print_top(&Aspect::Songs, num);
+    Ok(())
+}
+
 /// Used by [`match_input()`] for `help` command
 ///
 /// Prints the available commands to the [`std::io::stdout`]
@@ -406,6 +448,23 @@ fn help() {
         \t\x1b[1;35malias: psonsd\x1b[0m",
     );
 
+    let mut print_top_commands: HashMap<&str, &str> = HashMap::new();
+    print_top_commands.insert(
+        "print top artists",
+        "prints top n artists
+        \t\x1b[1;35malias: ptarts\x1b[0m",
+    );
+    print_top_commands.insert(
+        "print top albums",
+        "prints top n albums
+        \t\x1b[1;35malias: ptalbs\x1b[0m",
+    );
+    print_top_commands.insert(
+        "print top songs",
+        "prints top n songs
+        \t\x1b[1;35malias: ptsons\x1b[0m",
+    );
+
     let mut graph_commands: HashMap<&str, &str> = HashMap::new();
     graph_commands.insert(
         "graph placeholder",
@@ -421,6 +480,11 @@ fn help() {
 
     println!("\x1b[32m=== print commands ===");
     for (k, v) in print_commands {
+        println!("\x1b[1;31m{k}\x1b[0m =>\t{v}");
+    }
+
+    println!("\x1b[32m=== print top commands ===");
+    for (k, v) in print_top_commands {
         println!("\x1b[1;31m{k}\x1b[0m =>\t{v}");
     }
 
