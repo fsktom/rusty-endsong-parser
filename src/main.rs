@@ -21,14 +21,15 @@ mod types;
 mod ui;
 
 use chrono::TimeZone;
+
 use types::Aspect;
 use types::AspectFull;
 use types::SongEntries;
 
-use crate::parse::LOCATION_TZ;
+use parse::LOCATION_TZ;
 
 /// Intializes the data,
-/// tests some functions using [test()] and
+/// tests some functions using [`test()`] and
 /// starts the shell instance
 fn main() {
     // this is only temporary -> later on these files should be added by CLI args
@@ -56,7 +57,7 @@ fn main() {
     ui::start(&entries);
 }
 
-/// tests various [`crate::display`] functions
+/// tests various [`display`] functions
 /// or its wrapper associated methods from [`SongEntries`]
 fn test(entries: &SongEntries) {
     entries.print_top(&Aspect::default(), 10);
