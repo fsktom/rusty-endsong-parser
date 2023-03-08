@@ -40,6 +40,15 @@ pub enum Aspect {
     #[default]
     Songs,
 }
+impl Display for Aspect {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Aspect::Artists => write!(f, "artists"),
+            Aspect::Albums => write!(f, "albums"),
+            Aspect::Songs => write!(f, "songs"),
+        }
+    }
+}
 
 /// Used for functions in [`display`] that accept either
 /// a [`Song`], [`Album`] or [`Artist`] struct

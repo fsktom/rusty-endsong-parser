@@ -109,9 +109,9 @@ fn match_input(
         "print album date" | "palbd" => match_print_album_date(entries, rl)?,
         "print song date" | "psond" => match_print_song_date(entries, rl)?,
         "print songs date" | "psonsd" => match_print_songs_date(entries, rl)?,
-        "print top artists" | "ptarts" => match_print_top_artists(entries, rl)?,
-        "print top albums" | "ptalbs" => match_print_top_albums(entries, rl)?,
-        "print top songs" | "ptsons" => match_print_top_songs(entries, rl)?,
+        "print top artists" | "ptarts" => match_print_top(entries, rl, &Aspect::Artists)?,
+        "print top albums" | "ptalbs" => match_print_top(entries, rl, &Aspect::Albums)?,
+        "print top songs" | "ptsons" => match_print_top(entries, rl, &Aspect::Songs)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -332,48 +332,25 @@ fn match_print_songs_date(
     Ok(())
 }
 
-/// Used by [`match_input()`] for `print top artists` command
-fn match_print_top_artists(
+/// Used by [`match_input()`] for `print top artists/albums/songs` commands
+fn match_print_top(
     entries: &SongEntries,
     rl: &mut Editor<()>,
+    asp: &Aspect,
 ) -> Result<(), Box<dyn Error>> {
     // prompt: top n
-    println!("How many Top artists?");
+    println!("How many Top {asp}?");
     let usr_input_n = rl.readline(PROMPT_MAIN)?;
     let num: usize = usr_input_n.parse()?;
 
-    entries.print_top(&Aspect::Artists, num);
-    Ok(())
-}
-
-/// Used by [`match_input()`] for `print top albums` command
-fn match_print_top_albums(
-    entries: &SongEntries,
-    rl: &mut Editor<()>,
-) -> Result<(), Box<dyn Error>> {
-    // prompt: top n
-    println!("How many Top albums?");
-    let usr_input_n = rl.readline(PROMPT_MAIN)?;
-    let num: usize = usr_input_n.parse()?;
-
-    entries.print_top(&Aspect::Albums, num);
-    Ok(())
-}
-
-/// Used by [`match_input()`] for `print top songs` command
-fn match_print_top_songs(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
-    // prompt: top n
-    println!("How many Top songs?");
-    let usr_input_n = rl.readline(PROMPT_MAIN)?;
-    let num: usize = usr_input_n.parse()?;
-
-    entries.print_top(&Aspect::Songs, num);
+    entries.print_top(asp, num);
     Ok(())
 }
 
 /// Used by [`match_input()`] for `help` command
 ///
 /// Prints the available commands to the [`std::io::stdout`]
+#[allow(clippy::too_many_lines)]
 fn help() {
     // alias in pink! \x1b[1;35m
     // actual command in red! \x1b[1;31m
