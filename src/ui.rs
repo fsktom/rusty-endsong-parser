@@ -32,6 +32,7 @@ const PROMPT_SECONDARY: &str = "   > ";
 #[derive(Completer, Helper, Hinter, Validator)]
 struct ShellHelper;
 impl Highlighter for ShellHelper {
+    // makes the prompt in rl.readline() change color depending on the prompt
     fn highlight_prompt<'b, 's: 'b, 'p: 'b>(
         &'s self,
         prompt: &'p str,
@@ -102,15 +103,15 @@ pub fn start(entries: &SongEntries) {
                 match_input(&usr_input, entries, &mut rl).unwrap_or_else(|e| handle_error(&e));
             }
             Err(ReadlineError::Interrupted) => {
-                eprintln!("CTRL-C");
+                eprintln!("Ctrl+C - execution has stopped!");
                 break;
             }
             Err(ReadlineError::Eof) => {
-                eprintln!("CTRL-D");
+                eprintln!("CTRL-D - execution has stopped!");
                 break;
             }
             Err(err) => {
-                eprintln!("Error: {err:?}");
+                eprintln!("Execution has stopped! - Error: {err}");
                 break;
             }
         }
@@ -139,7 +140,10 @@ fn handle_error(err: &Box<dyn Error>) {
             eprintln!("Invalid date! Make sure you input the date in YYYY-MM-DD format.");
         }
         num_parse if num_parse.is::<std::num::ParseIntError>() => eprintln!("Incorrect number!"),
-        _ => eprintln!("An error occured! - {err}",),
+        // e.g. if user presses CTRl+C/+D/.. in a main or secondary prompt,
+        // it should just stop the command and go back to command prompt
+        read_error if read_error.is::<ReadlineError>() => (),
+        _ => eprintln!("An error has occured! - {err}",),
     }
 }
 
