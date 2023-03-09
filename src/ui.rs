@@ -96,6 +96,9 @@ pub fn start(entries: &SongEntries) {
         let line = rl.readline(PROMPT_COMMAND);
         match line {
             Ok(usr_input) => {
+                if &usr_input == "exit" || &usr_input == "quit" {
+                    break;
+                }
                 match_input(&usr_input, entries, &mut rl).unwrap_or_else(|e| handle_error(&e));
             }
             Err(ReadlineError::Interrupted) => {
@@ -444,6 +447,7 @@ fn help() {
     // META COMMANDS
     let mut meta_commands: Vec<[&str; 3]> = Vec::new();
     meta_commands.push(["help", "h", "prints this command list"]);
+    meta_commands.push(["exit", "quit", "exits the program"]);
     print("meta", &meta_commands);
 
     // PRINT COMMANDS
