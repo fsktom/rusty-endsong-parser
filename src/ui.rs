@@ -8,7 +8,7 @@ use std::error::Error;
 
 use chrono::{DateTime, TimeZone};
 use chrono_tz::Tz;
-use rustyline::{error::ReadlineError, ColorMode, Config, Editor};
+use rustyline::{error::ReadlineError, history::FileHistory, ColorMode, Config, Editor};
 
 /// Prompt used for top-level shell commands
 ///
@@ -46,7 +46,8 @@ pub fn start(entries: &SongEntries) {
         .history_ignore_space(true)
         .build();
 
-    let mut rl = Editor::<()>::with_config(config).expect("Sorry, there's been an error!");
+    let mut rl =
+        Editor::<(), FileHistory>::with_config(config).expect("Sorry, there's been an error!");
 
     let history_path = std::path::Path::new(".rep_history");
     if !history_path.exists() {
@@ -116,7 +117,7 @@ fn handle_error(err: &Box<dyn Error>) {
 fn match_input(
     inp: &str,
     entries: &SongEntries,
-    rl: &mut Editor<()>,
+    rl: &mut Editor<(), FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     match inp {
         "help" | "h" => help(),
@@ -143,7 +144,10 @@ fn match_input(
 }
 
 /// Used by [`match_input()`] for `print artist` command
-fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
+fn match_print_artist(
+    entries: &SongEntries,
+    rl: &mut Editor<(), FileHistory>,
+) -> Result<(), Box<dyn Error>> {
     // prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
@@ -158,7 +162,7 @@ fn match_print_artist(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), 
 /// Basically [`match_print_artist()`] but with date functionality
 fn match_print_artist_date(
     entries: &SongEntries,
-    rl: &mut Editor<()>,
+    rl: &mut Editor<(), FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -180,7 +184,10 @@ fn match_print_artist_date(
 }
 
 /// Used by [`match_input()`] for `print album` command
-fn match_print_album(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
+fn match_print_album(
+    entries: &SongEntries,
+    rl: &mut Editor<(), FileHistory>,
+) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
@@ -200,7 +207,7 @@ fn match_print_album(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), B
 /// Basically [`match_print_album()`] but with date functionality
 fn match_print_album_date(
     entries: &SongEntries,
-    rl: &mut Editor<()>,
+    rl: &mut Editor<(), FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -227,7 +234,10 @@ fn match_print_album_date(
 }
 
 /// Used by [`match_input()`] for `print song` command
-fn match_print_song(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
+fn match_print_song(
+    entries: &SongEntries,
+    rl: &mut Editor<(), FileHistory>,
+) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
@@ -252,7 +262,10 @@ fn match_print_song(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Bo
 /// Used by [`match_input()`] for `print song date` command
 ///
 /// Basically [`match_print_song()`] but with date functionality
-fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
+fn match_print_song_date(
+    entries: &SongEntries,
+    rl: &mut Editor<(), FileHistory>,
+) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
@@ -285,7 +298,10 @@ fn match_print_song_date(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(
 }
 
 /// Used by [`match_input()`] for `print songs` command
-fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), Box<dyn Error>> {
+fn match_print_songs(
+    entries: &SongEntries,
+    rl: &mut Editor<(), FileHistory>,
+) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
@@ -314,7 +330,7 @@ fn match_print_songs(entries: &SongEntries, rl: &mut Editor<()>) -> Result<(), B
 /// Used by [`match_input()`] for `print songs date` command
 fn match_print_songs_date(
     entries: &SongEntries,
-    rl: &mut Editor<()>,
+    rl: &mut Editor<(), FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -354,7 +370,7 @@ fn match_print_songs_date(
 /// Used by [`match_input()`] for `print top artists/albums/songs` commands
 fn match_print_top(
     entries: &SongEntries,
-    rl: &mut Editor<()>,
+    rl: &mut Editor<(), FileHistory>,
     asp: &Aspect,
 ) -> Result<(), Box<dyn Error>> {
     // prompt: top n
