@@ -4,7 +4,6 @@ use crate::types::{Aspect, AspectFull, Color, NotFoundError, SongEntries};
 use crate::LOCATION_TZ;
 
 use std::borrow::Cow;
-use std::collections::HashMap;
 use std::error::Error;
 
 use chrono::{DateTime, TimeZone};
@@ -416,124 +415,111 @@ fn match_print_top(
 ///
 /// Prints the available commands to the [`std::io::stdout`]
 #[allow(clippy::too_many_lines)]
+#[allow(clippy::vec_init_then_push)]
 fn help() {
-    // alias in pink! \x1b[1;35m
-    // actual command in red! \x1b[1;31m
-    // reset color with \x1b[0m
+    /// Prints the commands
+    fn print(title: &str, commands: &Vec<[&str; 3]>) {
+        println!(
+            "{}=== {} commands ==={}",
+            Color::LightGreen,
+            title,
+            Color::Reset
+        );
+        for command in commands {
+            println!(
+                "{}{}{} =>\t{}{}\n\talias: {}{}",
+                Color::Red,
+                command[0],
+                Color::Reset,
+                command[2],
+                Color::Pink,
+                command[1],
+                Color::Reset
+            );
+        }
+    }
 
-    let mut meta_commands: HashMap<&str, &str> = HashMap::new();
-    meta_commands.insert(
-        "help",
-        "prints this command list
-        \t\x1b[1;35malias: h\x1b[0m",
-    );
+    // each entry: ["command", "alias", "description"]
 
-    let mut print_commands: HashMap<&str, &str> = HashMap::new();
-    print_commands.insert(
+    // META COMMANDS
+    let mut meta_commands: Vec<[&str; 3]> = Vec::new();
+    meta_commands.push(["help", "h", "prints this command list"]);
+    print("meta", &meta_commands);
+
+    // PRINT COMMANDS
+    let mut print_commands: Vec<[&str; 3]> = Vec::new();
+    print_commands.push([
         "print artist",
+        "part",
         "prints every album from the artist
-        \topens another prompt where you input the artist name
-        \t\x1b[1;35malias: part\x1b[0m",
-    );
-    print_commands.insert(
+        \topens another prompt where you input the artist name",
+    ]);
+    print_commands.push([
         "print album",
+        "palb",
         "prints every song from the album
         \topens another prompt where you input the artist name
-        \tand then the album name
-        \t\x1b[1;35malias: palb\x1b[0m",
-    );
-    print_commands.insert(
+        \tand then the album name",
+    ]);
+    print_commands.push([
         "print song",
+        "pson",
         "prints a song
         \topens another prompt where you input the artist name
         \tand then the album name
-        \tand then the song name
-        \t\x1b[1;35malias: pson\x1b[0m",
-    );
-    print_commands.insert(
+        \tand then the song name",
+    ]);
+    print_commands.push([
         "print songs",
+        "psons",
         "prints a song with all the albums it may be from
         \topens another prompt where you input the artist name
-        \tand then the song name
-        \t\x1b[1;35malias: psons\x1b[0m",
-    );
+        \tand then the song name",
+    ]);
 
-    print_commands.insert(
+    print_commands.push([
         "print artist date",
+        "partd",
         "prints every album from the artist within a date range
         \topens another prompt where you input the artist name
-        \tand then the date range
-        \t\x1b[1;35malias: partd\x1b[0m",
-    );
-    print_commands.insert(
+        \tand then the date range",
+    ]);
+    print_commands.push([
         "print album date",
+        "palbd",
         "prints every song from the album within a date range
         \topens another prompt where you input the artist name
-        \tand then the album name
-        \t\x1b[1;35malias: palbd\x1b[0m",
-    );
-    print_commands.insert(
+        \tand then the album name",
+    ]);
+    print_commands.push([
         "print song date",
+        "psond",
         "prints a song within a date range
         \topens another prompt where you input the artist name
         \tand then the album name
         \tand then the song name
-        \tand then the date range
-        \t\x1b[1;35malias: psond\x1b[0m",
-    );
-    print_commands.insert(
+        \tand then the date range",
+    ]);
+    print_commands.push([
         "print songs date",
+        "psonsd",
         "prints a song with all the albums it may be from within a date range
         \topens another prompt where you input the artist name
         \tand then the song name
-        \tand then the date range
-        \t\x1b[1;35malias: psonsd\x1b[0m",
-    );
+        \tand then the date range",
+    ]);
+    print("print", &print_commands);
 
-    let mut print_top_commands: HashMap<&str, &str> = HashMap::new();
-    print_top_commands.insert(
-        "print top artists",
-        "prints top n artists
-        \t\x1b[1;35malias: ptarts\x1b[0m",
-    );
-    print_top_commands.insert(
-        "print top albums",
-        "prints top n albums
-        \t\x1b[1;35malias: ptalbs\x1b[0m",
-    );
-    print_top_commands.insert(
-        "print top songs",
-        "prints top n songs
-        \t\x1b[1;35malias: ptsons\x1b[0m",
-    );
+    let mut print_top_commands: Vec<[&str; 3]> = Vec::new();
+    print_top_commands.push(["print top artists", "ptarts", "prints top n artists"]);
+    print_top_commands.push(["print top albums", "ptalbs", "prints top n albums"]);
+    print_top_commands.push(["print top songs", "ptsons", "prints top n songs"]);
+    print("print top", &print_top_commands);
 
-    let mut graph_commands: HashMap<&str, &str> = HashMap::new();
-    graph_commands.insert(
-        "graph placeholder",
-        "placeholder
-        \t\x1b[1;35malias: gphd\x1b[0m",
-    );
-
-    // actual printing of commands
-
-    for (k, v) in meta_commands {
-        println!("\x1b[1;31m{k}\x1b[0m =>\t{v}");
-    }
-
-    println!("\x1b[32m=== print commands ===");
-    for (k, v) in print_commands {
-        println!("\x1b[1;31m{k}\x1b[0m =>\t{v}");
-    }
-
-    println!("\x1b[32m=== print top commands ===");
-    for (k, v) in print_top_commands {
-        println!("\x1b[1;31m{k}\x1b[0m =>\t{v}");
-    }
-
-    println!("\x1b[32m=== graph commands ===");
-    for (k, v) in graph_commands {
-        println!("\x1b[1;31m{k}\x1b[0m =>\t{v}");
-    }
+    // GRAPH COMMANDS
+    let mut graph_commands: Vec<[&str; 3]> = Vec::new();
+    graph_commands.push(["graph placeholder", "gphd", "placeholder description"]);
+    print("graph", &graph_commands);
 }
 
 /// used by `*_date` functions in this module for when the user inputs a date
