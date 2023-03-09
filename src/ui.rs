@@ -1,36 +1,61 @@
 //! Module responsible for handling the CLI
 
-use crate::types::{Aspect, AspectFull, NotFoundError, SongEntries};
+use crate::types::{Aspect, AspectFull, Color, NotFoundError, SongEntries};
 use crate::LOCATION_TZ;
 
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::error::Error;
 
 use chrono::{DateTime, TimeZone};
 use chrono_tz::Tz;
-use rustyline::{error::ReadlineError, history::FileHistory, ColorMode, Config, Editor};
+use rustyline::{
+    error::ReadlineError, highlight::Highlighter, history::FileHistory, ColorMode, Config, Editor,
+};
+use rustyline::{Completer, Helper, Hinter, Validator};
 
 /// Prompt used for top-level shell commands
 ///
-/// green `>>>`
-// https://bixense.com/clicolors/
-// \x1b[1;32m makes ">>>" green
-// \x1b[0m makes user input default color again
-const PROMPT_COMMAND: &str = "\x1b[1;32m>>>\x1b[0m ";
+/// green `>>>` with [`ShellHelper`]
+const PROMPT_COMMAND: &str = ">>> ";
 
 /// Prompt used for main arguments like artist, album and song name
 ///
-/// cyan `  >>`
-// \x1b[1;36m makes ">>" cyan
-// \x1b[0m makes user input default color again
-const PROMPT_MAIN: &str = "  \x1b[1;36m>>\x1b[0m ";
+/// cyan `  >>` with [`ShellHelper`]
+const PROMPT_MAIN: &str = "  >> ";
 
 /// Prompt used for additional arguments like the date range
 ///
-/// red `   >`
-// \x1b[1;31m makes ">" red
-// \x1b[0m makes user input default color again
-const PROMPT_SECONDARY: &str = "   \x1b[1;31m>\x1b[0m ";
+/// red `   >` with [`ShellHelper`]
+const PROMPT_SECONDARY: &str = "   > ";
+
+/// Helper for [`Editor`]
+#[derive(Completer, Helper, Hinter, Validator)]
+struct ShellHelper;
+impl Highlighter for ShellHelper {
+    fn highlight_prompt<'b, 's: 'b, 'p: 'b>(
+        &'s self,
+        prompt: &'p str,
+        _default: bool,
+    ) -> std::borrow::Cow<'b, str> {
+        match prompt {
+            PROMPT_COMMAND => Cow::Owned(format!(
+                "{}{}{}",
+                Color::Green,
+                PROMPT_COMMAND,
+                Color::Reset
+            )),
+            PROMPT_MAIN => Cow::Owned(format!("{}{}{}", Color::Cyan, PROMPT_MAIN, Color::Reset)),
+            PROMPT_SECONDARY => Cow::Owned(format!(
+                "{}{}{}",
+                Color::Red,
+                PROMPT_SECONDARY,
+                Color::Reset
+            )),
+            _ => Cow::Borrowed(prompt),
+        }
+    }
+}
 
 /// Starts the CLI/shell instance
 pub fn start(entries: &SongEntries) {
@@ -46,8 +71,11 @@ pub fn start(entries: &SongEntries) {
         .history_ignore_space(true)
         .build();
 
-    let mut rl =
-        Editor::<(), FileHistory>::with_config(config).expect("Sorry, there's been an error!");
+    let mut rl = Editor::<ShellHelper, FileHistory>::with_config(config)
+        .expect("Sorry, there's been an error!");
+
+    let helper = ShellHelper;
+    rl.set_helper(Some(helper));
 
     let history_path = std::path::Path::new(".rep_history");
     if !history_path.exists() {
@@ -117,7 +145,7 @@ fn handle_error(err: &Box<dyn Error>) {
 fn match_input(
     inp: &str,
     entries: &SongEntries,
-    rl: &mut Editor<(), FileHistory>,
+    rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     match inp {
         "help" | "h" => help(),
@@ -135,9 +163,11 @@ fn match_input(
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
-            // \x1b[1;31m makes text red
-            // \x1b[0m makes it the default color
-            println!("Command not found! Type \x1b[1;31mhelp\x1b[0m to print available commands");
+            println!(
+                "Command not found! Type {}help{} to print available commands",
+                Color::Red,
+                Color::Reset
+            );
         }
     }
     Ok(())
@@ -146,7 +176,7 @@ fn match_input(
 /// Used by [`match_input()`] for `print artist` command
 fn match_print_artist(
     entries: &SongEntries,
-    rl: &mut Editor<(), FileHistory>,
+    rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // prompt: artist name
     println!("Artist name?");
@@ -162,7 +192,7 @@ fn match_print_artist(
 /// Basically [`match_print_artist()`] but with date functionality
 fn match_print_artist_date(
     entries: &SongEntries,
-    rl: &mut Editor<(), FileHistory>,
+    rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -186,7 +216,7 @@ fn match_print_artist_date(
 /// Used by [`match_input()`] for `print album` command
 fn match_print_album(
     entries: &SongEntries,
-    rl: &mut Editor<(), FileHistory>,
+    rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -207,7 +237,7 @@ fn match_print_album(
 /// Basically [`match_print_album()`] but with date functionality
 fn match_print_album_date(
     entries: &SongEntries,
-    rl: &mut Editor<(), FileHistory>,
+    rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -236,7 +266,7 @@ fn match_print_album_date(
 /// Used by [`match_input()`] for `print song` command
 fn match_print_song(
     entries: &SongEntries,
-    rl: &mut Editor<(), FileHistory>,
+    rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -264,7 +294,7 @@ fn match_print_song(
 /// Basically [`match_print_song()`] but with date functionality
 fn match_print_song_date(
     entries: &SongEntries,
-    rl: &mut Editor<(), FileHistory>,
+    rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -300,7 +330,7 @@ fn match_print_song_date(
 /// Used by [`match_input()`] for `print songs` command
 fn match_print_songs(
     entries: &SongEntries,
-    rl: &mut Editor<(), FileHistory>,
+    rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -330,7 +360,7 @@ fn match_print_songs(
 /// Used by [`match_input()`] for `print songs date` command
 fn match_print_songs_date(
     entries: &SongEntries,
-    rl: &mut Editor<(), FileHistory>,
+    rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
@@ -370,7 +400,7 @@ fn match_print_songs_date(
 /// Used by [`match_input()`] for `print top artists/albums/songs` commands
 fn match_print_top(
     entries: &SongEntries,
-    rl: &mut Editor<(), FileHistory>,
+    rl: &mut Editor<ShellHelper, FileHistory>,
     asp: &Aspect,
 ) -> Result<(), Box<dyn Error>> {
     // prompt: top n

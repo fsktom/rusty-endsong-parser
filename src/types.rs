@@ -416,6 +416,33 @@ impl Error for NotFoundError {}
 #[derive(Clone, Debug)]
 pub struct PodcastEntry {}
 
+/// ANSI Colors
+///
+/// See <https://bixense.com/clicolors>
+pub enum Color {
+    /// Resets the following text with `\x1b[0m`
+    Reset,
+    /// Makes the following text green with `\x1b[1;32m`
+    Green,
+    /// Makes the following text cyan with `\x1b[1;36m`
+    Cyan,
+    /// Makes the following text red with `\x1b[1;31m`
+    Red,
+    /// Makes the following text pink with `\x1b[1;35m`
+    Pink,
+}
+impl Display for Color {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Color::Reset => write!(f, "\x1b[0m"),
+            Color::Green => write!(f, "\x1b[1;32m"),
+            Color::Cyan => write!(f, "\x1b[1;36m"),
+            Color::Red => write!(f, "\x1b[1;31m"),
+            Color::Pink => write!(f, "\x1b[1;35m"),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
