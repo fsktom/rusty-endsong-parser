@@ -120,7 +120,10 @@ pub fn start(entries: &SongEntries) {
     match rl.save_history(history_path) {
         Ok(_) => (),
         Err(e) => {
-            eprintln!("Failed to save history to file .trane_history: {e}");
+            eprintln!(
+                "Failed to save history to file {}: {e}",
+                &history_path.to_str().unwrap()
+            );
         }
     }
 }
