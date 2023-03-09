@@ -37,8 +37,13 @@ fn main() {
     // benchmark! =>
     // 1) paths as CLI args
     // 2) paths as part of compiled source code!
-    // let root = "/home/filip/Other/SpotifyData/2022-06/";
-    let root = "/Users/filip/Other/Endsong/";
+
+    // different root path depending on my OS
+    let root = match std::env::consts::OS {
+        "windows" => "E:\\SPOTIFY DATA\\my_spotify_data 2021-07\\MyData\\",
+        "macos" => "/Users/filip/Other/Endsong/",
+        _ => "/home/filip/Other/SpotifyData/2022-06/",
+    };
     let paths: Vec<String> = vec![
         format!("{root}endsong_0.json"),
         // format!("{root}endsong_1.json"),
