@@ -281,7 +281,7 @@ impl SongEntries {
 ///
 /// ```
 /// let entries = SongEntries::new(paths);
-/// dbg!(entries.find().artist("Sabaton".to_string()));
+/// dbg!(entries.find().artist("Sabaton"));
 /// ```
 ///
 /// # Errors

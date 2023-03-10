@@ -32,12 +32,6 @@ use parse::LOCATION_TZ;
 /// tests some functions using [`test()`] and
 /// starts the shell instance
 fn main() {
-    // this is only temporary -> later on these files should be added by CLI args
-    // or both options!
-    // benchmark! =>
-    // 1) paths as CLI args
-    // 2) paths as part of compiled source code!
-
     // different root path depending on my OS
     let root = match std::env::consts::OS {
         "windows" => "E:\\SPOTIFY DATA\\my_spotify_data 2021-07\\MyData\\",

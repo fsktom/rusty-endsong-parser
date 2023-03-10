@@ -488,6 +488,9 @@ pub fn find_album(
     artist_name: &str,
 ) -> Result<Album, NotFoundError> {
     // .to_lowercase() so that user input capitalization doesn't matter
+    // -> problem with different versions of the same album having different
+    // capitalization
+    // see #2 https://github.com/fsktom/rusty-endsong-parser/issues/2
     let usr_album = Album::new(album_name.to_lowercase(), artist_name.to_lowercase());
 
     for entry in entries {
@@ -509,6 +512,9 @@ pub fn find_song_from_album(
     artist_name: &str,
 ) -> Result<Song, NotFoundError> {
     // .to_lowercase() so that user input capitalization doesn't matter
+    // -> problem with different versions of the same album having different
+    // capitalization
+    // see #2 https://github.com/fsktom/rusty-endsong-parser/issues/2
     let usr_song = Song::new(
         song_name.to_lowercase(),
         album_name.to_lowercase(),
