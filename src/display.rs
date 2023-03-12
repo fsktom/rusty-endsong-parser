@@ -1,14 +1,14 @@
 //! Module responsible for displaying the contents of endsong.json files
 //! in a human-readable format (e.g. as 100 most played songs)
 //! to the [`std::io::stdout`]
-use std::collections::HashMap;
-
 use crate::types::Aspect;
 use crate::types::AspectFull;
 use crate::types::Music;
 use crate::types::NotFoundError;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
+
+use std::collections::HashMap;
 
 /// Module containing [`display`](self) functions with
 /// date functionality

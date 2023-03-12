@@ -12,6 +12,7 @@ use rustyline::{
     error::ReadlineError, highlight::Highlighter, history::FileHistory, ColorMode, Config, Editor,
 };
 use rustyline::{Completer, Helper, Hinter, Validator};
+use unicode_width::UnicodeWidthStr;
 
 /// Prompt used for top-level shell commands
 ///
@@ -437,12 +438,15 @@ fn help() {
         );
         for command in commands {
             println!(
-                "{}{}{} =>\t{}{}\n\talias: {}{}",
+                "{}{}{} => {}\n{}{}{}{}",
                 Color::Red,
-                command[0],
+                spaces(command[0], 20, true),
                 Color::Reset,
-                command[2],
+                // 20 (see above) - 4 (see below) ????
+                spaces_for_newline(command[2], 16),
                 Color::Pink,
+                // 20 see above, 4 length of " => ", 7 length of "alias: "
+                spaces("alias: ", 20 + 4 + 7, true),
                 command[1],
                 Color::Reset
             );
@@ -463,61 +467,61 @@ fn help() {
         "print artist",
         "part",
         "prints every album from the artist
-        \topens another prompt where you input the artist name",
+        opens another prompt where you input the artist name",
     ]);
     print_commands.push([
         "print album",
         "palb",
         "prints every song from the album
-        \topens another prompt where you input the artist name
-        \tand then the album name",
+        opens another prompt where you input the artist name
+        and then the album name",
     ]);
     print_commands.push([
         "print song",
         "pson",
         "prints a song
-        \topens another prompt where you input the artist name
-        \tand then the album name
-        \tand then the song name",
+        opens another prompt where you input the artist name
+        and then the album name
+        and then the song name",
     ]);
     print_commands.push([
         "print songs",
         "psons",
         "prints a song with all the albums it may be from
-        \topens another prompt where you input the artist name
-        \tand then the song name",
+        opens another prompt where you input the artist name
+        and then the song name",
     ]);
 
     print_commands.push([
         "print artist date",
         "partd",
         "prints every album from the artist within a date range
-        \topens another prompt where you input the artist name
-        \tand then the date range",
+        opens another prompt where you input the artist name
+        and then the date range",
     ]);
     print_commands.push([
         "print album date",
         "palbd",
         "prints every song from the album within a date range
-        \topens another prompt where you input the artist name
-        \tand then the album name",
+        opens another prompt where you input the artist name
+        and then the album name",
     ]);
     print_commands.push([
         "print song date",
         "psond",
         "prints a song within a date range
-        \topens another prompt where you input the artist name
-        \tand then the album name
-        \tand then the song name
-        \tand then the date range",
+        opens another prompt where you input the artist name
+        and then the album name
+        and then the song name
+        and then the date range",
     ]);
     print_commands.push([
         "print songs date",
         "psonsd",
         "prints a song with all the albums it may be from within a date range
-        \topens another prompt where you input the artist name
-        \tand then the song name
-        \tand then the date range",
+        opens another prompt where you input the artist name
+        and then the song name
+        and then the date range",
     ]);
     print("print", &print_commands);
 
@@ -531,6 +535,44 @@ fn help() {
     let mut graph_commands: Vec<[&str; 3]> = Vec::new();
     graph_commands.push(["graph placeholder", "gphd", "placeholder description"]);
     print("graph", &graph_commands);
+}
+
+/// Gives a [`String`] an appropriate amount of leading spaces so it's `num` long
+fn spaces(phrase: &str, num: usize, prepend: bool) -> String {
+    let ph = String::from(phrase);
+    if UnicodeWidthStr::width(phrase) >= num {
+        return ph;
+    }
+
+    // width_cjk bc Chinese/Japanese/Korean artist/album/song names
+    let missing_spaces = num - UnicodeWidthStr::width_cjk(phrase);
+    let mut spaces = String::with_capacity(missing_spaces);
+    for _ in 0..missing_spaces {
+        spaces.push(' ');
+    }
+
+    if prepend {
+        return spaces + phrase;
+    }
+    phrase.to_owned() + spaces.as_str()
+}
+
+/// todo()!
+fn spaces_for_newline(phrase: &str, num: usize) -> String {
+    let mut new_phrase = String::new();
+    // leave first line as-is
+    // prepend spaces to other lines
+    new_phrase.push_str(phrase.lines().next().unwrap());
+    for line in phrase.lines().skip(1) {
+        let mut spaces = String::with_capacity(num);
+        for _ in 0..num {
+            spaces.push(' ');
+        }
+        let temp = format!("\n{spaces}{line}");
+        new_phrase.push_str(temp.as_str());
+    }
+
+    new_phrase
 }
 
 /// used by `*_date` functions in this module for when the user inputs a date
