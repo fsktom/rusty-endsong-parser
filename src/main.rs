@@ -5,15 +5,17 @@
 //! CLI application with which you can analyze Spotify endsong.json files
 #![deny(unsafe_code)]
 // To require working docs
-#![deny(missing_docs)]
-#![deny(clippy::missing_docs_in_private_items)]
-#![deny(rustdoc::broken_intra_doc_links)]
-#![deny(rustdoc::private_intra_doc_links)]
-#![deny(rustdoc::missing_crate_level_docs)]
-#![deny(rustdoc::invalid_codeblock_attributes)]
-#![deny(rustdoc::invalid_rust_codeblocks)]
-#![deny(rustdoc::bare_urls)]
-#![deny(clippy::pedantic)]
+#![warn(
+    missing_docs,
+    clippy::missing_docs_in_private_items,
+    rustdoc::broken_intra_doc_links,
+    rustdoc::private_intra_doc_links,
+    rustdoc::missing_crate_level_docs,
+    rustdoc::invalid_codeblock_attributes,
+    rustdoc::invalid_rust_codeblocks,
+    rustdoc::bare_urls
+)]
+#![warn(clippy::pedantic)]
 
 mod display;
 mod parse;
