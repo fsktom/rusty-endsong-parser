@@ -456,88 +456,90 @@ fn help() {
     // each entry: ["command", "alias", "description"]
 
     // META COMMANDS
-    let mut meta_commands: Vec<[&str; 3]> = Vec::new();
-    meta_commands.push(["help", "h", "prints this command list"]);
-    meta_commands.push(["exit", "quit", "exits the program"]);
+    let meta_commands: Vec<[&str; 3]> = vec![
+        ["help", "h", "prints this command list"],
+        ["exit", "quit", "exits the program"],
+    ];
     print("meta", &meta_commands);
 
     // PRINT COMMANDS
-    let mut print_commands: Vec<[&str; 3]> = Vec::new();
-    print_commands.push([
-        "print artist",
-        "part",
-        "prints every album from the artist
+    let print_commands: Vec<[&str; 3]> = vec![
+        [
+            "print artist",
+            "part",
+            "prints every album from the artist
         opens another prompt where you input the artist name",
-    ]);
-    print_commands.push([
-        "print album",
-        "palb",
-        "prints every song from the album
+        ],
+        [
+            "print album",
+            "palb",
+            "prints every song from the album
         opens another prompt where you input the artist name
         and then the album name",
-    ]);
-    print_commands.push([
-        "print song",
-        "pson",
-        "prints a song
+        ],
+        [
+            "print song",
+            "pson",
+            "prints a song
         opens another prompt where you input the artist name
         and then the album name
         and then the song name",
-    ]);
-    print_commands.push([
-        "print songs",
-        "psons",
-        "prints a song with all the albums it may be from
+        ],
+        [
+            "print songs",
+            "psons",
+            "prints a song with all the albums it may be from
         opens another prompt where you input the artist name
         and then the song name",
-    ]);
-
-    print_commands.push([
-        "print artist date",
-        "partd",
-        "prints every album from the artist within a date range
+        ],
+        [
+            "print artist date",
+            "partd",
+            "prints every album from the artist within a date range
         opens another prompt where you input the artist name
         and then the date range",
-    ]);
-    print_commands.push([
-        "print album date",
-        "palbd",
-        "prints every song from the album within a date range
+        ],
+        [
+            "print album date",
+            "palbd",
+            "prints every song from the album within a date range
         opens another prompt where you input the artist name
         and then the album name",
-    ]);
-    print_commands.push([
-        "print song date",
-        "psond",
-        "prints a song within a date range
+        ],
+        [
+            "print song date",
+            "psond",
+            "prints a song within a date range
         opens another prompt where you input the artist name
         and then the album name
         and then the song name
         and then the date range",
-    ]);
-    print_commands.push([
-        "print songs date",
-        "psonsd",
-        "prints a song with all the albums it may be from within a date range
+        ],
+        [
+            "print songs date",
+            "psonsd",
+            "prints a song with all the albums it may be from within a date range
         opens another prompt where you input the artist name
         and then the song name
         and then the date range",
-    ]);
+        ],
+    ];
     print("print", &print_commands);
 
-    let mut print_top_commands: Vec<[&str; 3]> = Vec::new();
-    print_top_commands.push(["print top artists", "ptarts", "prints top n artists"]);
-    print_top_commands.push(["print top albums", "ptalbs", "prints top n albums"]);
-    print_top_commands.push(["print top songs", "ptsons", "prints top n songs"]);
+    let print_top_commands: Vec<[&str; 3]> = vec![
+        ["print top artists", "ptarts", "prints top n artists"],
+        ["print top albums", "ptalbs", "prints top n albums"],
+        ["print top songs", "ptsons", "prints top n songs"],
+    ];
     print("print top", &print_top_commands);
 
     // GRAPH COMMANDS
-    let mut graph_commands: Vec<[&str; 3]> = Vec::new();
-    graph_commands.push(["graph placeholder", "gphd", "placeholder description"]);
+    let graph_commands: Vec<[&str; 3]> =
+        vec![["graph placeholder", "gphd", "placeholder description"]];
     print("graph", &graph_commands);
 }
 
-/// Gives a [`String`] an appropriate amount of leading spaces so it's `num` long
+/// Gives a [`String`] an appropriate amount of spaces so it's `num` long
 fn spaces(phrase: &str, num: usize, prepend: bool) -> String {
     let ph = String::from(phrase);
     if UnicodeWidthStr::width(phrase) >= num {
@@ -557,7 +559,7 @@ fn spaces(phrase: &str, num: usize, prepend: bool) -> String {
     phrase.to_owned() + spaces.as_str()
 }
 
-/// todo()!
+/// Gives `phrase` (with `\n`) leading spaces so it's `num` long
 fn spaces_for_newline(phrase: &str, num: usize) -> String {
     let mut new_phrase = String::new();
     // leave first line as-is
