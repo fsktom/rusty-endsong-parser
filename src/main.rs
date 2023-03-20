@@ -53,13 +53,14 @@ fn main() {
 
     let entries = SongEntries::new(paths);
 
-    test(&entries);
+    // test(&entries);
 
     ui::start(&entries);
 }
 
 /// tests various [`display`] functions
 /// or its wrapper associated methods from [`SongEntries`]
+#[allow(dead_code)]
 fn test(entries: &SongEntries) {
     entries.print_top(&Aspect::default(), 10);
     entries.print_top(&Aspect::Albums, 10);
