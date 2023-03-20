@@ -5,92 +5,19 @@ use unicode_width::UnicodeWidthStr;
 /// Used by [`match_input()`][`super::match_input()`] for `help` command
 ///
 /// Prints the available commands to the [`std::io::stdout`]
-#[allow(clippy::too_many_lines)]
 pub fn help() {
     // each entry: ["command", "alias", "description"]
 
     // META COMMANDS
-    let meta_commands: Vec<[&str; 3]> = vec![
-        ["help", "h", "prints this command list"],
-        ["exit", "quit", "exits the program"],
-    ];
-    print("meta", &meta_commands);
+    print("meta", &meta_commands());
 
     // PRINT COMMANDS
-    let print_commands: Vec<[&str; 3]> = vec![
-        [
-            "print artist",
-            "part",
-            "prints every album from the artist
-        opens another prompt where you input the artist name",
-        ],
-        [
-            "print album",
-            "palb",
-            "prints every song from the album
-        opens another prompt where you input the artist name
-        and then the album name",
-        ],
-        [
-            "print song",
-            "pson",
-            "prints a song
-        opens another prompt where you input the artist name
-        and then the album name
-        and then the song name",
-        ],
-        [
-            "print songs",
-            "psons",
-            "prints a song with all the albums it may be from
-        opens another prompt where you input the artist name
-        and then the song name",
-        ],
-        [
-            "print artist date",
-            "partd",
-            "prints every album from the artist within a date range
-        opens another prompt where you input the artist name
-        and then the date range",
-        ],
-        [
-            "print album date",
-            "palbd",
-            "prints every song from the album within a date range
-        opens another prompt where you input the artist name
-        and then the album name",
-        ],
-        [
-            "print song date",
-            "psond",
-            "prints a song within a date range
-        opens another prompt where you input the artist name
-        and then the album name
-        and then the song name
-        and then the date range",
-        ],
-        [
-            "print songs date",
-            "psonsd",
-            "prints a song with all the albums it may be from within a date range
-        opens another prompt where you input the artist name
-        and then the song name
-        and then the date range",
-        ],
-    ];
-    print("print", &print_commands);
+    print("print", &print_commands());
 
-    let print_top_commands: Vec<[&str; 3]> = vec![
-        ["print top artists", "ptarts", "prints top n artists"],
-        ["print top albums", "ptalbs", "prints top n albums"],
-        ["print top songs", "ptsons", "prints top n songs"],
-    ];
-    print("print top", &print_top_commands);
+    print("print top", &print_top_commands());
 
     // GRAPH COMMANDS
-    let graph_commands: Vec<[&str; 3]> =
-        vec![["graph placeholder", "gphd", "placeholder description"]];
-    print("graph", &graph_commands);
+    print("graph", &graph_commands());
 }
 
 /// Prints the commands
@@ -179,4 +106,91 @@ fn center_phrase(phrase: &str, start: usize, end: usize) -> String {
     }
 
     new_phrase
+}
+
+/// Returns meta commands
+fn meta_commands<'a>() -> Vec<[&'a str; 3]> {
+    vec![
+        ["help", "h", "prints this command list"],
+        ["exit", "quit", "exits the program"],
+    ]
+}
+
+/// Returns print commands
+fn print_commands<'a>() -> Vec<[&'a str; 3]> {
+    vec![
+        [
+            "print artist",
+            "part",
+            "prints every album from the artist
+        opens another prompt where you input the artist name",
+        ],
+        [
+            "print album",
+            "palb",
+            "prints every song from the album
+        opens another prompt where you input the artist name
+        and then the album name",
+        ],
+        [
+            "print song",
+            "pson",
+            "prints a song
+        opens another prompt where you input the artist name
+        and then the album name
+        and then the song name",
+        ],
+        [
+            "print songs",
+            "psons",
+            "prints a song with all the albums it may be from
+        opens another prompt where you input the artist name
+        and then the song name",
+        ],
+        [
+            "print artist date",
+            "partd",
+            "prints every album from the artist within a date range
+        opens another prompt where you input the artist name
+        and then the date range",
+        ],
+        [
+            "print album date",
+            "palbd",
+            "prints every song from the album within a date range
+        opens another prompt where you input the artist name
+        and then the album name",
+        ],
+        [
+            "print song date",
+            "psond",
+            "prints a song within a date range
+        opens another prompt where you input the artist name
+        and then the album name
+        and then the song name
+        and then the date range",
+        ],
+        [
+            "print songs date",
+            "psonsd",
+            "prints a song with all the albums it may be from within a date range
+        opens another prompt where you input the artist name
+        and then the song name
+        and then the date range",
+        ],
+    ]
+}
+
+/// Returns print top commands
+fn print_top_commands<'a>() -> Vec<[&'a str; 3]> {
+    vec![
+        ["print top artists", "ptarts", "prints top n artists"],
+        ["print top albums", "ptalbs", "prints top n albums"],
+        ["print top songs", "ptsons", "prints top n songs"],
+    ]
+}
+
+/// Returns graph commands
+fn graph_commands<'a>() -> Vec<[&'a str; 3]> {
+    vec![["graph placeholder", "gphd", "placeholder description"]]
 }
