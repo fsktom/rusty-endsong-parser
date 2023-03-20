@@ -1,40 +1,12 @@
 use crate::types::Color;
+
 use unicode_width::UnicodeWidthStr;
 
-/// Used by [`match_input()`] for `help` command
+/// Used by [`match_input()`][`super::match_input()`] for `help` command
 ///
 /// Prints the available commands to the [`std::io::stdout`]
 #[allow(clippy::too_many_lines)]
 pub fn help() {
-    /// Prints the commands
-    fn print(title: &str, commands: &Vec<[&str; 3]>) {
-        println!(
-            // "{title} commands" has to be centered to "=>"
-            // so columns 22 and 23
-            // everything before that has to be filled with '='
-            // everything after that has to be filled with '=' till column 50
-            "{}{}{}",
-            Color::LightGreen,
-            center_phrase(title, 22, 50),
-            Color::Reset
-        );
-        for command in commands {
-            println!(
-                "{}{}{} => {}\n{}{}{}{}",
-                Color::Red,
-                spaces(command[0], 20, true),
-                Color::Reset,
-                // 20 (see above) - 4 (see below) ????
-                spaces_for_newline(command[2], 16),
-                Color::Pink,
-                // 20 see above, 4 length of " => ", 7 length of "alias: "
-                spaces("alias: ", 20 + 4 + 7, true),
-                command[1],
-                Color::Reset
-            );
-        }
-    }
-
     // each entry: ["command", "alias", "description"]
 
     // META COMMANDS
@@ -121,6 +93,35 @@ pub fn help() {
     print("graph", &graph_commands);
 }
 
+/// Prints the commands
+fn print(title: &str, commands: &Vec<[&str; 3]>) {
+    println!(
+        // "{title} commands" has to be centered to "=>"
+        // so columns 22 and 23
+        // everything before that has to be filled with '='
+        // everything after that has to be filled with '=' till column 50
+        "{}{}{}",
+        Color::LightGreen,
+        center_phrase(title, 22, 50),
+        Color::Reset
+    );
+    for command in commands {
+        println!(
+            "{}{}{} => {}\n{}{}{}{}",
+            Color::Red,
+            spaces(command[0], 20, true),
+            Color::Reset,
+            // 20 (see above) - 4 (see below) ????
+            spaces_for_newline(command[2], 16),
+            Color::Pink,
+            // 20 see above, 4 length of " => ", 7 length of "alias: "
+            spaces("alias: ", 20 + 4 + 7, true),
+            command[1],
+            Color::Reset
+        );
+    }
+}
+
 /// Gives a [`String`] an appropriate amount of spaces so it's `num` long
 fn spaces(phrase: &str, num: usize, prepend: bool) -> String {
     let ph = String::from(phrase);
@@ -159,8 +160,6 @@ fn spaces_for_newline(phrase: &str, num: usize) -> String {
     new_phrase
 }
 
-/// Used by [`help()`] for ========= meta commands =========
-///
 /// Centers "`phrase` commands" around columns start and start+1
 fn center_phrase(phrase: &str, start: usize, end: usize) -> String {
     // let mut new_phrase = String::with_capacity(end);

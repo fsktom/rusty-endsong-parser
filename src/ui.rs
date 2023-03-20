@@ -160,6 +160,7 @@ fn match_input(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     match inp {
+        // every new command added has to have an entry in `help`!
         "help" | "h" => help::help(),
         "print artist" | "part" => match_print_artist(entries, rl)?,
         "print album" | "palb" => match_print_album(entries, rl)?,
