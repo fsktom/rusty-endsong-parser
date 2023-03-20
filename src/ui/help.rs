@@ -36,41 +36,43 @@ fn print(title: &str, commands: &Vec<[&str; 3]>) {
         println!(
             "{}{}{} => {}\n{}{}{}{}",
             Color::Red,
-            spaces(command[0], 20, true),
+            adjust_length(command[0], 20),
             Color::Reset,
             // 20 (see above) - 4 (see below) ????
-            spaces_for_newline(command[2], 16),
+            prepend_spaces_for_newline(command[2], 16),
             Color::Pink,
             // 20 see above, 4 length of " => ", 7 length of "alias: "
-            spaces("alias: ", 20 + 4 + 7, true),
+            adjust_length("alias: ", 20 + 4 + 7),
             command[1],
             Color::Reset
         );
     }
 }
 
-/// Gives a [`String`] an appropriate amount of spaces so it's `num` long
-fn spaces(phrase: &str, num: usize, prepend: bool) -> String {
+/// Gives a `phrase` an appropriate amount of preceding spaces so it's `new_length` long
+///
+/// DOESN'T work correctly if `phrase` has linebreaks (`\n`)!
+fn adjust_length(phrase: &str, new_length: usize) -> String {
     let ph = String::from(phrase);
-    if UnicodeWidthStr::width(phrase) >= num {
+    if UnicodeWidthStr::width(phrase) >= new_length {
         return ph;
     }
 
     // width_cjk bc Chinese/Japanese/Korean artist/album/song names
-    let missing_spaces = num - UnicodeWidthStr::width_cjk(phrase);
+    let missing_spaces = new_length - UnicodeWidthStr::width_cjk(phrase);
     let mut spaces = String::with_capacity(missing_spaces);
     for _ in 0..missing_spaces {
         spaces.push(' ');
     }
 
-    if prepend {
-        return spaces + phrase;
-    }
-    phrase.to_owned() + spaces.as_str()
+    spaces + phrase
 }
 
-/// Gives `phrase` (with `\n`) leading spaces so it's `num` long
-fn spaces_for_newline(phrase: &str, num: usize) -> String {
+/// Prepends `num` spaces to secondary lines of `phrase`
+///
+/// First line is left as-is, but the following lines have `num` spaces
+/// preceding them
+fn prepend_spaces_for_newline(phrase: &str, num: usize) -> String {
     let mut new_phrase = String::new();
     // leave first line as-is
     // prepend spaces to other lines
@@ -193,4 +195,25 @@ fn print_top_commands<'a>() -> Vec<[&'a str; 3]> {
 /// Returns graph commands
 fn graph_commands<'a>() -> Vec<[&'a str; 3]> {
     vec![["graph placeholder", "gphd", "placeholder description"]]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn whitespace() {
+        assert_eq!(
+            adjust_length("print top artists", 20),
+            "   print top artists"
+        );
+        // adjust_length() doesn't work properly with newlines (yet)
+        assert_ne!(adjust_length("t\nt", 2), " t\n t");
+
+        assert_eq!(prepend_spaces_for_newline("test", 20), "test");
+        assert_eq!(
+            prepend_spaces_for_newline("test\nsecond\nthird", 5),
+            "test\n     second\n     third"
+        );
+    }
 }
