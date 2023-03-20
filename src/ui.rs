@@ -426,14 +426,17 @@ fn match_print_top(
 ///
 /// Prints the available commands to the [`std::io::stdout`]
 #[allow(clippy::too_many_lines)]
-#[allow(clippy::vec_init_then_push)]
 fn help() {
     /// Prints the commands
     fn print(title: &str, commands: &Vec<[&str; 3]>) {
         println!(
-            "{}=== {} commands ==={}",
+            // "{title} commands" has to be centered to "=>"
+            // so columns 22 and 23
+            // everything before that has to be filled with '='
+            // everything after that has to be filled with '=' till column 50
+            "{}{}{}",
             Color::LightGreen,
-            title,
+            center_phrase(title, 22, 50),
             Color::Reset
         );
         for command in commands {
@@ -572,6 +575,29 @@ fn spaces_for_newline(phrase: &str, num: usize) -> String {
         }
         let temp = format!("\n{spaces}{line}");
         new_phrase.push_str(temp.as_str());
+    }
+
+    new_phrase
+}
+
+/// Used by [`help()`] for ========= meta commands =========
+///
+/// Centers "`phrase` commands" around columns start and start+1
+fn center_phrase(phrase: &str, start: usize, end: usize) -> String {
+    // let mut new_phrase = String::with_capacity(end);
+    let mut new_phrase = format!(" {phrase} commands ");
+    loop {
+        let length = UnicodeWidthStr::width_cjk(new_phrase.as_str()) / 2 - 3;
+
+        if length == start || length + 1 == start || length > end {
+            break;
+        }
+
+        new_phrase = format!("={new_phrase}=");
+    }
+
+    while UnicodeWidthStr::width_cjk(new_phrase.as_str()) < end {
+        new_phrase.push('=');
     }
 
     new_phrase
