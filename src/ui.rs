@@ -13,6 +13,9 @@ use rustyline::{
 };
 use rustyline::{Completer, Helper, Hinter, Validator};
 
+/// Module containing stuff for the `help` command
+mod help;
+
 /// Prompt used for top-level shell commands
 ///
 /// green `>>>` with [`ShellHelper`]
@@ -157,7 +160,8 @@ fn match_input(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     match inp {
-        "help" | "h" => help(),
+        // every new command added has to have an entry in `help`!
+        "help" | "h" => help::help(),
         "print artist" | "part" => match_print_artist(entries, rl)?,
         "print album" | "palb" => match_print_album(entries, rl)?,
         "print song" | "pson" => match_print_song(entries, rl)?,
@@ -419,118 +423,6 @@ fn match_print_top(
 
     entries.print_top(asp, num);
     Ok(())
-}
-
-/// Used by [`match_input()`] for `help` command
-///
-/// Prints the available commands to the [`std::io::stdout`]
-#[allow(clippy::too_many_lines)]
-#[allow(clippy::vec_init_then_push)]
-fn help() {
-    /// Prints the commands
-    fn print(title: &str, commands: &Vec<[&str; 3]>) {
-        println!(
-            "{}=== {} commands ==={}",
-            Color::LightGreen,
-            title,
-            Color::Reset
-        );
-        for command in commands {
-            println!(
-                "{}{}{} =>\t{}{}\n\talias: {}{}",
-                Color::Red,
-                command[0],
-                Color::Reset,
-                command[2],
-                Color::Pink,
-                command[1],
-                Color::Reset
-            );
-        }
-    }
-
-    // each entry: ["command", "alias", "description"]
-
-    // META COMMANDS
-    let mut meta_commands: Vec<[&str; 3]> = Vec::new();
-    meta_commands.push(["help", "h", "prints this command list"]);
-    meta_commands.push(["exit", "quit", "exits the program"]);
-    print("meta", &meta_commands);
-
-    // PRINT COMMANDS
-    let mut print_commands: Vec<[&str; 3]> = Vec::new();
-    print_commands.push([
-        "print artist",
-        "part",
-        "prints every album from the artist
-        \topens another prompt where you input the artist name",
-    ]);
-    print_commands.push([
-        "print album",
-        "palb",
-        "prints every song from the album
-        \topens another prompt where you input the artist name
-        \tand then the album name",
-    ]);
-    print_commands.push([
-        "print song",
-        "pson",
-        "prints a song
-        \topens another prompt where you input the artist name
-        \tand then the album name
-        \tand then the song name",
-    ]);
-    print_commands.push([
-        "print songs",
-        "psons",
-        "prints a song with all the albums it may be from
-        \topens another prompt where you input the artist name
-        \tand then the song name",
-    ]);
-
-    print_commands.push([
-        "print artist date",
-        "partd",
-        "prints every album from the artist within a date range
-        \topens another prompt where you input the artist name
-        \tand then the date range",
-    ]);
-    print_commands.push([
-        "print album date",
-        "palbd",
-        "prints every song from the album within a date range
-        \topens another prompt where you input the artist name
-        \tand then the album name",
-    ]);
-    print_commands.push([
-        "print song date",
-        "psond",
-        "prints a song within a date range
-        \topens another prompt where you input the artist name
-        \tand then the album name
-        \tand then the song name
-        \tand then the date range",
-    ]);
-    print_commands.push([
-        "print songs date",
-        "psonsd",
-        "prints a song with all the albums it may be from within a date range
-        \topens another prompt where you input the artist name
-        \tand then the song name
-        \tand then the date range",
-    ]);
-    print("print", &print_commands);
-
-    let mut print_top_commands: Vec<[&str; 3]> = Vec::new();
-    print_top_commands.push(["print top artists", "ptarts", "prints top n artists"]);
-    print_top_commands.push(["print top albums", "ptalbs", "prints top n albums"]);
-    print_top_commands.push(["print top songs", "ptsons", "prints top n songs"]);
-    print("print top", &print_top_commands);
-
-    // GRAPH COMMANDS
-    let mut graph_commands: Vec<[&str; 3]> = Vec::new();
-    graph_commands.push(["graph placeholder", "gphd", "placeholder description"]);
-    print("graph", &graph_commands);
 }
 
 /// used by `*_date` functions in this module for when the user inputs a date
