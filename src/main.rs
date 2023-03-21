@@ -38,7 +38,7 @@ fn main() {
     let root = match std::env::consts::OS {
         "windows" => "E:\\SPOTIFY DATA\\my_spotify_data 2021-07\\MyData\\",
         "macos" => "/Users/filip/Other/Endsong/",
-        _ => "/home/filip/Other/SpotifyData/2022-06/",
+        _ => "/mnt/e/SPOTIFY DATA/my_spotify_data 2021-07/MyData/",
     };
     let paths: Vec<String> = vec![
         format!("{root}endsong_0.json"),
