@@ -7,3 +7,6 @@
 
 # history of executed commands
 .rep_history
+
+# mock files with unique endsong data?
+ex*.txt
