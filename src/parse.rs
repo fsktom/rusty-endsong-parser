@@ -98,8 +98,8 @@ pub struct Entry {
 }
 
 /// Parses a single `endsong.json` file into a usable format
-fn parse_single(path: &str) -> Vec<SongEntry> {
-    let u = read_entries_from_file(path).unwrap_or_else(|_| panic!("File {} is invalid!", &path));
+fn parse_single(path: &str) -> Result<Vec<SongEntry>, Box<dyn Error>> {
+    let u = read_entries_from_file(path)?;
     let mut songs: Vec<SongEntry> = Vec::new();
     let mut podcasts: Vec<PodEntry> = Vec::new();
     for entry in u {
@@ -109,17 +109,17 @@ fn parse_single(path: &str) -> Vec<SongEntry> {
         }
     }
 
-    songs
+    Ok(songs)
 }
 
 /// Main parsing function that parses many `endsong.json` files
-pub fn parse(paths: Vec<String>) -> Vec<SongEntry> {
+pub fn parse(paths: Vec<String>) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     let mut song_entries: Vec<SongEntry> = Vec::new();
     for path in paths {
-        let mut one = parse_single(&path);
+        let mut one = parse_single(&path)?;
         song_entries.append(&mut one);
     }
-    song_entries
+    Ok(song_entries)
 }
 
 // https://docs.serde.rs/serde_json/fn.from_reader.html

@@ -616,7 +616,7 @@ mod tests {
             "{}/stuff/example_endsong/endsong_0.json",
             std::env::current_dir().unwrap().display()
         )];
-        let entries = crate::types::SongEntries::new(paths);
+        let entries = crate::types::SongEntries::new(paths).unwrap();
 
         assert_eq!(
             find_artist(&entries, "Theocracy").unwrap(),

@@ -202,9 +202,11 @@ impl std::ops::DerefMut for SongEntries {
 impl SongEntries {
     /// Creates an instance of [`SongEntries`]
     ///
+    /// Returns an [`Error`] if it encounters problems while parsing
+    ///
     /// * `paths` - a vector containing paths to each `endsong.json` file
-    pub fn new(paths: Vec<String>) -> SongEntries {
-        SongEntries(parse::parse(paths))
+    pub fn new(paths: Vec<String>) -> Result<SongEntries, Box<dyn Error>> {
+        Ok(SongEntries(parse::parse(paths)?))
     }
 
     /// Prints the top `num` of an `asp`
