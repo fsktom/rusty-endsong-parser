@@ -94,6 +94,7 @@ fn center_phrase(phrase: &str, start: usize, end: usize) -> String {
     // let mut new_phrase = String::with_capacity(end);
     let mut new_phrase = format!(" {phrase} commands ");
     loop {
+        // not really sure if this actually centers it, but it's close enough, right? :(
         let length = UnicodeWidthStr::width_cjk(new_phrase.as_str()) / 2 - 3;
 
         if length == start || length + 1 == start || length > end {

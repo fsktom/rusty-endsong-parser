@@ -608,4 +608,20 @@ mod tests {
         assert_eq!(leading_whitespace(3usize, 1000usize), String::from("   #3"));
         assert_eq!(leading_whitespace(3usize, 5692usize), String::from("   #3"));
     }
+
+    #[test]
+    fn find_aspect() {
+        // MAYBE RATHER INTEGRATION TEST THAN UNIT TEST?!
+        let paths = vec![format!(
+            "{}/stuff/example_endsong/endsong_0.json",
+            std::env::current_dir().unwrap().display()
+        )];
+        let entries = crate::types::SongEntries::new(paths);
+
+        assert_eq!(
+            find_artist(&entries, "Theocracy").unwrap(),
+            Artist::from_str("Theocracy")
+        );
+        assert!(entries.find().artist("Powerwolf").is_err());
+    }
 }

@@ -36,11 +36,14 @@ pub struct Entry {
     /// Skipped
     #[serde(skip_deserializing)]
     username: (),
-    /// Skipped
+    /// Skipped for now: maybe use it for sth
     #[serde(skip_deserializing)]
-    platform: (),
+    platform: String,
     /// Miliseconds the song has been played for
     ms_played: u32,
+    /// Skipped
+    #[serde(skip_deserializing)]
+    conn_country: (),
     /// Skipped
     #[serde(skip_deserializing)]
     ip_addr_decrypted: (),
@@ -51,11 +54,11 @@ pub struct Entry {
     ///
     /// Option because the field will be empty if it's a podcast
     master_metadata_track_name: Option<String>,
-    /// Name of the album
+    /// Name of the artist
     ///
     /// Option because the field will be empty if it's a podcast
     master_metadata_album_artist_name: Option<String>,
-    /// Name of the artist
+    /// Name of the album
     ///
     /// Option because the field will be empty if it's a podcast
     master_metadata_album_album_name: Option<String>,
@@ -71,18 +74,18 @@ pub struct Entry {
     #[serde(skip_deserializing)]
     /// TBD: Podcast stuff
     spotify_episode_uri: (),
-    /// Skipped
+    /// Skipped for now: maybe use it for sth
     #[serde(skip_deserializing)]
-    reason_start: (),
-    /// Skipped
+    reason_start: String,
+    /// Skipped for now: maybe use it for sth
     #[serde(skip_deserializing)]
-    reason_end: (),
-    /// Skipped
+    reason_end: String,
+    /// Skipped for now: maybe use it for sth
     #[serde(skip_deserializing)]
-    shuffle: (),
-    /// Skipped
+    shuffle: bool,
+    /// Skipped for now: maybe use it for sth
     #[serde(skip_deserializing)]
-    skipped: (),
+    skipped: Option<bool>,
     /// Skipped
     #[serde(skip_deserializing)]
     offline: (),
