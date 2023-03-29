@@ -174,6 +174,7 @@ fn match_input(
         "print top albums" | "ptalbs" => match_print_top(entries, rl, &Aspect::Albums)?,
         "print top songs" | "ptsons" => match_print_top(entries, rl, &Aspect::Songs)?,
         "plot artist" | "gart" => match_plot_artist(entries, rl)?,
+        "plot artist relative" | "gartr" => match_plot_artist_relative(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -437,6 +438,20 @@ fn match_plot_artist(
     let art = entries.find().artist(&usr_input_art)?;
 
     entries.plot_artist(&art);
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot artist relative` command
+fn match_plot_artist_relative(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // 1st prompt: artist name
+    println!("Artist name?");
+    let usr_input_art = rl.readline(PROMPT_MAIN)?;
+    let art = entries.find().artist(&usr_input_art)?;
+
+    entries.plot_artist_relative(&art);
     Ok(())
 }
 

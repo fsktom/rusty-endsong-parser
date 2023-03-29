@@ -9,10 +9,17 @@ use plotly::{Layout, Plot, Scatter};
 /// Responsible for plotting absolute plots
 pub mod absolute;
 
+/// Responsible for plotting plots relative to sum of plays
+pub mod relative;
+
 /// Creates a plot in a `plots/` folder
 ///
 /// Then opens it in the browser
-fn create_plot(dates: Vec<i64>, plays: Vec<usize>, title: &str) {
+fn create_plot<Y>(dates: Vec<i64>, plays: Vec<Y>, title: &str)
+where
+    Y: serde::Serialize + Clone + 'static,
+    // see https://github.com/igiagkiozis/plotly/blob/8903ff03ce9e8183624c40ccf7ddf863799cb92e/plotly/src/traces/scatter.rs#L292-L303
+{
     let mut plot = Plot::new();
     // TODO: make it display actual dates instead of UNIX timestamps xd
     plot.add_trace(Scatter::new(dates, plays).name(title));

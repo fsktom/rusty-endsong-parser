@@ -198,6 +198,14 @@ fn gather_songs_with_album_date(
     songs
 }
 
+/// Sums all plays in the given date frame
+pub fn sum_plays(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>) -> usize {
+    entries
+        .iter()
+        .filter(|entry| is_between(&entry.timestamp, start, end))
+        .count()
+}
+
 /// Checks if the given date is between (or equal) to the other two dates
 fn is_between(date: &DateTime<Tz>, start: &DateTime<Tz>, end: &DateTime<Tz>) -> bool {
     date.ge(start) && date.le(end)

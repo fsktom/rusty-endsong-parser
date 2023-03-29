@@ -227,6 +227,14 @@ impl SongEntries {
         Ok(SongEntries(parse::parse(paths)?))
     }
 
+    /// Returns the date of the first (time-wise) occurrence of any [`SongEntry`]
+    pub fn first_date(&self) -> DateTime<Tz> {
+        self.iter()
+            .min_by(|x, y| x.timestamp.cmp(&y.timestamp))
+            .unwrap()
+            .timestamp
+    }
+
     /// Prints the top `num` of an `asp`
     ///
     /// * `asp` - [`Aspect::Songs`] (affected by [`display::SUM_ALBUMS`]) for top songs, [`Aspect::Albums`] for top albums and
@@ -287,6 +295,11 @@ impl SongEntries {
     /// Creates a plot of the artist
     pub fn plot_artist(&self, art: &Artist) {
         plot::absolute::artist(self, art);
+    }
+
+    /// Creates a plot of the artist relative to the total amount of plays
+    pub fn plot_artist_relative(&self, art: &Artist) {
+        plot::relative::artist(self, art);
     }
 
     /// Adds search capability

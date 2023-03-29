@@ -195,12 +195,20 @@ fn print_top_commands<'a>() -> Vec<[&'a str; 3]> {
 
 /// Returns graph commands
 fn plot_commands<'a>() -> Vec<[&'a str; 3]> {
-    vec![[
-        "plot artist",
-        "gart",
-        "creates a plot of the absolute amount of plays of the given artist
+    vec![
+        [
+            "plot artist",
+            "gart",
+            "creates a plot of the absolute amount of plays of the given artist
         and opens it in the web browser",
-    ]]
+        ],
+        [
+            "plot artist relative",
+            "gartr",
+            "creates a plot of the amount of plays of the given artist
+        relative to all plays and opens it in the web browser",
+        ],
+    ]
 }
 
 #[cfg(test)]
