@@ -40,9 +40,7 @@ fn find_artist_dates(entries: &Vec<SongEntry>, art: &Artist) -> Vec<DateTime<Tz>
     let mut dates = Vec::<DateTime<Tz>>::new();
 
     for entry in entries {
-        let artist = Artist::new(entry.artist.clone());
-
-        if artist == *art {
+        if entry.artist.eq(&art.name) {
             dates.push(entry.timestamp);
         }
     }
