@@ -1,4 +1,9 @@
 //! Module responsible for plotting/charts
+use crate::types::{Music, SongEntry};
+use crate::ui::user_input_date_parser;
+
+use chrono::DateTime;
+use chrono_tz::Tz;
 use plotly::{Layout, Plot, Scatter};
 
 /// Responsible for plotting absolute plots
@@ -68,4 +73,29 @@ fn create_plot(dates: Vec<i64>, plays: Vec<usize>, title: &str) {
             }
         }
     };
+}
+
+/// Returns the dates of all occurrences of the `aspect`
+///
+/// * `add_now` - with this set to true, it will put the current time as the last date,
+/// otherwise it will be the last occurrence of `aspect`
+pub fn find_dates<Asp: Music>(
+    entries: &Vec<SongEntry>,
+    aspect: &Asp,
+    add_now: bool,
+) -> Vec<DateTime<Tz>> {
+    let mut dates = Vec::<DateTime<Tz>>::new();
+
+    for entry in entries {
+        if aspect.is_entry(entry) {
+            dates.push(entry.timestamp);
+        }
+    }
+
+    dates.sort();
+
+    if add_now {
+        dates.push(user_input_date_parser("now").unwrap());
+    }
+    dates
 }

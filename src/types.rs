@@ -51,7 +51,7 @@ impl Display for Aspect {
     }
 }
 
-/// Used for functions in [`display`] that accept either
+/// Used for functions that accept either
 /// a [`Song`], [`Album`] or [`Artist`] struct
 pub trait Music: Display {
     /// Checks if a [`SongEntry`] is a [`Music`]

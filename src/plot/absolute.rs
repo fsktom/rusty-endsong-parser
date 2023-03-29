@@ -1,10 +1,6 @@
-use super::create_plot;
+use super::{create_plot, find_dates};
 use crate::display::date;
-use crate::types::{Artist, Music, SongEntries, SongEntry};
-use crate::ui::user_input_date_parser;
-
-use chrono::DateTime;
-use chrono_tz::Tz;
+use crate::types::{Artist, SongEntries};
 
 /// Creates a plot of the absolute amount of plays of an [`Artist`]
 ///
@@ -13,8 +9,7 @@ pub fn artist(entries: &SongEntries, art: &Artist) {
     let mut times = Vec::<i64>::new();
     let mut plays = Vec::<usize>::new();
 
-    let mut dates = find_artist_dates(entries, art);
-    dates.sort();
+    let dates = find_dates(entries, art, true);
 
     let start = dates.first().unwrap();
 
@@ -24,19 +19,4 @@ pub fn artist(entries: &SongEntries, art: &Artist) {
     }
 
     create_plot(times, plays, art.name.as_str());
-}
-
-/// Used by [`artist()`] to get the dates of all of its occurrences
-fn find_artist_dates(entries: &Vec<SongEntry>, art: &Artist) -> Vec<DateTime<Tz>> {
-    let mut dates = Vec::<DateTime<Tz>>::new();
-
-    for entry in entries {
-        if art.is_entry(entry) {
-            dates.push(entry.timestamp);
-        }
-    }
-
-    dates.push(user_input_date_parser("now").unwrap());
-
-    dates
 }
