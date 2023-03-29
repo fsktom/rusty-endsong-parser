@@ -97,9 +97,7 @@ fn gather_artist_date(
     let mut artist_asp = ArtistPlays(art.clone(), 0);
 
     for entry in entries {
-        let artist = Artist::new(entry.artist.clone());
-
-        if entry.timestamp.ge(start) && entry.timestamp.le(end) && artist == *art {
+        if entry.timestamp.ge(start) && entry.timestamp.le(end) && entry.artist.eq(&art.name) {
             artist_asp.1 += 1;
         }
     }
@@ -119,9 +117,11 @@ fn gather_album_date(
     let mut album_asp = AlbumPlays(alb.clone(), 0);
 
     for entry in entries {
-        let album = Album::new(entry.album.clone(), entry.artist.clone());
-
-        if entry.timestamp.ge(start) && entry.timestamp.le(end) && album == *alb {
+        if entry.timestamp.ge(start)
+            && entry.timestamp.le(end)
+            && entry.artist.eq(&alb.artist.name)
+            && entry.album.eq(&alb.name)
+        {
             album_asp.1 += 1;
         }
     }
@@ -141,13 +141,12 @@ fn gather_song_date(
     let mut song_asp = SongPlays(son.clone(), 0);
 
     for entry in entries {
-        let song = Song::new(
-            entry.track.clone(),
-            entry.album.clone(),
-            entry.artist.clone(),
-        );
-
-        if entry.timestamp.ge(start) && entry.timestamp.le(end) && song == *son {
+        if entry.timestamp.ge(start)
+            && entry.timestamp.le(end)
+            && entry.artist.eq(&son.album.artist.name)
+            && entry.album.eq(&son.album.name)
+            && entry.track.eq(&son.name)
+        {
             song_asp.1 += 1;
         }
     }

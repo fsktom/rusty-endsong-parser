@@ -377,9 +377,7 @@ fn gather_artist(entries: &Vec<SongEntry>, art: &Artist) -> ArtistPlays {
     let mut artist_asp = ArtistPlays(art.clone(), 0);
 
     for entry in entries {
-        let artist = Artist::new(entry.artist.clone());
-
-        if artist == *art {
+        if entry.artist.eq(&art.name) {
             artist_asp.1 += 1;
         }
     }
@@ -392,9 +390,7 @@ fn gather_album(entries: &Vec<SongEntry>, alb: &Album) -> AlbumPlays {
     let mut album_asp = AlbumPlays(alb.clone(), 0);
 
     for entry in entries {
-        let album = Album::new(entry.album.clone(), entry.artist.clone());
-
-        if album == *alb {
+        if entry.artist.eq(&alb.artist.name) && entry.album.eq(&alb.name) {
             album_asp.1 += 1;
         }
     }
@@ -407,13 +403,10 @@ fn gather_song(entries: &Vec<SongEntry>, son: &Song) -> SongPlays {
     let mut song_asp = SongPlays(son.clone(), 0);
 
     for entry in entries {
-        let song = Song::new(
-            entry.track.clone(),
-            entry.album.clone(),
-            entry.artist.clone(),
-        );
-
-        if song == *son {
+        if entry.artist.eq(&son.album.artist.name)
+            && entry.album.eq(&son.album.name)
+            && entry.track.eq(&son.name)
+        {
             song_asp.1 += 1;
         }
     }
