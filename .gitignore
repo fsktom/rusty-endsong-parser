@@ -10,3 +10,6 @@
 
 # mock files with unique endsong data?
 ex*.txt
+
+# folder with plots generated at runtime
+/plots/
