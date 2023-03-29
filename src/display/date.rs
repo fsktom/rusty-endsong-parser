@@ -93,15 +93,10 @@ pub fn gather_artist(
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) -> usize {
-    let mut plays = 0;
-
-    for entry in entries {
-        if art.is_entry(entry) && is_between(&entry.timestamp, start, end) {
-            plays += 1;
-        }
-    }
-
-    plays
+    entries
+        .iter()
+        .filter(|entry| art.is_entry(entry) && is_between(&entry.timestamp, start, end))
+        .count()
 }
 
 /// Counts up the plays of a single album within a date frame
@@ -113,15 +108,10 @@ pub fn gather_album(
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) -> usize {
-    let mut plays = 0;
-
-    for entry in entries {
-        if alb.is_entry(entry) && is_between(&entry.timestamp, start, end) {
-            plays += 1;
-        }
-    }
-
-    plays
+    entries
+        .iter()
+        .filter(|entry| alb.is_entry(entry) && is_between(&entry.timestamp, start, end))
+        .count()
 }
 
 /// Counts up the plays of a single song within a date frame
@@ -133,15 +123,10 @@ pub fn gather_song(
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) -> usize {
-    let mut plays = 0;
-
-    for entry in entries {
-        if son.is_entry(entry) && is_between(&entry.timestamp, start, end) {
-            plays += 1;
-        }
-    }
-
-    plays
+    entries
+        .iter()
+        .filter(|entry| son.is_entry(entry) && is_between(&entry.timestamp, start, end))
+        .count()
 }
 
 /// Used by [`print_aspect()`]

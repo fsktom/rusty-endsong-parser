@@ -366,41 +366,17 @@ pub fn print_aspect(entries: &Vec<SongEntry>, asp: &AspectFull) {
 
 /// Counts up the plays of a single artist
 fn gather_artist(entries: &[SongEntry], art: &Artist) -> usize {
-    let mut plays = 0;
-
-    for entry in entries {
-        if art.is_entry(entry) {
-            plays += 1;
-        }
-    }
-
-    plays
+    entries.iter().filter(|entry| art.is_entry(entry)).count()
 }
 
 /// Counts up the plays of a single album
 fn gather_album(entries: &[SongEntry], alb: &Album) -> usize {
-    let mut plays = 0;
-
-    for entry in entries {
-        if alb.is_entry(entry) {
-            plays += 1;
-        }
-    }
-
-    plays
+    entries.iter().filter(|entry| alb.is_entry(entry)).count()
 }
 
 /// Counts up the plays of a single song
 fn gather_song(entries: &[SongEntry], son: &Song) -> usize {
-    let mut plays = 0;
-
-    for entry in entries {
-        if son.is_entry(entry) {
-            plays += 1;
-        }
-    }
-
-    plays
+    entries.iter().filter(|entry| son.is_entry(entry)).count()
 }
 
 /// Used by [`print_aspect()`]
