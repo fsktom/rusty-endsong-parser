@@ -8,7 +8,6 @@ use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
 
 use super::print_album;
-use super::{AlbumPlays, ArtistPlays, SongPlays};
 
 /// Prints a specfic aspect
 ///
@@ -29,7 +28,7 @@ pub fn print_aspect(
                 art,
                 start.date_naive(),
                 end.date_naive(),
-                gather_artist_date(entries, art, start, end).1
+                gather_artist_date(entries, art, start, end)
             );
             print_artist(
                 entries,
@@ -44,18 +43,17 @@ pub fn print_aspect(
                 alb,
                 start.date_naive(),
                 end.date_naive(),
-                gather_album_date(entries, alb, start, end).1
+                gather_album_date(entries, alb, start, end)
             );
             print_album(&gather_songs_with_album_date(entries, alb, start, end));
         }
         AspectFull::Song(son) => {
-            let son = gather_song_date(entries, son, start, end);
             println!(
                 "{} between {} and {} | {} plays",
-                son.0,
+                son,
                 start.date_naive(),
                 end.date_naive(),
-                son.1
+                gather_song_date(entries, son, start, end)
             );
         }
     }
@@ -79,7 +77,7 @@ fn print_artist(
         println!(
             "--- {} | {} plays ---",
             alb,
-            gather_album_date(entries, alb, start, end).1
+            gather_album_date(entries, alb, start, end)
         );
         print_album(&mus);
     }
@@ -93,28 +91,28 @@ fn gather_artist_date(
     art: &Artist,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
-) -> ArtistPlays {
-    let mut artist_asp = ArtistPlays(art.clone(), 0);
+) -> usize {
+    let mut plays = 0;
 
     for entry in entries {
         if entry.timestamp.ge(start) && entry.timestamp.le(end) && entry.artist.eq(&art.name) {
-            artist_asp.1 += 1;
+            plays += 1;
         }
     }
 
-    artist_asp
+    plays
 }
 
 /// Counts up the plays of a single album within a date frame
 ///
 /// Basically [`super::gather_album()`] but with date functionality
 fn gather_album_date(
-    entries: &Vec<SongEntry>,
+    entries: &[SongEntry],
     alb: &Album,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
-) -> AlbumPlays {
-    let mut album_asp = AlbumPlays(alb.clone(), 0);
+) -> usize {
+    let mut plays = 0;
 
     for entry in entries {
         if entry.timestamp.ge(start)
@@ -122,23 +120,23 @@ fn gather_album_date(
             && entry.artist.eq(&alb.artist.name)
             && entry.album.eq(&alb.name)
         {
-            album_asp.1 += 1;
+            plays += 1;
         }
     }
 
-    album_asp
+    plays
 }
 
 /// Counts up the plays of a single song within a date frame
 ///
 /// Basically [`super::gather_song()`] but with date functionality
 fn gather_song_date(
-    entries: &Vec<SongEntry>,
+    entries: &[SongEntry],
     son: &Song,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
-) -> SongPlays {
-    let mut song_asp = SongPlays(son.clone(), 0);
+) -> usize {
+    let mut plays = 0;
 
     for entry in entries {
         if entry.timestamp.ge(start)
@@ -147,11 +145,11 @@ fn gather_song_date(
             && entry.album.eq(&son.album.name)
             && entry.track.eq(&son.name)
         {
-            song_asp.1 += 1;
+            plays += 1;
         }
     }
 
-    song_asp
+    plays
 }
 
 /// Used by [`print_aspect()`]
