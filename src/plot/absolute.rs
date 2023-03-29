@@ -1,6 +1,6 @@
 use super::create_plot;
 use crate::display::date;
-use crate::types::{Artist, SongEntries, SongEntry};
+use crate::types::{Artist, Music, SongEntries, SongEntry};
 use crate::ui::user_input_date_parser;
 
 use chrono::DateTime;
@@ -26,12 +26,12 @@ pub fn artist(entries: &SongEntries, art: &Artist) {
     create_plot(times, plays, art.name.as_str());
 }
 
-/// Used by [`artist()`] to get the dates of all of its occurrence
+/// Used by [`artist()`] to get the dates of all of its occurrences
 fn find_artist_dates(entries: &Vec<SongEntry>, art: &Artist) -> Vec<DateTime<Tz>> {
     let mut dates = Vec::<DateTime<Tz>>::new();
 
     for entry in entries {
-        if entry.artist.eq(&art.name) {
+        if art.is_entry(entry) {
             dates.push(entry.timestamp);
         }
     }

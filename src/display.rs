@@ -369,7 +369,7 @@ fn gather_artist(entries: &[SongEntry], art: &Artist) -> usize {
     let mut plays = 0;
 
     for entry in entries {
-        if entry.artist.eq(&art.name) {
+        if art.is_entry(entry) {
             plays += 1;
         }
     }
@@ -382,7 +382,7 @@ fn gather_album(entries: &[SongEntry], alb: &Album) -> usize {
     let mut plays = 0;
 
     for entry in entries {
-        if entry.artist.eq(&alb.artist.name) && entry.album.eq(&alb.name) {
+        if alb.is_entry(entry) {
             plays += 1;
         }
     }
@@ -395,10 +395,7 @@ fn gather_song(entries: &[SongEntry], son: &Song) -> usize {
     let mut plays = 0;
 
     for entry in entries {
-        if entry.artist.eq(&son.album.artist.name)
-            && entry.album.eq(&son.album.name)
-            && entry.track.eq(&son.name)
-        {
+        if son.is_entry(entry) {
             plays += 1;
         }
     }

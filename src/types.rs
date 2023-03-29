@@ -53,7 +53,10 @@ impl Display for Aspect {
 
 /// Used for functions in [`display`] that accept either
 /// a [`Song`], [`Album`] or [`Artist`] struct
-pub trait Music: Display {}
+pub trait Music: Display {
+    /// Checks if a [`SongEntry`] is a [`Music`]
+    fn is_entry(&self, entry: &SongEntry) -> bool;
+}
 
 /// Struct for representing an artist
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
@@ -80,7 +83,11 @@ impl Display for Artist {
         write!(f, "{}", self.name)
     }
 }
-impl Music for Artist {}
+impl Music for Artist {
+    fn is_entry(&self, entry: &SongEntry) -> bool {
+        entry.artist.eq(&self.name)
+    }
+}
 
 /// Struct for representing an album
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
@@ -113,7 +120,11 @@ impl Display for Album {
         write!(f, "{} - {}", self.artist.name, self.name)
     }
 }
-impl Music for Album {}
+impl Music for Album {
+    fn is_entry(&self, entry: &SongEntry) -> bool {
+        entry.artist.eq(&self.artist.name) && entry.album.eq(&self.name)
+    }
+}
 
 /// Struct for representing a song
 // to allow for custom HashMap key
@@ -152,7 +163,13 @@ impl Display for Song {
         )
     }
 }
-impl Music for Song {}
+impl Music for Song {
+    fn is_entry(&self, entry: &SongEntry) -> bool {
+        entry.artist.eq(&self.album.artist.name)
+            && entry.album.eq(&self.album.name)
+            && entry.track.eq(&self.name)
+    }
+}
 
 /// A more specific version of [`parse::Entry`]
 /// utilized by many functions here.

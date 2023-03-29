@@ -4,6 +4,7 @@ use chrono::DateTime;
 use chrono_tz::Tz;
 
 use crate::types::AspectFull;
+use crate::types::Music;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
 
@@ -95,7 +96,7 @@ pub fn gather_artist(
     let mut plays = 0;
 
     for entry in entries {
-        if entry.artist.eq(&art.name) && entry.timestamp.ge(start) && entry.timestamp.le(end) {
+        if art.is_entry(entry) && is_between(&entry.timestamp, start, end) {
             plays += 1;
         }
     }
@@ -115,11 +116,7 @@ pub fn gather_album(
     let mut plays = 0;
 
     for entry in entries {
-        if entry.artist.eq(&alb.artist.name)
-            && entry.album.eq(&alb.name)
-            && entry.timestamp.ge(start)
-            && entry.timestamp.le(end)
-        {
+        if alb.is_entry(entry) && is_between(&entry.timestamp, start, end) {
             plays += 1;
         }
     }
@@ -139,12 +136,7 @@ pub fn gather_song(
     let mut plays = 0;
 
     for entry in entries {
-        if entry.artist.eq(&son.album.artist.name)
-            && entry.album.eq(&son.album.name)
-            && entry.track.eq(&son.name)
-            && entry.timestamp.ge(start)
-            && entry.timestamp.le(end)
-        {
+        if son.is_entry(entry) && is_between(&entry.timestamp, start, end) {
             plays += 1;
         }
     }
@@ -204,4 +196,9 @@ fn gather_songs_with_album_date(
     }
 
     songs
+}
+
+/// Checks if the given date is between (or equal) to the other two dates
+fn is_between(date: &DateTime<Tz>, start: &DateTime<Tz>, end: &DateTime<Tz>) -> bool {
+    date.ge(start) && date.le(end)
 }
