@@ -3,7 +3,7 @@
 use std::error::Error;
 use std::fmt::Display;
 
-use chrono::DateTime;
+use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
 
 use crate::display;
@@ -163,7 +163,7 @@ pub struct SongEntry {
     /// the time at which the song has been played
     pub timestamp: DateTime<chrono_tz::Tz>,
     /// for how long the song has been played
-    pub ms_played: u32,
+    pub time_played: Duration,
     /// name of the song
     pub track: String,
     /// name of the album

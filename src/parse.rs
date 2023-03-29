@@ -40,7 +40,7 @@ pub struct Entry {
     #[serde(skip_deserializing)]
     platform: String,
     /// Miliseconds the song has been played for
-    ms_played: u32,
+    ms_played: i64,
     /// Skipped
     #[serde(skip_deserializing)]
     conn_country: (),
@@ -151,7 +151,7 @@ fn entry_to_songentry(entry: Entry) -> Result<SongEntry, PodEntry> {
     }
     Ok(SongEntry {
         timestamp: parse_date(&entry.ts),
-        ms_played: entry.ms_played,
+        time_played: chrono::Duration::milliseconds(entry.ms_played),
         track: parse_option(entry.master_metadata_track_name),
         album: parse_option(entry.master_metadata_album_album_name),
         artist: parse_option(entry.master_metadata_album_artist_name),
