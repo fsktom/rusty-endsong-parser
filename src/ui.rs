@@ -173,6 +173,7 @@ fn match_input(
         "print top artists" | "ptarts" => match_print_top(entries, rl, &Aspect::Artists)?,
         "print top albums" | "ptalbs" => match_print_top(entries, rl, &Aspect::Albums)?,
         "print top songs" | "ptsons" => match_print_top(entries, rl, &Aspect::Songs)?,
+        "plot artist" | "gart" => match_plot_artist(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -425,11 +426,25 @@ fn match_print_top(
     Ok(())
 }
 
+/// Used by [`match_input()`] for `plot artist` command
+fn match_plot_artist(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // 1st prompt: artist name
+    println!("Artist name?");
+    let usr_input_art = rl.readline(PROMPT_MAIN)?;
+    let art = entries.find().artist(&usr_input_art)?;
+
+    entries.plot_artist(&art);
+    Ok(())
+}
+
 /// used by `*_date` functions in this module for when the user inputs a date
 ///
 /// # Arguments
 /// * `usr_input` - in YYYY-MM-DD format or 'now' or 'start'
-fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Tz>, chrono::format::ParseError> {
+pub fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Tz>, chrono::format::ParseError> {
     let date_str = match usr_input {
         "now" => {
             return Ok(LOCATION_TZ

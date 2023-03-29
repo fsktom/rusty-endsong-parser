@@ -8,6 +8,7 @@ use chrono_tz::Tz;
 
 use crate::display;
 use crate::parse;
+use crate::plot;
 
 /// Algebraic data type similar to [Aspect]
 /// but used by functions such as [`display::print_aspect()`]
@@ -264,6 +265,11 @@ impl SongEntries {
     /// Wrapper for [`display::print_aspect_date()`]
     pub fn print_aspect_date(&self, asp: &AspectFull, start: &DateTime<Tz>, end: &DateTime<Tz>) {
         display::print_aspect_date(self, asp, start, end);
+    }
+
+    /// Creates a plot of the artist
+    pub fn plot_artist(&self, art: &Artist) {
+        plot::absolute::artist(self, art);
     }
 
     /// Adds search capability

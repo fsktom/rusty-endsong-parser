@@ -19,6 +19,7 @@
 
 mod display;
 mod parse;
+mod plot;
 mod types;
 mod ui;
 
@@ -54,6 +55,7 @@ fn main() {
     let entries = SongEntries::new(paths).unwrap();
 
     // test(&entries);
+    // test_plot(&entries);
 
     ui::start(&entries);
 }
@@ -112,4 +114,10 @@ fn test(entries: &SongEntries) {
     entries.print_aspect_date(&AspectFull::Artist(&powerwolf), &start_date, &end_date);
     entries.print_aspect_date(&AspectFull::Album(&coat), &start_date, &end_date);
     entries.print_aspect_date(&AspectFull::Song(&final_solution), &start_date, &end_date);
+}
+
+/// tests various [`plot`] functions
+#[allow(dead_code)]
+fn test_plot(entries: &SongEntries) {
+    plot::absolute::artist(entries, &types::Artist::from_str("Sabaton"));
 }

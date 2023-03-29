@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 /// Module containing [`display`](self) functions with
 /// date functionality
-mod date;
+pub mod date;
 
 /// If set to true, it will sum up the plays of one song across multiple
 /// albums it may be in

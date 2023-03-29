@@ -17,7 +17,7 @@ pub fn help() {
     print("print top", &print_top_commands());
 
     // GRAPH COMMANDS
-    print("graph", &graph_commands());
+    print("graph/plot", &plot_commands());
 }
 
 /// Prints the commands
@@ -194,8 +194,13 @@ fn print_top_commands<'a>() -> Vec<[&'a str; 3]> {
 }
 
 /// Returns graph commands
-fn graph_commands<'a>() -> Vec<[&'a str; 3]> {
-    vec![["graph placeholder", "gphd", "placeholder description"]]
+fn plot_commands<'a>() -> Vec<[&'a str; 3]> {
+    vec![[
+        "plot artist",
+        "gart",
+        "creates a plot of the absolute amount of plays of the given artist
+        and opens it in the web browser",
+    ]]
 }
 
 #[cfg(test)]

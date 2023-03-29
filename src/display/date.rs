@@ -28,7 +28,7 @@ pub fn print_aspect(
                 art,
                 start.date_naive(),
                 end.date_naive(),
-                gather_artist_date(entries, art, start, end)
+                gather_artist(entries, art, start, end)
             );
             print_artist(
                 entries,
@@ -43,7 +43,7 @@ pub fn print_aspect(
                 alb,
                 start.date_naive(),
                 end.date_naive(),
-                gather_album_date(entries, alb, start, end)
+                gather_album(entries, alb, start, end)
             );
             print_album(&gather_songs_with_album_date(entries, alb, start, end));
         }
@@ -53,7 +53,7 @@ pub fn print_aspect(
                 son,
                 start.date_naive(),
                 end.date_naive(),
-                gather_song_date(entries, son, start, end)
+                gather_song(entries, son, start, end)
             );
         }
     }
@@ -77,7 +77,7 @@ fn print_artist(
         println!(
             "--- {} | {} plays ---",
             alb,
-            gather_album_date(entries, alb, start, end)
+            gather_album(entries, alb, start, end)
         );
         print_album(&mus);
     }
@@ -86,7 +86,7 @@ fn print_artist(
 /// Counts up the plays of a single artist within a date frame
 ///
 /// Basically [`super::gather_artist()`] but with date functionality
-fn gather_artist_date(
+pub fn gather_artist(
     entries: &Vec<SongEntry>,
     art: &Artist,
     start: &DateTime<Tz>,
@@ -95,7 +95,7 @@ fn gather_artist_date(
     let mut plays = 0;
 
     for entry in entries {
-        if entry.timestamp.ge(start) && entry.timestamp.le(end) && entry.artist.eq(&art.name) {
+        if entry.artist.eq(&art.name) && entry.timestamp.ge(start) && entry.timestamp.le(end) {
             plays += 1;
         }
     }
@@ -106,7 +106,7 @@ fn gather_artist_date(
 /// Counts up the plays of a single album within a date frame
 ///
 /// Basically [`super::gather_album()`] but with date functionality
-fn gather_album_date(
+pub fn gather_album(
     entries: &[SongEntry],
     alb: &Album,
     start: &DateTime<Tz>,
@@ -115,10 +115,10 @@ fn gather_album_date(
     let mut plays = 0;
 
     for entry in entries {
-        if entry.timestamp.ge(start)
-            && entry.timestamp.le(end)
-            && entry.artist.eq(&alb.artist.name)
+        if entry.artist.eq(&alb.artist.name)
             && entry.album.eq(&alb.name)
+            && entry.timestamp.ge(start)
+            && entry.timestamp.le(end)
         {
             plays += 1;
         }
@@ -130,7 +130,7 @@ fn gather_album_date(
 /// Counts up the plays of a single song within a date frame
 ///
 /// Basically [`super::gather_song()`] but with date functionality
-fn gather_song_date(
+pub fn gather_song(
     entries: &[SongEntry],
     son: &Song,
     start: &DateTime<Tz>,
@@ -139,11 +139,11 @@ fn gather_song_date(
     let mut plays = 0;
 
     for entry in entries {
-        if entry.timestamp.ge(start)
-            && entry.timestamp.le(end)
-            && entry.artist.eq(&son.album.artist.name)
+        if entry.artist.eq(&son.album.artist.name)
             && entry.album.eq(&son.album.name)
             && entry.track.eq(&son.name)
+            && entry.timestamp.ge(start)
+            && entry.timestamp.le(end)
         {
             plays += 1;
         }
