@@ -15,10 +15,11 @@ pub fn artist(entries: &SongEntries, art: &Artist) {
     let start = dates.first().unwrap();
     let sum_start = &entries.first_date();
 
+    #[allow(clippy::cast_precision_loss)]
     for date in &dates {
         times.push(date.timestamp());
         let sum_of_plays = date::gather_artist(entries, art, start, date) as f64;
-        let sum_of_all_plays = date::sum_plays(entries, &sum_start, date) as f64;
+        let sum_of_all_plays = date::sum_plays(entries, sum_start, date) as f64;
         plays.push(sum_of_plays / sum_of_all_plays);
     }
 
