@@ -66,7 +66,7 @@ pub struct Artist {
 }
 impl Artist {
     /// Creates an instance of Artist with a [`String`] parameter
-    pub fn new(artist_name: String) -> Artist {
+    pub const fn new(artist_name: String) -> Artist {
         Artist { name: artist_name }
     }
 
@@ -99,7 +99,7 @@ pub struct Album {
 }
 impl Album {
     /// Creates an instance of Album with [`String`] parameters
-    pub fn new(album_name: String, artist_name: String) -> Album {
+    pub const fn new(album_name: String, artist_name: String) -> Album {
         Album {
             name: album_name,
             artist: Artist::new(artist_name),
@@ -138,7 +138,7 @@ pub struct Song {
 }
 impl Song {
     /// Creates an instance of Song with [`String`] parameters
-    pub fn new(song_name: String, album_name: String, artist_name: String) -> Song {
+    pub const fn new(song_name: String, album_name: String, artist_name: String) -> Song {
         Song {
             name: song_name,
             album: Album::new(album_name, artist_name),
@@ -196,27 +196,6 @@ pub struct SongEntry {
 ///
 /// Fundamental for the use of this program
 pub struct SongEntries(Vec<SongEntry>);
-
-/// [`SongEntry`] but for podcasts
-pub struct PodEntry {
-    /// Spotify URI
-    pub id: String,
-}
-
-// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
-// so that when you use &self it refers to &self.0 (Vec<SongEntry>)
-impl std::ops::Deref for SongEntries {
-    type Target = Vec<SongEntry>;
-    fn deref(&self) -> &Vec<SongEntry> {
-        &self.0
-    }
-}
-impl std::ops::DerefMut for SongEntries {
-    fn deref_mut(&mut self) -> &mut Vec<SongEntry> {
-        &mut self.0
-    }
-}
-
 impl SongEntries {
     /// Creates an instance of [`SongEntries`]
     ///
@@ -310,6 +289,19 @@ impl SongEntries {
         Find(self)
     }
 }
+// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
+// so that when you use &self it refers to &self.0 (Vec<SongEntry>)
+impl std::ops::Deref for SongEntries {
+    type Target = Vec<SongEntry>;
+    fn deref(&self) -> &Vec<SongEntry> {
+        &self.0
+    }
+}
+impl std::ops::DerefMut for SongEntries {
+    fn deref_mut(&mut self) -> &mut Vec<SongEntry> {
+        &mut self.0
+    }
+}
 
 /// Used by [`SongEntries`] as a wrapper for
 /// [`display::find_artist()`], [`display::find_album()`],
@@ -326,17 +318,6 @@ impl SongEntries {
 ///
 /// Methods can return an [`Err`] with [`NotFoundError`]
 pub struct Find<'a>(&'a SongEntries);
-
-// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
-// so that when you use &self it refers to &self.0 (SongEntries,
-// which itself refers to Vec<SongEntry> xDD
-impl<'a> std::ops::Deref for Find<'a> {
-    type Target = SongEntries;
-    fn deref(&self) -> &SongEntries {
-        self.0
-    }
-}
-
 impl<'a> Find<'a> {
     /// Searches the entries for if the given artist exists in the dataset
     ///
@@ -389,6 +370,15 @@ impl<'a> Find<'a> {
     /// Wrapper for [`display::find_song()`]
     pub fn song(&self, song_name: &str, artist_name: &str) -> Result<Vec<Song>, NotFoundError> {
         display::find_song(self, song_name, artist_name)
+    }
+}
+// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
+// so that when you use &self it refers to &self.0 (SongEntries,
+// which itself refers to Vec<SongEntry> xDD
+impl<'a> std::ops::Deref for Find<'a> {
+    type Target = SongEntries;
+    fn deref(&self) -> &SongEntries {
+        self.0
     }
 }
 
@@ -453,6 +443,12 @@ impl Error for NotFoundError {}
 /// for podcast entries.
 #[derive(Clone, Debug)]
 pub struct PodcastEntry {}
+
+/// [`SongEntry`] but for podcasts
+pub struct PodEntry {
+    /// Spotify URI
+    pub id: String,
+}
 
 /// ANSI Colors
 ///
