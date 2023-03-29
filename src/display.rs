@@ -342,7 +342,7 @@ fn gather_artists(entries: &Vec<SongEntry>) -> HashMap<Artist, u32> {
 pub fn print_aspect(entries: &Vec<SongEntry>, asp: &AspectFull) {
     match asp {
         AspectFull::Artist(art) => {
-            println!("=== {} | {} plays ===", art, gather_artist(entries, art));
+            println!("=== {} | {} plays ===", art, gather_plays(entries, *art));
             // TODO! currently print_artist uses the whole time for num of plays!!!
             // e.g. printing Alestorm between 2022-01-01 and 2022-07-01
             // on only `endsong_0.json`
@@ -354,29 +354,22 @@ pub fn print_aspect(entries: &Vec<SongEntry>, asp: &AspectFull) {
             print_artist(entries, &gather_albums_with_artist(entries, art));
         }
         AspectFull::Album(alb) => {
-            println!("=== {} | {} plays ===", alb, gather_album(entries, alb));
+            println!("=== {} | {} plays ===", alb, gather_plays(entries, *alb));
             // TODO! currently print_album uses the whole time for num of plays!!!
             print_album(&gather_songs_with_album(entries, alb));
         }
         AspectFull::Song(son) => {
-            println!("{} | {} plays", son, gather_song(entries, son));
+            println!("{} | {} plays", son, gather_plays(entries, *son));
         }
     }
 }
 
-/// Counts up the plays of a single artist
-fn gather_artist(entries: &[SongEntry], art: &Artist) -> usize {
-    entries.iter().filter(|entry| art.is_entry(entry)).count()
-}
-
-/// Counts up the plays of a single album
-fn gather_album(entries: &[SongEntry], alb: &Album) -> usize {
-    entries.iter().filter(|entry| alb.is_entry(entry)).count()
-}
-
-/// Counts up the plays of a single song
-fn gather_song(entries: &[SongEntry], son: &Song) -> usize {
-    entries.iter().filter(|entry| son.is_entry(entry)).count()
+/// Counts up the plays of a [`Music`] instance
+fn gather_plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
+    entries
+        .iter()
+        .filter(|entry| aspect.is_entry(entry))
+        .count()
 }
 
 /// Used by [`print_aspect()`]
@@ -389,7 +382,7 @@ fn print_artist(entries: &Vec<SongEntry>, artist: &HashMap<Album, u32>) {
         let mus = gather_songs_with_album(entries, alb);
         // calling gather_album here is unnecessary work
         // it should add up the total plays somehwere else
-        println!("--- {} | {} plays ---", alb, gather_album(entries, alb));
+        println!("--- {} | {} plays ---", alb, gather_plays(entries, alb));
         print_album(&mus);
     }
 }

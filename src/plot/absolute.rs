@@ -15,7 +15,7 @@ pub fn artist(entries: &SongEntries, art: &Artist) {
 
     for date in &dates {
         times.push(date.timestamp());
-        plays.push(date::gather_artist(entries, art, start, date));
+        plays.push(date::gather_plays(entries, art, start, date));
     }
 
     create_plot(times, plays, art.name.as_str());
