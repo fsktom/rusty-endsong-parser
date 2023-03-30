@@ -10,7 +10,10 @@ pub fn artist(entries: &SongEntries, art: &Artist) {
     // percentages relative to the sum of all plays
     let mut plays = Vec::<f64>::new();
 
-    let dates = find_dates(entries, art, true);
+    // TODO!
+    // each data point lies at the occurrence -> looks weird when you haven't listened in a long time
+    // maybe make it so there's at least a data point once a week?
+    let dates = find_dates(entries, art, false);
 
     let start = dates.first().unwrap();
     let sum_start = &entries.first_date();

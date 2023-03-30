@@ -37,9 +37,9 @@ use parse::LOCATION_TZ;
 fn main() {
     // different root path depending on my OS
     let root = match std::env::consts::OS {
-        "windows" => "E:\\SPOTIFY DATA\\my_spotify_data 2021-07\\MyData\\",
+        "windows" => "C:\\Temp\\Endsong\\",
         "macos" => "/Users/filip/Other/Endsong/",
-        _ => "/mnt/e/SPOTIFY DATA/my_spotify_data 2021-07/MyData/",
+        _ => "/mnt/c/temp/Endsong/",
     };
     let paths: Vec<String> = vec![
         format!("{root}endsong_0.json"),
