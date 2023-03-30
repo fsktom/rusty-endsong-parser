@@ -202,6 +202,8 @@ fn match_input(
         "print top albums" | "ptalbs" => match_print_top(entries, rl, &Aspect::Albums)?,
         "print top songs" | "ptsons" => match_print_top(entries, rl, &Aspect::Songs)?,
         "plot artist" | "gart" => match_plot_artist(entries, rl)?,
+        "plot album" | "galb" => match_plot_album(entries, rl)?,
+        "plot song" | "gson" => match_plot_song(entries, rl)?,
         "plot artist relative" | "gartr" => match_plot_artist_relative(entries, rl)?,
         "plot album relative" | "galbr" => match_plot_album_relative(entries, rl)?,
         "plot song relative" | "gsonr" => match_plot_song_relative(entries, rl)?,
@@ -467,7 +469,52 @@ fn match_plot_artist(
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
-    entries.plot_artist(&art);
+    entries.plot(&art);
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot album` command
+fn match_plot_album(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // 1st prompt: artist name
+    println!("Artist name?");
+    let usr_input_art = rl.readline(PROMPT_MAIN)?;
+    let art = entries.find().artist(&usr_input_art)?;
+
+    // 2nd prompt: album name
+    println!("Album name?");
+    let usr_input_alb = rl.readline(PROMPT_MAIN)?;
+    let alb = entries.find().album(&usr_input_alb, &art.name)?;
+
+    entries.plot(&alb);
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot song` command
+fn match_plot_song(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // 1st prompt: artist name
+    println!("Artist name?");
+    let usr_input_art = rl.readline(PROMPT_MAIN)?;
+    let art = entries.find().artist(&usr_input_art)?;
+
+    // 2nd prompt: album name
+    println!("Album name?");
+    let usr_input_alb = rl.readline(PROMPT_MAIN)?;
+    let alb = entries.find().album(&usr_input_alb, &art.name)?;
+
+    // 3rd prompt: song name
+    println!("Song name?");
+    let usr_input_son = rl.readline(PROMPT_MAIN)?;
+    let son = entries
+        .find()
+        .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)?;
+
+    entries.plot(&son);
     Ok(())
 }
 

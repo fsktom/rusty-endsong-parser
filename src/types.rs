@@ -288,8 +288,8 @@ impl SongEntries {
     }
 
     /// Creates a plot of the artist
-    pub fn plot_artist(&self, art: &Artist) {
-        plot::absolute::artist(self, art);
+    pub fn plot<Asp: Music>(&self, aspect: &Asp) {
+        plot::absolute::aspect(self, aspect);
     }
 
     /// Creates a plot of the `aspect` relative to the total amount of plays
