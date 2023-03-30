@@ -9,7 +9,7 @@ pub fn aspect<Asp: Music>(entries: &SongEntries, aspect: &Asp) {
     let mut times = Vec::<i64>::new();
     let mut plays = Vec::<usize>::new();
 
-    let dates = find_dates(entries, aspect, true);
+    let dates = find_dates(entries, aspect, false);
 
     let start = dates.first().unwrap();
 
