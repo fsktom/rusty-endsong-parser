@@ -17,9 +17,14 @@ chrono = "0.4"
 chrono-tz = "0.8"
 rustyline = { version = "11.*", features = ["derive"] }
 unicode-width = "0.1.10"
+plotly = "0.8"
 
 [dev-dependencies]
 criterion = "0.4"
+
+[profile.release]
+# for profiling with cargo-instruments/flamegraph-rs
+debug = true
 
 [[bench]]
 name = "printing_top"

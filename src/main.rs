@@ -19,6 +19,7 @@
 
 mod display;
 mod parse;
+mod plot;
 mod types;
 mod ui;
 
@@ -36,9 +37,9 @@ use parse::LOCATION_TZ;
 fn main() {
     // different root path depending on my OS
     let root = match std::env::consts::OS {
-        "windows" => "E:\\SPOTIFY DATA\\my_spotify_data 2021-07\\MyData\\",
+        "windows" => "C:\\Temp\\Endsong\\",
         "macos" => "/Users/filip/Other/Endsong/",
-        _ => "/mnt/e/SPOTIFY DATA/my_spotify_data 2021-07/MyData/",
+        _ => "/mnt/c/temp/Endsong/",
     };
     let paths: Vec<String> = vec![
         format!("{root}endsong_0.json"),
@@ -54,6 +55,7 @@ fn main() {
     let entries = SongEntries::new(paths).unwrap();
 
     // test(&entries);
+    // test_plot(&entries);
 
     ui::start(&entries);
 }
@@ -112,4 +114,14 @@ fn test(entries: &SongEntries) {
     entries.print_aspect_date(&AspectFull::Artist(&powerwolf), &start_date, &end_date);
     entries.print_aspect_date(&AspectFull::Album(&coat), &start_date, &end_date);
     entries.print_aspect_date(&AspectFull::Song(&final_solution), &start_date, &end_date);
+}
+
+/// tests various [`plot`] functions
+#[allow(dead_code)]
+fn test_plot(entries: &SongEntries) {
+    plot::absolute::aspect(entries, &types::Artist::from_str("Sabaton"));
+
+    let coat = types::Album::from_str("Coat of Arms", "Sabaton");
+    plot::relative::to_all(entries, &coat);
+    plot::relative::to_artist(entries, &coat);
 }

@@ -8,6 +8,7 @@ use chrono_tz::Tz;
 
 use crate::display;
 use crate::parse;
+use crate::plot;
 
 /// Algebraic data type similar to [Aspect]
 /// but used by functions such as [`display::print_aspect()`]
@@ -50,9 +51,18 @@ impl Display for Aspect {
     }
 }
 
-/// Used for functions in [`display`] that accept either
+/// Used for functions that accept either
 /// a [`Song`], [`Album`] or [`Artist`] struct
-pub trait Music: Display {}
+pub trait Music: Display {
+    /// Checks if a [`SongEntry`] is a [`Music`]
+    fn is_entry(&self, entry: &SongEntry) -> bool;
+}
+
+/// Trait used to accept both [`Album`] and [`Song`]
+pub trait HasArtist: Music {
+    /// Returns a reference to the corresponding [`Artist`]
+    fn artist(&self) -> &Artist;
+}
 
 /// Struct for representing an artist
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
@@ -62,7 +72,7 @@ pub struct Artist {
 }
 impl Artist {
     /// Creates an instance of Artist with a [`String`] parameter
-    pub fn new(artist_name: String) -> Artist {
+    pub const fn new(artist_name: String) -> Artist {
         Artist { name: artist_name }
     }
 
@@ -79,7 +89,11 @@ impl Display for Artist {
         write!(f, "{}", self.name)
     }
 }
-impl Music for Artist {}
+impl Music for Artist {
+    fn is_entry(&self, entry: &SongEntry) -> bool {
+        entry.artist.eq(&self.name)
+    }
+}
 
 /// Struct for representing an album
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
@@ -91,7 +105,7 @@ pub struct Album {
 }
 impl Album {
     /// Creates an instance of Album with [`String`] parameters
-    pub fn new(album_name: String, artist_name: String) -> Album {
+    pub const fn new(album_name: String, artist_name: String) -> Album {
         Album {
             name: album_name,
             artist: Artist::new(artist_name),
@@ -112,7 +126,16 @@ impl Display for Album {
         write!(f, "{} - {}", self.artist.name, self.name)
     }
 }
-impl Music for Album {}
+impl Music for Album {
+    fn is_entry(&self, entry: &SongEntry) -> bool {
+        entry.artist.eq(&self.artist.name) && entry.album.eq(&self.name)
+    }
+}
+impl HasArtist for Album {
+    fn artist(&self) -> &Artist {
+        &self.artist
+    }
+}
 
 /// Struct for representing a song
 // to allow for custom HashMap key
@@ -126,7 +149,7 @@ pub struct Song {
 }
 impl Song {
     /// Creates an instance of Song with [`String`] parameters
-    pub fn new(song_name: String, album_name: String, artist_name: String) -> Song {
+    pub const fn new(song_name: String, album_name: String, artist_name: String) -> Song {
         Song {
             name: song_name,
             album: Album::new(album_name, artist_name),
@@ -151,7 +174,18 @@ impl Display for Song {
         )
     }
 }
-impl Music for Song {}
+impl Music for Song {
+    fn is_entry(&self, entry: &SongEntry) -> bool {
+        entry.artist.eq(&self.album.artist.name)
+            && entry.album.eq(&self.album.name)
+            && entry.track.eq(&self.name)
+    }
+}
+impl HasArtist for Song {
+    fn artist(&self) -> &Artist {
+        &self.album.artist
+    }
+}
 
 /// A more specific version of [`parse::Entry`]
 /// utilized by many functions here.
@@ -178,27 +212,6 @@ pub struct SongEntry {
 ///
 /// Fundamental for the use of this program
 pub struct SongEntries(Vec<SongEntry>);
-
-/// [`SongEntry`] but for podcasts
-pub struct PodEntry {
-    /// Spotify URI
-    pub id: String,
-}
-
-// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
-// so that when you use &self it refers to &self.0 (Vec<SongEntry>)
-impl std::ops::Deref for SongEntries {
-    type Target = Vec<SongEntry>;
-    fn deref(&self) -> &Vec<SongEntry> {
-        &self.0
-    }
-}
-impl std::ops::DerefMut for SongEntries {
-    fn deref_mut(&mut self) -> &mut Vec<SongEntry> {
-        &mut self.0
-    }
-}
-
 impl SongEntries {
     /// Creates an instance of [`SongEntries`]
     ///
@@ -207,6 +220,14 @@ impl SongEntries {
     /// * `paths` - a vector containing paths to each `endsong.json` file
     pub fn new(paths: Vec<String>) -> Result<SongEntries, Box<dyn Error>> {
         Ok(SongEntries(parse::parse(paths)?))
+    }
+
+    /// Returns the date of the first (time-wise) occurrence of any [`SongEntry`]
+    pub fn first_date(&self) -> DateTime<Tz> {
+        self.iter()
+            .min_by(|x, y| x.timestamp.cmp(&y.timestamp))
+            .unwrap()
+            .timestamp
     }
 
     /// Prints the top `num` of an `asp`
@@ -266,12 +287,45 @@ impl SongEntries {
         display::print_aspect_date(self, asp, start, end);
     }
 
+    /// Creates a plot of the artist
+    pub fn plot<Asp: Music>(&self, aspect: &Asp) {
+        plot::absolute::aspect(self, aspect);
+    }
+
+    /// Creates a plot of the `aspect` relative to the total amount of plays
+    pub fn plot_relative<Asp: Music>(&self, aspect: &Asp) {
+        plot::relative::to_all(self, aspect);
+    }
+
+    /// Creates a plot of the `aspect` relative to the plays of the artist
+    pub fn plot_relative_to_artist<Asp: HasArtist>(&self, aspect: &Asp) {
+        plot::relative::to_artist(self, aspect);
+    }
+
+    /// Creates a plot of the [`Song`] relative to the plays of the album
+    pub fn plot_relative_to_album(&self, song: &Song) {
+        plot::relative::to_album(self, song);
+    }
+
     /// Adds search capability
     ///
     /// Use with methods from [`Find`]: [`.artist()`](Find::artist()), [`.album()`](Find::album()),
     /// [`.song_from_album()`](Find::song_from_album()) and [`.song()`](Find::song())
     pub fn find(&self) -> Find {
         Find(self)
+    }
+}
+// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
+// so that when you use &self it refers to &self.0 (Vec<SongEntry>)
+impl std::ops::Deref for SongEntries {
+    type Target = Vec<SongEntry>;
+    fn deref(&self) -> &Vec<SongEntry> {
+        &self.0
+    }
+}
+impl std::ops::DerefMut for SongEntries {
+    fn deref_mut(&mut self) -> &mut Vec<SongEntry> {
+        &mut self.0
     }
 }
 
@@ -290,17 +344,6 @@ impl SongEntries {
 ///
 /// Methods can return an [`Err`] with [`NotFoundError`]
 pub struct Find<'a>(&'a SongEntries);
-
-// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
-// so that when you use &self it refers to &self.0 (SongEntries,
-// which itself refers to Vec<SongEntry> xDD
-impl<'a> std::ops::Deref for Find<'a> {
-    type Target = SongEntries;
-    fn deref(&self) -> &SongEntries {
-        self.0
-    }
-}
-
 impl<'a> Find<'a> {
     /// Searches the entries for if the given artist exists in the dataset
     ///
@@ -353,6 +396,15 @@ impl<'a> Find<'a> {
     /// Wrapper for [`display::find_song()`]
     pub fn song(&self, song_name: &str, artist_name: &str) -> Result<Vec<Song>, NotFoundError> {
         display::find_song(self, song_name, artist_name)
+    }
+}
+// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
+// so that when you use &self it refers to &self.0 (SongEntries,
+// which itself refers to Vec<SongEntry> xDD
+impl<'a> std::ops::Deref for Find<'a> {
+    type Target = SongEntries;
+    fn deref(&self) -> &SongEntries {
+        self.0
     }
 }
 
@@ -417,6 +469,12 @@ impl Error for NotFoundError {}
 /// for podcast entries.
 #[derive(Clone, Debug)]
 pub struct PodcastEntry {}
+
+/// [`SongEntry`] but for podcasts
+pub struct PodEntry {
+    /// Spotify URI
+    pub id: String,
+}
 
 /// ANSI Colors
 ///

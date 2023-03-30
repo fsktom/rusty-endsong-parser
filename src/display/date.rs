@@ -4,11 +4,11 @@ use chrono::DateTime;
 use chrono_tz::Tz;
 
 use crate::types::AspectFull;
+use crate::types::Music;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
 
 use super::print_album;
-use super::{AlbumPlays, ArtistPlays, SongPlays};
 
 /// Prints a specfic aspect
 ///
@@ -29,7 +29,7 @@ pub fn print_aspect(
                 art,
                 start.date_naive(),
                 end.date_naive(),
-                gather_artist_date(entries, art, start, end).1
+                gather_plays(entries, *art, start, end)
             );
             print_artist(
                 entries,
@@ -44,18 +44,17 @@ pub fn print_aspect(
                 alb,
                 start.date_naive(),
                 end.date_naive(),
-                gather_album_date(entries, alb, start, end).1
+                gather_plays(entries, *alb, start, end)
             );
             print_album(&gather_songs_with_album_date(entries, alb, start, end));
         }
         AspectFull::Song(son) => {
-            let son = gather_song_date(entries, son, start, end);
             println!(
                 "{} between {} and {} | {} plays",
-                son.0,
+                son,
                 start.date_naive(),
                 end.date_naive(),
-                son.1
+                gather_plays(entries, *son, start, end)
             );
         }
     }
@@ -79,80 +78,25 @@ fn print_artist(
         println!(
             "--- {} | {} plays ---",
             alb,
-            gather_album_date(entries, alb, start, end).1
+            gather_plays(entries, alb, start, end)
         );
         print_album(&mus);
     }
 }
 
-/// Counts up the plays of a single artist within a date frame
+/// Counts up the plays of a single [`Music`] within the date range
 ///
-/// Basically [`super::gather_artist()`] but with date functionality
-fn gather_artist_date(
-    entries: &Vec<SongEntry>,
-    art: &Artist,
+/// Basically [`display::gather_plays()`][super::gather_plays()] but with date functionality
+pub fn gather_plays<Asp: Music>(
+    entries: &[SongEntry],
+    aspect: &Asp,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
-) -> ArtistPlays {
-    let mut artist_asp = ArtistPlays(art.clone(), 0);
-
-    for entry in entries {
-        let artist = Artist::new(entry.artist.clone());
-
-        if entry.timestamp.ge(start) && entry.timestamp.le(end) && artist == *art {
-            artist_asp.1 += 1;
-        }
-    }
-
-    artist_asp
-}
-
-/// Counts up the plays of a single album within a date frame
-///
-/// Basically [`super::gather_album()`] but with date functionality
-fn gather_album_date(
-    entries: &Vec<SongEntry>,
-    alb: &Album,
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) -> AlbumPlays {
-    let mut album_asp = AlbumPlays(alb.clone(), 0);
-
-    for entry in entries {
-        let album = Album::new(entry.album.clone(), entry.artist.clone());
-
-        if entry.timestamp.ge(start) && entry.timestamp.le(end) && album == *alb {
-            album_asp.1 += 1;
-        }
-    }
-
-    album_asp
-}
-
-/// Counts up the plays of a single song within a date frame
-///
-/// Basically [`super::gather_song()`] but with date functionality
-fn gather_song_date(
-    entries: &Vec<SongEntry>,
-    son: &Song,
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) -> SongPlays {
-    let mut song_asp = SongPlays(son.clone(), 0);
-
-    for entry in entries {
-        let song = Song::new(
-            entry.track.clone(),
-            entry.album.clone(),
-            entry.artist.clone(),
-        );
-
-        if entry.timestamp.ge(start) && entry.timestamp.le(end) && song == *son {
-            song_asp.1 += 1;
-        }
-    }
-
-    song_asp
+) -> usize {
+    entries
+        .iter()
+        .filter(|entry| aspect.is_entry(entry) && is_between(&entry.timestamp, start, end))
+        .count()
 }
 
 /// Used by [`print_aspect()`]
@@ -207,4 +151,17 @@ fn gather_songs_with_album_date(
     }
 
     songs
+}
+
+/// Sums all plays in the given date frame
+pub fn sum_plays(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>) -> usize {
+    entries
+        .iter()
+        .filter(|entry| is_between(&entry.timestamp, start, end))
+        .count()
+}
+
+/// Checks if the given date is between (or equal) to the other two dates
+fn is_between(date: &DateTime<Tz>, start: &DateTime<Tz>, end: &DateTime<Tz>) -> bool {
+    date.ge(start) && date.le(end)
 }
