@@ -120,4 +120,8 @@ fn test(entries: &SongEntries) {
 #[allow(dead_code)]
 fn test_plot(entries: &SongEntries) {
     plot::absolute::artist(entries, &types::Artist::from_str("Sabaton"));
+
+    let coat = types::Album::from_str("Coat of Arms", "Sabaton");
+    plot::relative::to_all(entries, &coat);
+    plot::relative::to_artist(entries, &coat);
 }

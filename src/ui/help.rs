@@ -208,6 +208,20 @@ fn plot_commands<'a>() -> Vec<[&'a str; 3]> {
             "creates a plot of the amount of plays of the given artist
         relative to all plays and opens it in the web browser",
         ],
+        [
+            "plot album relative",
+            "gartr",
+            "creates a plot of the amount of plays of the given album
+        relative to all plays or the artist
+        and opens it in the web browser",
+        ],
+        [
+            "plot song relative",
+            "gartr",
+            "creates a plot of the amount of plays of the given album
+        relative to all plays, the artist or the album
+        and opens it in the web browser",
+        ],
     ]
 }
 

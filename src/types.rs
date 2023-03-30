@@ -58,6 +58,12 @@ pub trait Music: Display {
     fn is_entry(&self, entry: &SongEntry) -> bool;
 }
 
+/// Trait used to accept both [`Album`] and [`Song`]
+pub trait HasArtist: Music {
+    /// Returns a reference to the corresponding [`Artist`]
+    fn artist(&self) -> &Artist;
+}
+
 /// Struct for representing an artist
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Artist {
@@ -125,6 +131,11 @@ impl Music for Album {
         entry.artist.eq(&self.artist.name) && entry.album.eq(&self.name)
     }
 }
+impl HasArtist for Album {
+    fn artist(&self) -> &Artist {
+        &self.artist
+    }
+}
 
 /// Struct for representing a song
 // to allow for custom HashMap key
@@ -168,6 +179,11 @@ impl Music for Song {
         entry.artist.eq(&self.album.artist.name)
             && entry.album.eq(&self.album.name)
             && entry.track.eq(&self.name)
+    }
+}
+impl HasArtist for Song {
+    fn artist(&self) -> &Artist {
+        &self.album.artist
     }
 }
 
@@ -276,9 +292,19 @@ impl SongEntries {
         plot::absolute::artist(self, art);
     }
 
-    /// Creates a plot of the artist relative to the total amount of plays
-    pub fn plot_artist_relative(&self, art: &Artist) {
-        plot::relative::artist(self, art);
+    /// Creates a plot of the `aspect` relative to the total amount of plays
+    pub fn plot_relative<Asp: Music>(&self, aspect: &Asp) {
+        plot::relative::to_all(self, aspect);
+    }
+
+    /// Creates a plot of the `aspect` relative to the plays of the artist
+    pub fn plot_relative_to_artist<Asp: HasArtist>(&self, aspect: &Asp) {
+        plot::relative::to_artist(self, aspect);
+    }
+
+    /// Creates a plot of the [`Song`] relative to the plays of the album
+    pub fn plot_relative_to_album(&self, song: &Song) {
+        plot::relative::to_album(self, song);
     }
 
     /// Adds search capability

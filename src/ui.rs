@@ -31,6 +31,32 @@ const PROMPT_MAIN: &str = "  >> ";
 /// red `   >` with [`ShellHelper`]
 const PROMPT_SECONDARY: &str = "   > ";
 
+/// Errors raised by [`match_plot_album_relative()`] and
+/// [`match_plot_song_relative`]
+///
+/// when user argument for relative to what is invalid
+#[derive(Debug)]
+enum InvalidArgumentError {
+    /// Error message: Invalid argument! Try using 'all' or 'artist' next time
+    Artist,
+    /// Error message: Invalid argument! Try using 'all', 'artist' or 'album' next time
+    Album,
+}
+impl std::fmt::Display for InvalidArgumentError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            InvalidArgumentError::Artist => {
+                write!(f, "Invalid argument! Try using 'all' or 'artist' next time")
+            }
+            InvalidArgumentError::Album => write!(
+                f,
+                "Invalid argument! Try using 'all', 'artist' or 'album' next time"
+            ),
+        }
+    }
+}
+impl Error for InvalidArgumentError {}
+
 /// Helper for [`Editor`]
 #[derive(Completer, Helper, Hinter, Validator)]
 struct ShellHelper;
@@ -133,7 +159,8 @@ pub fn start(entries: &SongEntries) {
 
 /// Handles errors thrown by [`match_input()`] in [`start()`]
 ///
-/// Prints error messages for [`NotFoundError`],
+/// Prints error messages for
+/// [`NotFoundError`], [`InvalidArgumentError`]
 /// [`ParseError`][`chrono::format::ParseError`],
 /// and [`ParseIntError`][`std::num::ParseIntError`]
 #[allow(clippy::borrowed_box)]
@@ -142,6 +169,7 @@ fn handle_error(err: &Box<dyn Error>) {
     // also thx ChatGPT
     match err.as_ref() {
         not_found if not_found.is::<NotFoundError>() => eprintln!("{not_found}"),
+        invalid_arg if invalid_arg.is::<InvalidArgumentError>() => eprintln!("{invalid_arg}"),
         date if date.is::<chrono::format::ParseError>() => {
             eprintln!("Invalid date! Make sure you input the date in YYYY-MM-DD format.");
         }
@@ -175,6 +203,8 @@ fn match_input(
         "print top songs" | "ptsons" => match_print_top(entries, rl, &Aspect::Songs)?,
         "plot artist" | "gart" => match_plot_artist(entries, rl)?,
         "plot artist relative" | "gartr" => match_plot_artist_relative(entries, rl)?,
+        "plot album relative" | "galbr" => match_plot_album_relative(entries, rl)?,
+        "plot song relative" | "gsonr" => match_plot_song_relative(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -451,7 +481,71 @@ fn match_plot_artist_relative(
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
-    entries.plot_artist_relative(&art);
+    entries.plot_relative(&art);
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot album relative` command
+fn match_plot_album_relative(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // 1st prompt: artist name
+    println!("Artist name?");
+    let usr_input_art = rl.readline(PROMPT_MAIN)?;
+    let art = entries.find().artist(&usr_input_art)?;
+
+    // 2nd prompt: album name
+    println!("Album name?");
+    let usr_input_alb = rl.readline(PROMPT_MAIN)?;
+    let alb = entries.find().album(&usr_input_alb, &art.name)?;
+
+    // 3rd prompt: relative to what
+    println!("Relative to all or artist?");
+    let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
+
+    match usr_input_rel.as_str() {
+        "all" => entries.plot_relative(&alb),
+        "artist" => entries.plot_relative_to_artist(&alb),
+        _ => return Err(Box::new(InvalidArgumentError::Artist)),
+    }
+
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot song relative` command
+fn match_plot_song_relative(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // 1st prompt: artist name
+    println!("Artist name?");
+    let usr_input_art = rl.readline(PROMPT_MAIN)?;
+    let art = entries.find().artist(&usr_input_art)?;
+
+    // 2nd prompt: album name
+    println!("Album name?");
+    let usr_input_alb = rl.readline(PROMPT_MAIN)?;
+    let alb = entries.find().album(&usr_input_alb, &art.name)?;
+
+    // 3rd prompt: song name
+    println!("Song name?");
+    let usr_input_son = rl.readline(PROMPT_MAIN)?;
+    let son = entries
+        .find()
+        .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)?;
+
+    // 4th prompt: relative to what
+    println!("Relative to all, artist or album?");
+    let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
+
+    match usr_input_rel.as_str() {
+        "all" => entries.plot_relative(&son),
+        "artist" => entries.plot_relative_to_artist(&son),
+        "album" => entries.plot_relative_to_album(&son),
+        _ => return Err(Box::new(InvalidArgumentError::Album)),
+    }
+
     Ok(())
 }
 

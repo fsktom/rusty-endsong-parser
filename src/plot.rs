@@ -9,7 +9,9 @@ use plotly::{Layout, Plot, Scatter};
 /// Responsible for plotting absolute plots
 pub mod absolute;
 
-/// Responsible for plotting plots relative to sum of plays
+/// Responsible for plotting relative plots
+///
+/// Either to all plays, the artist or the album
 pub mod relative;
 
 /// Creates a plot in a `plots/` folder
