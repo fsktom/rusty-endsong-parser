@@ -1,11 +1,11 @@
-use super::{create_plot, find_dates};
+use plotly::{Scatter, Trace};
+
+use super::find_dates;
 use crate::display::date;
 use crate::types::{HasArtist, Music, Song, SongEntries};
 
-/// Creates a plot of the amount of plays of a [`Music`] relative to all plays
-///
-/// Opens the plot in the browser
-pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) {
+/// Creates a trace of the amount of plays of an [`Music`] relative to all plays
+pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
     let mut times = Vec::<i64>::new();
     // percentages relative to the sum of all plays
     let mut plays = Vec::<f64>::new();
@@ -28,14 +28,13 @@ pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) {
     }
 
     let title = format!("{aspect} | relative to all plays");
-    create_plot(times, plays, title.as_str());
+    let trace = Scatter::new(times, plays).name(&title);
+    (trace, title)
 }
 
-/// Creates a plot of the amount of plays of an [`Album`] or [`Song`]
-/// relative to total plays of the affiated [`Artist`]
-///
-/// Opens the plot in the browser
-pub fn to_artist<Asp: HasArtist>(entries: &SongEntries, aspect: &Asp) {
+/// Creates a plot of the amount of plays of an [`Album`][crate::types::Album] or [`Song`]
+/// relative to total plays of the affiated [`Artist`][crate::types::Artist]
+pub fn to_artist<Asp: HasArtist>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
     let mut times = Vec::<i64>::new();
     // percentages relative to the sum of all plays
     let mut plays = Vec::<f64>::new();
@@ -59,14 +58,13 @@ pub fn to_artist<Asp: HasArtist>(entries: &SongEntries, aspect: &Asp) {
     }
 
     let title = format!("{aspect} | relative to the artist");
-    create_plot(times, plays, title.as_str());
+    let trace = Scatter::new(times, plays).name(&title);
+    (trace, title)
 }
 
 /// Creates a plot of the amount of plays of a [`Song`]
-/// relative to total plays of the affiated [`Album`]
-///
-/// Opens the plot in the browser
-pub fn to_album(entries: &SongEntries, aspect: &Song) {
+/// relative to total plays of the affiated [`Album`][crate::types::Album]
+pub fn to_album(entries: &SongEntries, aspect: &Song) -> (Box<dyn Trace>, String) {
     let mut times = Vec::<i64>::new();
     // percentages relative to the sum of all plays
     let mut plays = Vec::<f64>::new();
@@ -89,5 +87,6 @@ pub fn to_album(entries: &SongEntries, aspect: &Song) {
     }
 
     let title = format!("{aspect} | relative to the album");
-    create_plot(times, plays, title.as_str());
+    let trace = Scatter::new(times, plays).name(&title);
+    (trace, title)
 }

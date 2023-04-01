@@ -119,9 +119,18 @@ fn test(entries: &SongEntries) {
 /// tests various [`plot`] functions
 #[allow(dead_code)]
 fn test_plot(entries: &SongEntries) {
-    plot::absolute::aspect(entries, &types::Artist::from_str("Sabaton"));
+    // plot::absolute::create(entries, &types::Artist::from_str("Sabaton"));
 
-    let coat = types::Album::from_str("Coat of Arms", "Sabaton");
-    plot::relative::to_all(entries, &coat);
-    plot::relative::to_artist(entries, &coat);
+    let stand = types::Album::from_str("The Last Stand", "Sabaton");
+    // plot::relative::to_all(entries, &coat);
+    // plot::relative::to_artist(entries, &coat);
+
+    // plot::single(plot::absolute::aspect(entries, &stand));
+    plot::single(plot::absolute::aspect(entries, &stand));
+
+    let eminem = types::Artist::from_str("Eminem");
+    plot::compare(
+        plot::relative::to_artist(entries, &stand),
+        plot::relative::to_all(entries, &eminem),
+    );
 }

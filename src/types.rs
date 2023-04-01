@@ -289,22 +289,22 @@ impl SongEntries {
 
     /// Creates a plot of the artist
     pub fn plot<Asp: Music>(&self, aspect: &Asp) {
-        plot::absolute::aspect(self, aspect);
+        plot::single(plot::absolute::aspect(self, aspect));
     }
 
     /// Creates a plot of the `aspect` relative to the total amount of plays
     pub fn plot_relative<Asp: Music>(&self, aspect: &Asp) {
-        plot::relative::to_all(self, aspect);
+        plot::single(plot::relative::to_all(self, aspect));
     }
 
     /// Creates a plot of the `aspect` relative to the plays of the artist
     pub fn plot_relative_to_artist<Asp: HasArtist>(&self, aspect: &Asp) {
-        plot::relative::to_artist(self, aspect);
+        plot::single(plot::relative::to_artist(self, aspect));
     }
 
     /// Creates a plot of the [`Song`] relative to the plays of the album
     pub fn plot_relative_to_album(&self, song: &Song) {
-        plot::relative::to_album(self, song);
+        plot::single(plot::relative::to_album(self, song));
     }
 
     /// Adds search capability

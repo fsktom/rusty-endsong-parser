@@ -1,11 +1,11 @@
-use super::{create_plot, find_dates};
+use plotly::{Scatter, Trace};
+
+use super::find_dates;
 use crate::display::date;
 use crate::types::{Music, SongEntries};
 
-/// Creates a plot of the absolute amount of plays
-///
-/// Opens the plot in the browser
-pub fn aspect<Asp: Music>(entries: &SongEntries, aspect: &Asp) {
+/// Creates a trace of the absolute amount of plays
+pub fn aspect<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
     let mut times = Vec::<i64>::new();
     let mut plays = Vec::<usize>::new();
 
@@ -19,5 +19,6 @@ pub fn aspect<Asp: Music>(entries: &SongEntries, aspect: &Asp) {
     }
 
     let title = format!("{aspect}");
-    create_plot(times, plays, &title);
+    let trace = Scatter::new(times, plays).name(&title);
+    (trace, title)
 }
