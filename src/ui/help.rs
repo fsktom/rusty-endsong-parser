@@ -203,10 +203,22 @@ fn plot_commands<'a>() -> Vec<[&'a str; 3]> {
         and opens it in the web browser",
         ],
         [
-            "plot relative",
+            "plot rel",
             "gr",
             "creates a plot of the amount of plays of the given aspect relative
         to all, the artist or album
+        and opens it in the web browser",
+        ],
+        [
+            "plot compare",
+            "gc",
+            "creates a plot of two traces - see `plot`
+        and opens it in the web browser",
+        ],
+        [
+            "plot compare rel",
+            "gcr",
+            "creates a plot of two relative traces - see `plot rel`
         and opens it in the web browser",
         ],
     ]

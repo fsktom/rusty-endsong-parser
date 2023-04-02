@@ -5,7 +5,7 @@ use std::fmt::Display;
 
 use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
-use plotly::Trace;
+pub use plotly::Trace;
 
 use crate::display;
 use crate::parse;
