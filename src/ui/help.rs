@@ -122,6 +122,13 @@ fn meta_commands<'a>() -> Vec<[&'a str; 3]> {
 /// Returns print commands
 fn print_commands<'a>() -> Vec<[&'a str; 3]> {
     vec![
+        ["print time", "pt", "prints the total time spent listening"],
+        [
+            "print time date",
+            "ptd",
+            "prints the time spent listening in a specific date range
+        opens another prompt where you input the date range",
+        ],
         [
             "print artist",
             "part",

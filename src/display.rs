@@ -548,6 +548,31 @@ pub fn print_aspect_date(
     date::print_aspect(entries, asp, start, end);
 }
 
+/// Prints the total time played
+pub fn print_time_played(entries: &crate::types::SongEntries) {
+    let duration = entries.total_listening_time();
+
+    println!(
+        "You've spent {} days - or {} hours - or {} minutes listening to music!",
+        &duration.num_days(),
+        &duration.num_hours(),
+        &duration.num_minutes()
+    );
+}
+
+/// Prints the time played in a duration
+///
+/// Basically [`print_time_played()`] but with date limitation
+///
+/// Wrapper around [`date::print_time_played()`]
+pub fn print_time_played_date(
+    entries: &crate::types::SongEntries,
+    start: &chrono::DateTime<chrono_tz::Tz>,
+    end: &chrono::DateTime<chrono_tz::Tz>,
+) {
+    date::print_time_played(entries, start, end);
+}
+
 // https://doc.rust-lang.org/book/ch11-03-test-organization.html#unit-tests
 #[cfg(test)]
 mod tests {

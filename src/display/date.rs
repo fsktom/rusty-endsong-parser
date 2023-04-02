@@ -10,6 +10,24 @@ use crate::types::{Album, Artist, Song};
 
 use super::print_album;
 
+/// Prints the time played in a date range
+pub fn print_time_played(
+    entries: &crate::types::SongEntries,
+    start: &DateTime<Tz>,
+    end: &DateTime<Tz>,
+) {
+    let duration = entries.listening_time(start, end);
+
+    println!(
+        "You've spent {} days - or {} hours - or {} minutes listening to music between {} and {}!",
+        &duration.num_days(),
+        &duration.num_hours(),
+        &duration.num_minutes(),
+        start,
+        end
+    );
+}
+
 /// Prints a specfic aspect
 ///
 /// Basically [`super::print_aspect()`] but with date limitations
@@ -162,6 +180,6 @@ pub fn sum_plays(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>
 }
 
 /// Checks if the given date is between (or equal) to the other two dates
-fn is_between(date: &DateTime<Tz>, start: &DateTime<Tz>, end: &DateTime<Tz>) -> bool {
+pub fn is_between(date: &DateTime<Tz>, start: &DateTime<Tz>, end: &DateTime<Tz>) -> bool {
     date.ge(start) && date.le(end)
 }

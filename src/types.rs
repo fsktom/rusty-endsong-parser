@@ -231,6 +231,14 @@ impl SongEntries {
             .timestamp
     }
 
+    /// Returns the date of the last (time-wise) occurrence of any [`SongEntry`]
+    pub fn last_date(&self) -> DateTime<Tz> {
+        self.iter()
+            .max_by(|x, y| x.timestamp.cmp(&y.timestamp))
+            .unwrap()
+            .timestamp
+    }
+
     /// Prints the top `num` of an `asp`
     ///
     /// * `asp` - [`Aspect::Songs`] (affected by [`display::SUM_ALBUMS`]) for top songs, [`Aspect::Albums`] for top albums and
@@ -286,6 +294,34 @@ impl SongEntries {
     /// Wrapper for [`display::print_aspect_date()`]
     pub fn print_aspect_date(&self, asp: &AspectFull, start: &DateTime<Tz>, end: &DateTime<Tz>) {
         display::print_aspect_date(self, asp, start, end);
+    }
+
+    /// Returns the total time listened
+    pub fn total_listening_time(&self) -> Duration {
+        // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
+        // self.iter().map(|entry| entry.time_played).sum::<Duration>()
+        let mut sum = Duration::milliseconds(0);
+        for entry in self.iter() {
+            sum = sum + entry.time_played;
+        }
+        sum
+    }
+
+    /// Returns the time listened in a given date period
+    pub fn listening_time(&self, start: &DateTime<Tz>, end: &DateTime<Tz>) -> Duration {
+        // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
+        // self.iter()
+        //     .filter(|entry| crate::display::date::is_between(&entry.timestamp, start, end))
+        //     .map(|entry| entry.time_played)
+        //     .sum::<Duration>()
+        let mut sum = Duration::milliseconds(0);
+        for entry in self
+            .iter()
+            .filter(|entry| crate::display::date::is_between(&entry.timestamp, start, end))
+        {
+            sum = sum + entry.time_played;
+        }
+        sum
     }
 
     /// Adds search capability

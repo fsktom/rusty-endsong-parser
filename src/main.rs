@@ -114,6 +114,11 @@ fn test(entries: &SongEntries) {
     entries.print_aspect_date(&AspectFull::Artist(&powerwolf), &start_date, &end_date);
     entries.print_aspect_date(&AspectFull::Album(&coat), &start_date, &end_date);
     entries.print_aspect_date(&AspectFull::Song(&final_solution), &start_date, &end_date);
+
+    assert_eq!(
+        &entries.total_listening_time(),
+        &entries.listening_time(&entries.first_date(), &entries.last_date())
+    );
 }
 
 /// tests various [`plot`] functions

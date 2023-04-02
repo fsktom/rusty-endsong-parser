@@ -198,6 +198,8 @@ fn match_input(
     match inp {
         // every new command added has to have an entry in `help`!
         "help" | "h" => help::help(),
+        "print time" | "pt" => crate::display::print_time_played(entries),
+        "print time date" | "ptd" => match_print_time_date(entries, rl)?,
         "print artist" | "part" => match_print_artist(entries, rl)?,
         "print album" | "palb" => match_print_album(entries, rl)?,
         "print song" | "pson" => match_print_song(entries, rl)?,
@@ -223,6 +225,25 @@ fn match_input(
             );
         }
     }
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `print time date` command
+fn match_print_time_date(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // 1st prompt: start date
+    println!("Start date? YYYY-MM-DD or 'start'");
+    let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
+    let start_date = user_input_date_parser(&usr_input_start_date)?;
+
+    // 2nd prompt: end date
+    println!("End date? YYYY-MM-DD or 'now'");
+    let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
+    let end_date = user_input_date_parser(&usr_input_end_date)?;
+
+    crate::display::print_time_played_date(entries, &start_date, &end_date);
     Ok(())
 }
 
