@@ -436,18 +436,8 @@ impl<'a> std::ops::Deref for Traces<'a> {
     }
 }
 
-/// Creates a plot of a single trace
-///
-/// Use [`SongEntries.traces()`][`Traces`]
-/// functions for `trace`
-pub fn plot_single(trace: (Box<dyn Trace>, String)) {
-    plot::single(trace);
-}
-
-/// Creates a plot of two traces
-pub fn plot_compare(trace_one: (Box<dyn Trace>, String), trace_two: (Box<dyn Trace>, String)) {
-    plot::compare(trace_one, trace_two);
-}
+pub use plot::compare as plot_compare;
+pub use plot::single as plot_single;
 
 /// Errors raised by `display::find_*` functions and [`Find`] methods
 /// when they don't find an [`Artist`], [`Album`] or [`Song`]
