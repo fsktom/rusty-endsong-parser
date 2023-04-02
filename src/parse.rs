@@ -113,7 +113,7 @@ fn parse_single(path: &str) -> Result<Vec<SongEntry>, Box<dyn Error>> {
 }
 
 /// Main parsing function that parses many `endsong.json` files
-pub fn parse(paths: Vec<String>) -> Result<Vec<SongEntry>, Box<dyn Error>> {
+pub fn parse(paths: &[String]) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     let mut song_entries: Vec<SongEntry> = Vec::new();
     for path in paths {
         let mut one = parse_single(&path)?;

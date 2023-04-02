@@ -219,7 +219,7 @@ impl SongEntries {
     /// Returns an [`Error`] if it encounters problems while parsing
     ///
     /// * `paths` - a vector containing paths to each `endsong.json` file
-    pub fn new(paths: Vec<String>) -> Result<SongEntries, Box<dyn Error>> {
+    pub fn new(paths: &[String]) -> Result<SongEntries, Box<dyn Error>> {
         Ok(SongEntries(parse::parse(paths)?))
     }
 

@@ -41,7 +41,7 @@ fn main() {
         "macos" => "/Users/filip/Other/Endsong/",
         _ => "/mnt/c/temp/Endsong/",
     };
-    let paths: Vec<String> = vec![
+    let paths = [
         format!("{root}endsong_0.json"),
         // format!("{root}endsong_1.json"),
         // format!("{root}endsong_2.json"),
@@ -52,7 +52,7 @@ fn main() {
         // format!("{root}endsong_7.json"),
     ];
 
-    let entries = SongEntries::new(paths).unwrap();
+    let entries = SongEntries::new(&paths).unwrap();
 
     // test(&entries);
     // test_plot(&entries);
