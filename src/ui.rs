@@ -1,6 +1,8 @@
 //! Module responsible for handling the CLI
 
-use crate::types::{Aspect, AspectFull, Color, NotFoundError, SongEntries};
+use crate::types::{
+    plot_compare, plot_single, Aspect, AspectFull, Color, NotFoundError, SongEntries,
+};
 use crate::LOCATION_TZ;
 
 use std::borrow::Cow;
@@ -469,7 +471,7 @@ fn match_plot_artist(
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
-    entries.plot(&art);
+    plot_single(entries.traces().absolute(&art));
     Ok(())
 }
 
@@ -488,7 +490,7 @@ fn match_plot_album(
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
 
-    entries.plot(&alb);
+    plot_single(entries.traces().absolute(&alb));
     Ok(())
 }
 
@@ -514,7 +516,7 @@ fn match_plot_song(
         .find()
         .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)?;
 
-    entries.plot(&son);
+    plot_single(entries.traces().absolute(&son));
     Ok(())
 }
 
@@ -528,7 +530,7 @@ fn match_plot_artist_relative(
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
-    entries.plot_relative(&art);
+    plot_single(entries.traces().relative(&art));
     Ok(())
 }
 
@@ -552,8 +554,8 @@ fn match_plot_album_relative(
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
     match usr_input_rel.as_str() {
-        "all" => entries.plot_relative(&alb),
-        "artist" => entries.plot_relative_to_artist(&alb),
+        "all" => plot_single(entries.traces().relative(&alb)),
+        "artist" => plot_single(entries.traces().relative_to_artist(&alb)),
         _ => return Err(Box::new(InvalidArgumentError::Artist)),
     }
 
@@ -587,9 +589,9 @@ fn match_plot_song_relative(
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
     match usr_input_rel.as_str() {
-        "all" => entries.plot_relative(&son),
-        "artist" => entries.plot_relative_to_artist(&son),
-        "album" => entries.plot_relative_to_album(&son),
+        "all" => plot_single(entries.traces().relative(&son)),
+        "artist" => plot_single(entries.traces().relative_to_artist(&son)),
+        "album" => plot_single(entries.traces().relative_to_album(&son)),
         _ => return Err(Box::new(InvalidArgumentError::Album)),
     }
 

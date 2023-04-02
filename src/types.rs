@@ -5,6 +5,7 @@ use std::fmt::Display;
 
 use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
+use plotly::Trace;
 
 use crate::display;
 use crate::parse;
@@ -287,32 +288,17 @@ impl SongEntries {
         display::print_aspect_date(self, asp, start, end);
     }
 
-    /// Creates a plot of the artist
-    pub fn plot<Asp: Music>(&self, aspect: &Asp) {
-        plot::single(plot::absolute::aspect(self, aspect));
-    }
-
-    /// Creates a plot of the `aspect` relative to the total amount of plays
-    pub fn plot_relative<Asp: Music>(&self, aspect: &Asp) {
-        plot::single(plot::relative::to_all(self, aspect));
-    }
-
-    /// Creates a plot of the `aspect` relative to the plays of the artist
-    pub fn plot_relative_to_artist<Asp: HasArtist>(&self, aspect: &Asp) {
-        plot::single(plot::relative::to_artist(self, aspect));
-    }
-
-    /// Creates a plot of the [`Song`] relative to the plays of the album
-    pub fn plot_relative_to_album(&self, song: &Song) {
-        plot::single(plot::relative::to_album(self, song));
-    }
-
     /// Adds search capability
     ///
     /// Use with methods from [`Find`]: [`.artist()`](Find::artist()), [`.album()`](Find::album()),
     /// [`.song_from_album()`](Find::song_from_album()) and [`.song()`](Find::song())
     pub fn find(&self) -> Find {
         Find(self)
+    }
+
+    /// Used to get traces for [`plot_single()`] and [`plot_compare()`]
+    pub fn traces(&self) -> Traces {
+        Traces(self)
     }
 }
 // https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
@@ -406,6 +392,61 @@ impl<'a> std::ops::Deref for Find<'a> {
     fn deref(&self) -> &SongEntries {
         self.0
     }
+}
+
+/// Used by [`SongEntries`] to get traces for plots in
+/// [`plot_single()`] and [`plot_compare()`]
+pub struct Traces<'a>(&'a SongEntries);
+impl<'a> Traces<'a> {
+    /// Returns a trace of the absolute plays of an `aspect`
+    ///
+    /// Wrapper for [`plot::absolute::aspect()`]
+    pub fn absolute<Asp: Music>(&self, aspect: &Asp) -> (Box<dyn Trace>, String) {
+        plot::absolute::aspect(self, aspect)
+    }
+
+    /// Returns a trace of the plays relative to all plays
+    ///
+    /// Wrapper for [`plot::relative::to_all()`]
+    pub fn relative<Asp: Music>(&self, aspect: &Asp) -> (Box<dyn Trace>, String) {
+        plot::relative::to_all(self, aspect)
+    }
+
+    /// Returns a trace of the plays relative to the artist
+    ///
+    /// Wrapper for [`plot::relative::to_artist()`]
+    pub fn relative_to_artist<Asp: HasArtist>(&self, aspect: &Asp) -> (Box<dyn Trace>, String) {
+        plot::relative::to_artist(self, aspect)
+    }
+
+    /// Returns a trace of the plays relative to the album
+    ///
+    /// Wrapper for [`plot::relative::to_album()`]
+    pub fn relative_to_album(&self, song: &Song) -> (Box<dyn Trace>, String) {
+        plot::relative::to_album(self, song)
+    }
+}
+// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
+// so that when you use &self it refers to &self.0 (SongEntries,
+// which itself refers to Vec<SongEntry> xDD
+impl<'a> std::ops::Deref for Traces<'a> {
+    type Target = SongEntries;
+    fn deref(&self) -> &SongEntries {
+        self.0
+    }
+}
+
+/// Creates a plot of a single trace
+///
+/// Use [`SongEntries.traces()`][`Traces`]
+/// functions for `trace`
+pub fn plot_single(trace: (Box<dyn Trace>, String)) {
+    plot::single(trace);
+}
+
+/// Creates a plot of two traces
+pub fn plot_compare(trace_one: (Box<dyn Trace>, String), trace_two: (Box<dyn Trace>, String)) {
+    plot::compare(trace_one, trace_two);
 }
 
 /// Errors raised by `display::find_*` functions and [`Find`] methods
