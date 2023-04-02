@@ -43,6 +43,8 @@ enum InvalidArgumentError {
     Artist,
     /// Error message: Invalid argument! Try using 'all', 'artist' or 'album' next time
     Album,
+    /// Error message: Invalid argument! Try using 'artist', 'album' or 'song' next time
+    Aspect,
 }
 impl std::fmt::Display for InvalidArgumentError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -53,6 +55,10 @@ impl std::fmt::Display for InvalidArgumentError {
             InvalidArgumentError::Album => write!(
                 f,
                 "Invalid argument! Try using 'all', 'artist' or 'album' next time"
+            ),
+            InvalidArgumentError::Aspect => write!(
+                f,
+                "Invalid argument! Try using 'artist', 'album' or 'song' next time"
             ),
         }
     }
@@ -203,12 +209,8 @@ fn match_input(
         "print top artists" | "ptarts" => match_print_top(entries, rl, &Aspect::Artists)?,
         "print top albums" | "ptalbs" => match_print_top(entries, rl, &Aspect::Albums)?,
         "print top songs" | "ptsons" => match_print_top(entries, rl, &Aspect::Songs)?,
-        "plot artist" | "gart" => match_plot_artist(entries, rl)?,
-        "plot album" | "galb" => match_plot_album(entries, rl)?,
-        "plot song" | "gson" => match_plot_song(entries, rl)?,
-        "plot artist relative" | "gartr" => match_plot_artist_relative(entries, rl)?,
-        "plot album relative" | "galbr" => match_plot_album_relative(entries, rl)?,
-        "plot song relative" | "gsonr" => match_plot_song_relative(entries, rl)?,
+        "plot" | "g" => match_plot(entries, rl)?,
+        "plot relative" | "gr" => match_plot_relative(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -461,7 +463,43 @@ fn match_print_top(
     Ok(())
 }
 
-/// Used by [`match_input()`] for `plot artist` command
+/// Used by [`match_input()`] for `plot` command
+fn match_plot(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // prompt: what to plot
+    println!("What do you want to plot? artist, album or song?");
+    let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
+
+    // other prompts
+    match usr_input_rel.as_str() {
+        "artist" => match_plot_artist(entries, rl),
+        "album" => match_plot_album(entries, rl),
+        "song" => match_plot_song(entries, rl),
+        _ => Err(Box::new(InvalidArgumentError::Aspect)),
+    }
+}
+
+/// Used by [`match_input()`] for `plot relative` command
+fn match_plot_relative(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // prompt: what to plot
+    println!("What do you want to plot? artist, album or song?");
+    let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
+
+    // other prompts
+    match usr_input_rel.as_str() {
+        "artist" => match_plot_artist_relative(entries, rl),
+        "album" => match_plot_album_relative(entries, rl),
+        "song" => match_plot_song_relative(entries, rl),
+        _ => Err(Box::new(InvalidArgumentError::Aspect)),
+    }
+}
+
+/// Used by [`match_plot()`] for plotting absolute plays of artist
 fn match_plot_artist(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
@@ -475,7 +513,7 @@ fn match_plot_artist(
     Ok(())
 }
 
-/// Used by [`match_input()`] for `plot album` command
+/// Used by [`match_plot()`] for plotting absolute plays of album
 fn match_plot_album(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
@@ -494,7 +532,7 @@ fn match_plot_album(
     Ok(())
 }
 
-/// Used by [`match_input()`] for `plot song` command
+/// Used by [`match_plot()`] for plotting absolute plays of song
 fn match_plot_song(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
@@ -520,7 +558,7 @@ fn match_plot_song(
     Ok(())
 }
 
-/// Used by [`match_input()`] for `plot artist relative` command
+/// Used by [`match_plot_relative()`] for plotting relative plots of artist
 fn match_plot_artist_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
@@ -534,7 +572,7 @@ fn match_plot_artist_relative(
     Ok(())
 }
 
-/// Used by [`match_input()`] for `plot album relative` command
+/// Used by [`match_plot_relative()`] for plotting relative plots of album
 fn match_plot_album_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
@@ -562,7 +600,7 @@ fn match_plot_album_relative(
     Ok(())
 }
 
-/// Used by [`match_input()`] for `plot song relative` command
+/// Used by [`match_plot_relative()`] for plotting relative plots of song
 fn match_plot_song_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
