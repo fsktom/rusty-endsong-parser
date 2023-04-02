@@ -98,7 +98,7 @@ pub struct Entry {
 }
 
 /// Parses a single `endsong.json` file into a usable format
-fn parse_single(path: &str) -> Result<Vec<SongEntry>, Box<dyn Error>> {
+fn parse_single<P: AsRef<Path>>(path: P) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     let u = read_entries_from_file(path)?;
     let mut songs: Vec<SongEntry> = Vec::new();
     let mut podcasts: Vec<PodEntry> = Vec::new();
@@ -113,10 +113,10 @@ fn parse_single(path: &str) -> Result<Vec<SongEntry>, Box<dyn Error>> {
 }
 
 /// Main parsing function that parses many `endsong.json` files
-pub fn parse(paths: &[String]) -> Result<Vec<SongEntry>, Box<dyn Error>> {
+pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     let mut song_entries: Vec<SongEntry> = Vec::new();
     for path in paths {
-        let mut one = parse_single(&path)?;
+        let mut one = parse_single(path)?;
         song_entries.append(&mut one);
     }
     Ok(song_entries)
