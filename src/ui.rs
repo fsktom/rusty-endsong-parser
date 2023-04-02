@@ -1,6 +1,8 @@
 //! Module responsible for handling the CLI
 
-use crate::types::{Aspect, AspectFull, Color, NotFoundError, SongEntries};
+use crate::types::{
+    plot_compare, plot_single, Aspect, AspectFull, Color, NotFoundError, SongEntries, Trace,
+};
 use crate::LOCATION_TZ;
 
 use std::borrow::Cow;
@@ -41,6 +43,8 @@ enum InvalidArgumentError {
     Artist,
     /// Error message: Invalid argument! Try using 'all', 'artist' or 'album' next time
     Album,
+    /// Error message: Invalid argument! Try using 'artist', 'album' or 'song' next time
+    Aspect,
 }
 impl std::fmt::Display for InvalidArgumentError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -51,6 +55,10 @@ impl std::fmt::Display for InvalidArgumentError {
             InvalidArgumentError::Album => write!(
                 f,
                 "Invalid argument! Try using 'all', 'artist' or 'album' next time"
+            ),
+            InvalidArgumentError::Aspect => write!(
+                f,
+                "Invalid argument! Try using 'artist', 'album' or 'song' next time"
             ),
         }
     }
@@ -201,12 +209,10 @@ fn match_input(
         "print top artists" | "ptarts" => match_print_top(entries, rl, &Aspect::Artists)?,
         "print top albums" | "ptalbs" => match_print_top(entries, rl, &Aspect::Albums)?,
         "print top songs" | "ptsons" => match_print_top(entries, rl, &Aspect::Songs)?,
-        "plot artist" | "gart" => match_plot_artist(entries, rl)?,
-        "plot album" | "galb" => match_plot_album(entries, rl)?,
-        "plot song" | "gson" => match_plot_song(entries, rl)?,
-        "plot artist relative" | "gartr" => match_plot_artist_relative(entries, rl)?,
-        "plot album relative" | "galbr" => match_plot_album_relative(entries, rl)?,
-        "plot song relative" | "gsonr" => match_plot_song_relative(entries, rl)?,
+        "plot" | "g" => match_plot(entries, rl)?,
+        "plot rel" | "gr" => match_plot_relative(entries, rl)?,
+        "plot compare" | "gc" => match_plot_compare(entries, rl)?,
+        "plot compare rel" | "gcr" => match_plot_compare_relative(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -459,25 +465,126 @@ fn match_print_top(
     Ok(())
 }
 
-/// Used by [`match_input()`] for `plot artist` command
-fn match_plot_artist(
+/// Used by [`match_input()`] for `plot` command
+fn match_plot(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
+    // prompt: what to plot
+    println!("What do you want to plot? artist, album or song?");
+    let usr_input_asp = rl.readline(PROMPT_SECONDARY)?;
+
+    // other prompts
+    let trace = get_absolute_trace(entries, rl, usr_input_asp.as_str())?;
+
+    plot_single(trace);
+
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot relative` command
+fn match_plot_relative(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // prompt: what to plot
+    println!("What do you want to plot? artist, album or song?");
+    let usr_input_asp = rl.readline(PROMPT_SECONDARY)?;
+
+    // other prompts
+    let trace = get_relative_trace(entries, rl, usr_input_asp.as_str())?;
+
+    plot_single(trace);
+
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot compare` command
+fn match_plot_compare(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // first trace
+    println!("1st trace: artist, album or song?");
+    let usr_input_asp_one = rl.readline(PROMPT_SECONDARY)?;
+    let trace_one = get_absolute_trace(entries, rl, usr_input_asp_one.as_str())?;
+
+    // second trace
+    println!("2nd trace: artist, album or song?");
+    let usr_input_asp_two = rl.readline(PROMPT_SECONDARY)?;
+    let trace_two = get_absolute_trace(entries, rl, usr_input_asp_two.as_str())?;
+
+    plot_compare(trace_one, trace_two);
+
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot compare relative` command
+fn match_plot_compare_relative(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // first trace
+    println!("1st trace: artist, album or song?");
+    let usr_input_asp_one = rl.readline(PROMPT_SECONDARY)?;
+    let trace_one = get_relative_trace(entries, rl, usr_input_asp_one.as_str())?;
+
+    // second trace
+    println!("2nd trace: artist, album or song?");
+    let usr_input_asp_two = rl.readline(PROMPT_SECONDARY)?;
+    let trace_two = get_relative_trace(entries, rl, usr_input_asp_two.as_str())?;
+
+    plot_compare(trace_one, trace_two);
+
+    Ok(())
+}
+
+/// Used to get traces of absolute plots
+fn get_absolute_trace(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+    usr_input: &str,
+) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
+    match usr_input {
+        "artist" => match_plot_artist(entries, rl),
+        "album" => match_plot_album(entries, rl),
+        "song" => match_plot_song(entries, rl),
+        _ => Err(Box::new(InvalidArgumentError::Aspect)),
+    }
+}
+
+/// Used to get traces of relative plots
+fn get_relative_trace(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+    usr_input: &str,
+) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
+    match usr_input {
+        "artist" => match_plot_artist_relative(entries, rl),
+        "album" => match_plot_album_relative(entries, rl),
+        "song" => match_plot_song_relative(entries, rl),
+        _ => Err(Box::new(InvalidArgumentError::Aspect)),
+    }
+}
+
+/// Used by [`match_plot()`] for plotting absolute plays of artist
+fn match_plot_artist(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
-    entries.plot(&art);
-    Ok(())
+    Ok(entries.traces().absolute(&art))
 }
 
-/// Used by [`match_input()`] for `plot album` command
+/// Used by [`match_plot()`] for plotting absolute plays of album
 fn match_plot_album(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
@@ -488,15 +595,14 @@ fn match_plot_album(
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
 
-    entries.plot(&alb);
-    Ok(())
+    Ok(entries.traces().absolute(&alb))
 }
 
-/// Used by [`match_input()`] for `plot song` command
+/// Used by [`match_plot()`] for plotting absolute plays of song
 fn match_plot_song(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
@@ -514,29 +620,27 @@ fn match_plot_song(
         .find()
         .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)?;
 
-    entries.plot(&son);
-    Ok(())
+    Ok(entries.traces().absolute(&son))
 }
 
-/// Used by [`match_input()`] for `plot artist relative` command
+/// Used by [`match_plot_relative()`] for plotting relative plots of artist
 fn match_plot_artist_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
-    entries.plot_relative(&art);
-    Ok(())
+    Ok(entries.traces().relative(&art))
 }
 
-/// Used by [`match_input()`] for `plot album relative` command
+/// Used by [`match_plot_relative()`] for plotting relative plots of album
 fn match_plot_album_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
@@ -552,19 +656,17 @@ fn match_plot_album_relative(
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
     match usr_input_rel.as_str() {
-        "all" => entries.plot_relative(&alb),
-        "artist" => entries.plot_relative_to_artist(&alb),
-        _ => return Err(Box::new(InvalidArgumentError::Artist)),
+        "all" => Ok(entries.traces().relative(&alb)),
+        "artist" => Ok(entries.traces().relative_to_artist(&alb)),
+        _ => Err(Box::new(InvalidArgumentError::Artist)),
     }
-
-    Ok(())
 }
 
-/// Used by [`match_input()`] for `plot song relative` command
+/// Used by [`match_plot_relative()`] for plotting relative plots of song
 fn match_plot_song_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
@@ -587,13 +689,11 @@ fn match_plot_song_relative(
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
     match usr_input_rel.as_str() {
-        "all" => entries.plot_relative(&son),
-        "artist" => entries.plot_relative_to_artist(&son),
-        "album" => entries.plot_relative_to_album(&son),
-        _ => return Err(Box::new(InvalidArgumentError::Album)),
+        "all" => Ok(entries.traces().relative(&son)),
+        "artist" => Ok(entries.traces().relative_to_artist(&son)),
+        "album" => Ok(entries.traces().relative_to_album(&son)),
+        _ => Err(Box::new(InvalidArgumentError::Album)),
     }
-
-    Ok(())
 }
 
 /// used by `*_date` functions in this module for when the user inputs a date
