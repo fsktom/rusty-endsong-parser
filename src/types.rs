@@ -324,6 +324,10 @@ impl SongEntries {
             .iter()
             .filter(|entry| crate::display::date::is_between(&entry.timestamp, start, end))
         {
+            // AddAssign is not implemented in time-0.1.45 yet which most recent chrono
+            // version 0.4 is using :)))
+            // https://github.com/chronotope/chrono/issues/602#issuecomment-1436548077
+            // time 0.3 also supports iter::sum :)))
             sum = sum + entry.time_played;
         }
         sum

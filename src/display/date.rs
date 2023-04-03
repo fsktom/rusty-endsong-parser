@@ -23,8 +23,8 @@ pub fn print_time_played(
         &duration.num_days(),
         &duration.num_hours(),
         &duration.num_minutes(),
-        start,
-        end
+        start.date_naive(),
+        end.date_naive()
     );
 }
 
