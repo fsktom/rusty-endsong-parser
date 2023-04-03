@@ -135,11 +135,11 @@ fn gather_albums_with_artist_date(
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
     for entry in entries {
-        if Artist::new(entry.artist.clone()) != *art {
+        if Artist::new(&entry.artist) != *art {
             continue;
         }
         if entry.timestamp.ge(start) && entry.timestamp.le(end) {
-            let album = Album::new(entry.album.clone(), entry.artist.clone());
+            let album = Album::new(&entry.album, &entry.artist);
             *albums.entry(album).or_insert(0) += 1;
         }
     }
@@ -159,16 +159,12 @@ fn gather_songs_with_album_date(
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        if Album::new(entry.album.clone(), entry.artist.clone()) != *alb {
+        if Album::new(&entry.album, &entry.artist) != *alb {
             continue;
         }
 
         if entry.timestamp.ge(start) && entry.timestamp.le(end) {
-            let song = Song::new(
-                entry.track.clone(),
-                entry.album.clone(),
-                entry.artist.clone(),
-            );
+            let song = Song::new(&entry.track, &entry.album, &entry.artist);
 
             *songs.entry(song).or_insert(0) += 1;
         }

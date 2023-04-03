@@ -72,11 +72,11 @@ fn test(entries: &SongEntries) {
     entries.print_top_from_artist(&Aspect::Songs, &powerwolf, 10);
     entries.print_top_from_artist(&Aspect::Albums, &powerwolf, 10);
 
-    let coat = types::Album::from_str("Coat of Arms", "Sabaton");
+    let coat = types::Album::new("Coat of Arms", "Sabaton");
     entries.print_top_from_album(&coat, 50);
 
-    let final_solution = types::Song::from_str("The Final Solution", "Coat of Arms", "Sabaton");
-    entries.print_aspect(&AspectFull::Artist(&types::Artist::from_str("Sabaton")));
+    let final_solution = types::Song::new("The Final Solution", "Coat of Arms", "Sabaton");
+    entries.print_aspect(&AspectFull::Artist(&types::Artist::new("Sabaton")));
     println!();
     entries.print_aspect(&AspectFull::Album(&coat));
     println!();
@@ -133,14 +133,14 @@ fn test(entries: &SongEntries) {
 fn test_plot(entries: &SongEntries) {
     // plot::absolute::create(entries, &types::Artist::from_str("Sabaton"));
 
-    let stand = types::Album::from_str("The Last Stand", "Sabaton");
+    let stand = types::Album::new("The Last Stand", "Sabaton");
     // plot::relative::to_all(entries, &coat);
     // plot::relative::to_artist(entries, &coat);
 
     // plot::single(plot::absolute::aspect(entries, &stand));
     plot::single(plot::absolute::aspect(entries, &stand));
 
-    let eminem = types::Artist::from_str("Eminem");
+    let eminem = types::Artist::new("Eminem");
     plot::compare(
         plot::relative::to_artist(entries, &stand),
         plot::relative::to_all(entries, &eminem),

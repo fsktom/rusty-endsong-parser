@@ -152,7 +152,7 @@ impl SongJustArtist {
     fn from_str(song_name: &str, artist_name: &str) -> SongJustArtist {
         SongJustArtist {
             name: song_name.to_owned(),
-            artist: Artist::from_str(artist_name),
+            artist: Artist::new(artist_name),
         }
     }
 }
@@ -163,11 +163,7 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        let song = Song::new(
-            entry.track.clone(),
-            entry.album.clone(),
-            entry.artist.clone(),
-        );
+        let song = Song::new(&entry.track, &entry.album, &entry.artist);
 
         // either create new field with value 0 (and add 1 to it)
         // or if a field with that key already exists,
@@ -257,15 +253,11 @@ fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<S
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        if Artist::new(entry.artist.clone()) != *art {
+        if Artist::new(&entry.artist) != *art {
             continue;
         }
 
-        let song = Song::new(
-            entry.track.clone(),
-            entry.album.clone(),
-            entry.artist.clone(),
-        );
+        let song = Song::new(&entry.track, &entry.album, &entry.artist);
 
         *songs.entry(song).or_insert(0) += 1;
     }
@@ -278,15 +270,11 @@ fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Son
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        if Album::new(entry.album.clone(), entry.artist.clone()) != *alb {
+        if Album::new(&entry.album, &entry.artist) != *alb {
             continue;
         }
 
-        let song = Song::new(
-            entry.track.clone(),
-            entry.album.clone(),
-            entry.artist.clone(),
-        );
+        let song = Song::new(&entry.track, &entry.album, &entry.artist);
 
         *songs.entry(song).or_insert(0) += 1;
     }
@@ -299,7 +287,7 @@ fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
     for entry in entries {
-        let album = Album::new(entry.album.clone(), entry.artist.clone());
+        let album = Album::new(&entry.album, &entry.artist);
 
         *albums.entry(album).or_insert(0) += 1;
     }
@@ -312,10 +300,10 @@ fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
     for entry in entries {
-        if Artist::new(entry.artist.clone()) != *art {
+        if Artist::new(&entry.artist) != *art {
             continue;
         }
-        let album = Album::new(entry.album.clone(), entry.artist.clone());
+        let album = Album::new(&entry.album, &entry.artist);
         *albums.entry(album).or_insert(0) += 1;
     }
 
@@ -327,7 +315,7 @@ fn gather_artists(entries: &Vec<SongEntry>) -> HashMap<Artist, u32> {
     let mut artists: HashMap<Artist, u32> = HashMap::new();
 
     for entry in entries {
-        let artist = Artist::new(entry.artist.clone());
+        let artist = Artist::new(&entry.artist);
 
         *artists.entry(artist).or_insert(0) += 1;
     }
@@ -419,7 +407,7 @@ pub fn find_artist(entries: &Vec<SongEntry>, artist_name: &str) -> Result<Artist
     for entry in entries {
         // .to_lowercase() so that user input capitalization doesn't matter
         if entry.artist.to_lowercase().eq(&usr_artist.name) {
-            return Ok(Artist::new(entry.artist.clone()));
+            return Ok(Artist::new(&entry.artist));
         }
     }
     Err(NotFoundError::Artist)
@@ -448,7 +436,7 @@ pub fn find_album(
         if Album::new(entry.album.to_lowercase(), entry.artist.to_lowercase()).eq(&usr_album) {
             // but here so that the version with proper
             // capitalization is returned
-            return Ok(Album::new(entry.album.clone(), entry.artist.clone()));
+            return Ok(Album::new(&entry.album, &entry.artist));
         }
     }
     Err(NotFoundError::Album)
@@ -474,19 +462,15 @@ pub fn find_song_from_album(
 
     for entry in entries {
         if Song::new(
-            entry.track.clone().to_lowercase(),
-            entry.album.clone().to_lowercase(),
-            entry.artist.clone().to_lowercase(),
+            &entry.track.to_lowercase(),
+            &entry.album.to_lowercase(),
+            &entry.artist.to_lowercase(),
         )
         .eq(&usr_song)
         {
             // but here so that the version with proper
             // capitalization is returned
-            return Ok(Song::new(
-                entry.track.clone(),
-                entry.album.clone(),
-                entry.artist.clone(),
-            ));
+            return Ok(Song::new(&entry.track, &entry.album, &entry.artist));
         }
     }
     Err(NotFoundError::Song)
@@ -513,11 +497,7 @@ pub fn find_song(
                 .to_lowercase()
                 .eq(&usr_song.artist.name.to_lowercase())
         {
-            let song_v = Song::new(
-                entry.track.clone(),
-                entry.album.clone(),
-                entry.artist.clone(),
-            );
+            let song_v = Song::new(&entry.track, &entry.album, &entry.artist);
             if !song_versions.contains(&song_v) {
                 song_versions.push(song_v);
             }
@@ -596,7 +576,7 @@ mod tests {
 
         assert_eq!(
             find_artist(&entries, "Theocracy").unwrap(),
-            Artist::from_str("Theocracy")
+            Artist::new("Theocracy")
         );
         assert!(entries.find().artist("Powerwolf").is_err());
     }

@@ -75,15 +75,10 @@ pub struct Artist {
     pub name: String,
 }
 impl Artist {
-    /// Creates an instance of Artist with a [`String`] parameter
-    pub const fn new(artist_name: String) -> Artist {
-        Artist { name: artist_name }
-    }
-
-    /// Creates an instance of Artist with a [`&str`][str] parameter
-    pub fn from_str(artist_name: &str) -> Artist {
+    /// Creates an instance of Artist
+    pub fn new<S: Into<String>>(artist_name: S) -> Artist {
         Artist {
-            name: artist_name.to_string(),
+            name: artist_name.into(),
         }
     }
 }
@@ -109,19 +104,11 @@ pub struct Album {
     pub artist: Artist,
 }
 impl Album {
-    /// Creates an instance of Album with [`String`] parameters
-    pub const fn new(album_name: String, artist_name: String) -> Album {
+    /// Creates an instance of Album
+    pub fn new<S: Into<String>>(album_name: S, artist_name: S) -> Album {
         Album {
-            name: album_name,
+            name: album_name.into(),
             artist: Artist::new(artist_name),
-        }
-    }
-
-    /// Creates an instance of Album with [`&str`] parameters
-    pub fn from_str(album_name: &str, artist_name: &str) -> Album {
-        Album {
-            name: album_name.to_string(),
-            artist: Artist::from_str(artist_name),
         }
     }
 }
@@ -154,19 +141,11 @@ pub struct Song {
     // pub id: String,
 }
 impl Song {
-    /// Creates an instance of Song with [`String`] parameters
-    pub const fn new(song_name: String, album_name: String, artist_name: String) -> Song {
+    /// Creates an instance of Song
+    pub fn new<S: Into<String>>(song_name: S, album_name: S, artist_name: S) -> Song {
         Song {
-            name: song_name,
+            name: song_name.into(),
             album: Album::new(album_name, artist_name),
-        }
-    }
-
-    /// Creates an instance of Song with [`&str`] parameters
-    pub fn from_str(song_name: &str, album_name: &str, artist_name: &str) -> Song {
-        Song {
-            name: song_name.to_string(),
-            album: Album::from_str(album_name, artist_name),
         }
     }
 }
@@ -671,12 +650,9 @@ mod tests {
     /// Tests the `::new` and `::from_str` constructors of Artist, Album and Song
     #[test]
     fn test_constructors() {
+        assert_eq!(Artist::new(String::from("Sabaton")), Artist::new("Sabaton"));
         assert_eq!(
-            Artist::new(String::from("Sabaton")),
-            Artist::from_str("Sabaton")
-        );
-        assert_eq!(
-            Artist::from_str("Sabaton"),
+            Artist::new("Sabaton"),
             Artist {
                 name: "Sabaton".to_string()
             }
@@ -684,13 +660,13 @@ mod tests {
 
         assert_eq!(
             Album::new(String::from("Coat of Arms"), String::from("Sabaton")),
-            Album::from_str("Coat of Arms", "Sabaton")
+            Album::new("Coat of Arms", "Sabaton")
         );
         assert_eq!(
-            Album::from_str("Coat of Arms", "Sabaton"),
+            Album::new("Coat of Arms", "Sabaton"),
             Album {
                 name: "Coat of Arms".to_string(),
-                artist: Artist::from_str("Sabaton")
+                artist: Artist::new("Sabaton")
             }
         );
 
@@ -700,13 +676,13 @@ mod tests {
                 String::from("Coat of Arms"),
                 String::from("Sabaton")
             ),
-            Song::from_str("The Final Solution", "Coat of Arms", "Sabaton")
+            Song::new("The Final Solution", "Coat of Arms", "Sabaton")
         );
         assert_eq!(
-            Song::from_str("The Final Solution", "Coat of Arms", "Sabaton"),
+            Song::new("The Final Solution", "Coat of Arms", "Sabaton"),
             Song {
                 name: "The Final Solution".to_string(),
-                album: Album::from_str("Coat of Arms", "Sabaton")
+                album: Album::new("Coat of Arms", "Sabaton")
             }
         );
     }
