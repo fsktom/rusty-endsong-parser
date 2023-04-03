@@ -148,11 +148,19 @@ struct SongJustArtist {
     artist: Artist,
 }
 impl SongJustArtist {
-    /// Creates an instance of [`SongJustArtist`] with &str parameters
-    fn from_str(song_name: &str, artist_name: &str) -> SongJustArtist {
+    /// Creates an instance of [`SongJustArtist`]
+    fn new<S: Into<String>>(song_name: S, artist_name: S) -> SongJustArtist {
         SongJustArtist {
-            name: song_name.to_owned(),
+            name: song_name.into(),
             artist: Artist::new(artist_name),
+        }
+    }
+}
+impl From<&Song> for SongJustArtist {
+    fn from(song: &Song) -> SongJustArtist {
+        SongJustArtist {
+            name: song.name.to_string(),
+            artist: song.album.artist.clone(),
         }
     }
 }
@@ -196,10 +204,7 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
         let mut changed: HashMap<SongJustArtist, SongAlbums> = HashMap::new();
 
         for (k, v) in &songs {
-            let song_just_artist = SongJustArtist {
-                name: k.name.clone(),
-                artist: k.album.artist.clone(),
-            };
+            let song_just_artist = SongJustArtist::from(k);
 
             if let Some(plays) = songs_artist.get(&song_just_artist) {
                 // if it finds something it means that the song
@@ -485,7 +490,7 @@ pub fn find_song(
     song_name: &str,
     artist_name: &str,
 ) -> Result<Vec<Song>, NotFoundError> {
-    let usr_song = SongJustArtist::from_str(song_name, artist_name);
+    let usr_song = SongJustArtist::new(song_name, artist_name);
 
     let mut song_versions: Vec<Song> = Vec::new();
 
