@@ -7,13 +7,14 @@ use crate::LOCATION_TZ;
 
 use std::borrow::Cow;
 use std::error::Error;
+use std::vec;
 
 use chrono::{DateTime, TimeZone};
 use chrono_tz::Tz;
+use rustyline::{completion::Completer, Helper, Hinter, Validator};
 use rustyline::{
     error::ReadlineError, highlight::Highlighter, history::FileHistory, ColorMode, Config, Editor,
 };
-use rustyline::{Completer, Helper, Hinter, Validator};
 
 /// Module containing stuff for the `help` command
 mod help;
@@ -66,8 +67,64 @@ impl std::fmt::Display for InvalidArgumentError {
 impl Error for InvalidArgumentError {}
 
 /// Helper for [`Editor`]
-#[derive(Completer, Helper, Hinter, Validator)]
-struct ShellHelper;
+#[derive(Helper, Hinter, Validator)]
+struct ShellHelper {
+    /// List containing all the possible completes for Tab
+    completer_list: Vec<String>,
+}
+impl ShellHelper {
+    /// Creates a new [`ShellHelper`]
+    fn new() -> Self {
+        Self {
+            completer_list: vec![],
+        }
+    }
+
+    /// Makes tab-complete list empty
+    fn reset(&mut self) {
+        self.completer_list = vec![];
+    }
+
+    /// Changes tab-complete to prompt commands
+    fn complete_commands(&mut self) {
+        let temp = [
+            "help",
+            "print time",
+            "print time date",
+            "print artist",
+            "print album",
+            "print song",
+            "print songs",
+            "print artist date",
+            "print album date",
+            "print song date",
+            "print songs date",
+            "print top artists",
+            "print top songs",
+            "plot",
+            "plot rel",
+            "plot compare",
+            "plot compare rel",
+        ];
+
+        // so that I don't have to call .to_string() on every single entry in the array above...
+        self.completer_list = temp.iter().map(|s| s.to_string()).collect::<Vec<String>>();
+    }
+
+    /// Changes tab-complete to ["artist", "album", "song"]
+    fn complete_aspects(&mut self) {
+        self.completer_list = vec![
+            "artist".to_string(),
+            "album".to_string(),
+            "song".to_string(),
+        ];
+    }
+
+    /// Changes tab-complete to all artists
+    fn complete_list(&mut self, completer_list: Vec<String>) {
+        self.completer_list = completer_list;
+    }
+}
 impl Highlighter for ShellHelper {
     // makes the prompt in rl.readline() change color depending on the prompt
     fn highlight_prompt<'b, 's: 'b, 'p: 'b>(
@@ -93,12 +150,32 @@ impl Highlighter for ShellHelper {
         }
     }
 }
+impl Completer for ShellHelper {
+    type Candidate = String;
+
+    fn complete(
+        &self,
+        line: &str,
+        pos: usize,
+        _ctx: &rustyline::Context<'_>,
+    ) -> rustyline::Result<(usize, Vec<Self::Candidate>)> {
+        let word = &line[0..pos];
+        let mut possibilities = vec![];
+        self.completer_list
+            .iter()
+            .filter(|compl| compl.starts_with(word))
+            .for_each(|w| possibilities.push(w.to_string()));
+        // assumes no escape characters...
+        Ok((0, possibilities))
+    }
+}
 
 /// Starts the CLI/shell instance
 pub fn start(entries: &SongEntries) {
     println!("=== INTERACTIVE MODE ACTIVATED ===");
     println!("PRESS 'CTRL+C' TO EXIT THE PROGRAM");
     println!("TYPE 'help' FOR AVAILABLE COMMANDS");
+    println!("DO NOT FORGET TO USE THE TABULATOR");
 
     // inspired by
     // https://github.com/trane-project/trane-cli/blob/master/src/main.rs
@@ -106,12 +183,14 @@ pub fn start(entries: &SongEntries) {
         .auto_add_history(true)
         .color_mode(ColorMode::Enabled)
         .history_ignore_space(true)
+        .completion_type(rustyline::CompletionType::List)
         .build();
 
     let mut rl = Editor::<ShellHelper, FileHistory>::with_config(config)
         .expect("Sorry, there's been an error!");
 
-    let helper = ShellHelper;
+    let mut helper = ShellHelper::new();
+    helper.complete_commands();
     rl.set_helper(Some(helper));
 
     let history_path = std::path::Path::new(".rep_history");
@@ -152,6 +231,7 @@ pub fn start(entries: &SongEntries) {
                 break;
             }
         }
+        rl.helper_mut().unwrap().complete_commands();
     }
 
     match rl.save_history(history_path) {
@@ -197,6 +277,7 @@ fn match_input(
 ) -> Result<(), Box<dyn Error>> {
     match inp {
         // every new command added has to have an entry in `help`!
+        // and in Shellhelper.compete_commands()
         "help" | "h" => help::help(),
         "print time" | "pt" => crate::display::print_time_played(entries),
         "print time date" | "ptd" => match_print_time_date(entries, rl)?,
@@ -233,6 +314,7 @@ fn match_print_time_date(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
+    rl.helper_mut().unwrap().reset();
     // 1st prompt: start date
     println!("Start date? YYYY-MM-DD or 'start'");
     let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
@@ -253,6 +335,7 @@ fn match_print_artist(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
@@ -269,10 +352,12 @@ fn match_print_artist_date(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
+    rl.helper_mut().unwrap().reset();
     // 2nd prompt: start date
     println!("Start date? YYYY-MM-DD or 'start'");
     let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
@@ -293,11 +378,13 @@ fn match_print_album(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: album name
+    rl.helper_mut().unwrap().complete_list(entries.albums(&art));
     println!("Album name?");
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
@@ -314,15 +401,18 @@ fn match_print_album_date(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: album name
+    rl.helper_mut().unwrap().complete_list(entries.albums(&art));
     println!("Album name?");
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
 
+    rl.helper_mut().unwrap().reset();
     // 3rd prompt: start date
     println!("Start date? YYYY-MM-DD or 'start'");
     let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
@@ -343,16 +433,19 @@ fn match_print_song(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: album name
+    rl.helper_mut().unwrap().complete_list(entries.albums(&art));
     println!("Album name?");
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
 
     // 3rd prompt: song name
+    rl.helper_mut().unwrap().complete_list(entries.songs(&alb));
     println!("Song name?");
     let usr_input_son = rl.readline(PROMPT_MAIN)?;
     let son = entries
@@ -371,22 +464,26 @@ fn match_print_song_date(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: album name
+    rl.helper_mut().unwrap().complete_list(entries.albums(&art));
     println!("Album name?");
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
 
     // 3rd prompt: song name
+    rl.helper_mut().unwrap().complete_list(entries.songs(&alb));
     println!("Song name?");
     let usr_input_son = rl.readline(PROMPT_MAIN)?;
     let son = entries
         .find()
         .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)?;
 
+    rl.helper_mut().unwrap().reset();
     // 4th prompt: start date
     println!("Start date? YYYY-MM-DD or 'start'");
     let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
@@ -407,11 +504,13 @@ fn match_print_songs(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: song name
+    rl.helper_mut().unwrap().complete_list(entries.songs(&art));
     println!("Song name?");
     let usr_input_son = rl.readline(PROMPT_MAIN)?;
     let songs = entries.find().song(&usr_input_son, &art.name)?;
@@ -437,15 +536,18 @@ fn match_print_songs_date(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: song name
+    rl.helper_mut().unwrap().complete_list(entries.songs(&art));
     println!("Song name?");
     let usr_input_son = rl.readline(PROMPT_MAIN)?;
     let songs = entries.find().song(&usr_input_son, &art.name)?;
 
+    rl.helper_mut().unwrap().reset();
     // 3rd prompt: start date
     println!("Start date? YYYY-MM-DD or 'start'");
     let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
@@ -477,6 +579,7 @@ fn match_print_top(
     rl: &mut Editor<ShellHelper, FileHistory>,
     asp: &Aspect,
 ) -> Result<(), Box<dyn Error>> {
+    rl.helper_mut().unwrap().reset();
     // prompt: top n
     println!("How many Top {asp}?");
     let usr_input_n = rl.readline(PROMPT_MAIN)?;
@@ -492,6 +595,7 @@ fn match_plot(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // prompt: what to plot
+    rl.helper_mut().unwrap().complete_aspects();
     println!("What do you want to plot? artist, album or song?");
     let usr_input_asp = rl.readline(PROMPT_SECONDARY)?;
 
@@ -509,6 +613,7 @@ fn match_plot_relative(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // prompt: what to plot
+    rl.helper_mut().unwrap().complete_aspects();
     println!("What do you want to plot? artist, album or song?");
     let usr_input_asp = rl.readline(PROMPT_SECONDARY)?;
 
@@ -526,11 +631,13 @@ fn match_plot_compare(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // first trace
+    rl.helper_mut().unwrap().complete_aspects();
     println!("1st trace: artist, album or song?");
     let usr_input_asp_one = rl.readline(PROMPT_SECONDARY)?;
     let trace_one = get_absolute_trace(entries, rl, usr_input_asp_one.as_str())?;
 
     // second trace
+    rl.helper_mut().unwrap().complete_aspects();
     println!("2nd trace: artist, album or song?");
     let usr_input_asp_two = rl.readline(PROMPT_SECONDARY)?;
     let trace_two = get_absolute_trace(entries, rl, usr_input_asp_two.as_str())?;
@@ -546,11 +653,13 @@ fn match_plot_compare_relative(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // first trace
+    rl.helper_mut().unwrap().complete_aspects();
     println!("1st trace: artist, album or song?");
     let usr_input_asp_one = rl.readline(PROMPT_SECONDARY)?;
     let trace_one = get_relative_trace(entries, rl, usr_input_asp_one.as_str())?;
 
     // second trace
+    rl.helper_mut().unwrap().complete_aspects();
     println!("2nd trace: artist, album or song?");
     let usr_input_asp_two = rl.readline(PROMPT_SECONDARY)?;
     let trace_two = get_relative_trace(entries, rl, usr_input_asp_two.as_str())?;
@@ -594,6 +703,7 @@ fn match_plot_artist(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
@@ -607,11 +717,13 @@ fn match_plot_album(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: album name
+    rl.helper_mut().unwrap().complete_list(entries.albums(&art));
     println!("Album name?");
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
@@ -625,16 +737,19 @@ fn match_plot_song(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: album name
+    rl.helper_mut().unwrap().complete_list(entries.albums(&art));
     println!("Album name?");
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
 
     // 3rd prompt: song name
+    rl.helper_mut().unwrap().complete_list(entries.songs(&alb));
     println!("Song name?");
     let usr_input_son = rl.readline(PROMPT_MAIN)?;
     let son = entries
@@ -650,6 +765,7 @@ fn match_plot_artist_relative(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
@@ -663,16 +779,21 @@ fn match_plot_album_relative(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: album name
+    rl.helper_mut().unwrap().complete_list(entries.albums(&art));
     println!("Album name?");
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
 
     // 3rd prompt: relative to what
+    rl.helper_mut()
+        .unwrap()
+        .complete_list(vec!["all".to_string(), "artist".to_string()]);
     println!("Relative to all or artist?");
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
@@ -689,16 +810,19 @@ fn match_plot_song_relative(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
     // 1st prompt: artist name
+    rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     let art = entries.find().artist(&usr_input_art)?;
 
     // 2nd prompt: album name
+    rl.helper_mut().unwrap().complete_list(entries.albums(&art));
     println!("Album name?");
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
 
     // 3rd prompt: song name
+    rl.helper_mut().unwrap().complete_list(entries.songs(&alb));
     println!("Song name?");
     let usr_input_son = rl.readline(PROMPT_MAIN)?;
     let son = entries
@@ -706,6 +830,12 @@ fn match_plot_song_relative(
         .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)?;
 
     // 4th prompt: relative to what
+    rl.helper_mut().unwrap().complete_list(vec![
+        "all".to_string(),
+        "artist".to_string(),
+        "album".to_string(),
+    ]);
+
     println!("Relative to all, artist or album?");
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
