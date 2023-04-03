@@ -333,6 +333,45 @@ impl SongEntries {
         sum
     }
 
+    /// Finds the date period with the most listening time for the given `time_span`
+    pub fn max_listening_time(
+        &self,
+        time_span: Duration,
+    ) -> (Duration, DateTime<Tz>, DateTime<Tz>) {
+        let first = self.first_date();
+        let last = self.last_date();
+
+        let actual_time_span = match time_span {
+            // maximum duration is whole dataset?
+            x if x >= last - first => {
+                return (self.total_listening_time(), first, last);
+            }
+            // minimum duration is 1 day
+            x if x < Duration::days(1) => Duration::days(1),
+            //
+            _ => time_span,
+        };
+
+        let mut highest = Duration::seconds(0);
+        let mut start_max = first;
+        let mut end_max = first + actual_time_span;
+
+        let mut start = start_max;
+        let mut end = end_max;
+
+        while end <= last {
+            let current = self.listening_time(&start, &end);
+            if current > highest {
+                highest = current;
+                start_max = start;
+                end_max = end;
+            }
+            start += Duration::days(1);
+            end += Duration::days(1);
+        }
+        (highest, start_max, end_max)
+    }
+
     /// Returns a [`Vec<String>`] with the names of all [`Artist`]s in the dataset
     pub fn artists(&self) -> Vec<String> {
         let mut vec = self

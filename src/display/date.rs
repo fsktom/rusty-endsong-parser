@@ -11,20 +11,26 @@ use crate::types::{Album, Artist, Song};
 use super::print_album;
 
 /// Prints the time played in a date range
+#[allow(clippy::cast_precision_loss)]
 pub fn print_time_played(
     entries: &crate::types::SongEntries,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) {
     let duration = entries.listening_time(start, end);
+    let period = *end - *start;
 
     println!(
-        "You've spent {} days - or {} hours - or {} minutes listening to music between {} and {}!",
+        "You've spent {} days ({:.2}%) ({} hours / {} minutes) listening to music between {} and {} ({} days à {} plays/day & {} hours/day)!",
         &duration.num_days(),
+        ((duration.num_minutes() as f64) / (period.num_minutes() as f64)) * 100.0,
         &duration.num_hours(),
         &duration.num_minutes(),
         start.date_naive(),
-        end.date_naive()
+        end.date_naive(),
+        period.num_days(),
+        sum_plays(entries, start, end) as i64 / period.num_days(),
+        duration.num_hours() / period.num_days(),
     );
 }
 

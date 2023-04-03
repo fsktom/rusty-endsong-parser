@@ -119,6 +119,13 @@ fn test(entries: &SongEntries) {
         &entries.total_listening_time(),
         &entries.listening_time(&entries.first_date(), &entries.last_date())
     );
+
+    let (time, start, end) = entries.max_listening_time(chrono::Duration::weeks(26 * 9));
+    dbg!(time.num_minutes(), start.date_naive(), end.date_naive());
+
+    dbg!(display::date::sum_plays(entries, &start, &end));
+    display::date::print_time_played(entries, &start, &end);
+    dbg!(entries.listening_time(&start, &end).num_minutes());
 }
 
 /// tests various [`plot`] functions
