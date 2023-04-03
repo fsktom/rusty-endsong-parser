@@ -59,7 +59,10 @@ pub trait Music: Display {
     fn is_entry(&self, entry: &SongEntry) -> bool;
 }
 
-/// Trait used to accept both [`Album`] and [`Song`]
+/// Trait used to accept only [`Artist`] and [`Album`]
+pub trait HasSongs: Music {}
+
+/// Trait used to accept only [`Album`] and [`Song`]
 pub trait HasArtist: Music {
     /// Returns a reference to the corresponding [`Artist`]
     fn artist(&self) -> &Artist;
@@ -95,6 +98,7 @@ impl Music for Artist {
         entry.artist.eq(&self.name)
     }
 }
+impl HasSongs for Artist {}
 
 /// Struct for representing an album
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
@@ -132,6 +136,7 @@ impl Music for Album {
         entry.artist.eq(&self.artist.name) && entry.album.eq(&self.name)
     }
 }
+impl HasSongs for Album {}
 impl HasArtist for Album {
     fn artist(&self) -> &Artist {
         &self.artist
@@ -322,6 +327,49 @@ impl SongEntries {
             sum = sum + entry.time_played;
         }
         sum
+    }
+
+    /// Returns a [`Vec<String>`] with the names of all [`Artist`]s in the dataset
+    pub fn artists(&self) -> Vec<String> {
+        let mut vec = self
+            .iter()
+            .map(|entry| entry.artist.clone())
+            .collect::<Vec<String>>();
+        vec.sort();
+        // sort and dedup to remove duplicates xd
+        // https://www.reddit.com/r/rust/comments/38zzbk/best_way_to_remove_duplicates_from_a_veclist/crz84bq/
+        vec.dedup();
+        vec
+    }
+
+    /// Returns a [`Vec<String>`] with the names of the [`Album`]s
+    /// corresponding to the `artist`
+    pub fn albums(&self, artist: &Artist) -> Vec<String> {
+        let mut vec = self
+            .iter()
+            .filter(|entry| artist.is_entry(entry))
+            .map(|entry| entry.album.clone())
+            .collect::<Vec<String>>();
+        vec.sort();
+        // sort and dedup to remove duplicates xd
+        // https://www.reddit.com/r/rust/comments/38zzbk/best_way_to_remove_duplicates_from_a_veclist/crz84bq/
+        vec.dedup();
+        vec
+    }
+
+    /// Returns a [`Vec<String>`] with the names of the [`Song`]s
+    /// corresponding to the `album`
+    pub fn songs<Asp: HasSongs>(&self, aspect: &Asp) -> Vec<String> {
+        let mut vec = self
+            .iter()
+            .filter(|entry| aspect.is_entry(entry))
+            .map(|entry| entry.track.clone())
+            .collect::<Vec<String>>();
+        vec.sort();
+        // sort and dedup to remove duplicates xd
+        // https://www.reddit.com/r/rust/comments/38zzbk/best_way_to_remove_duplicates_from_a_veclist/crz84bq/
+        vec.dedup();
+        vec
     }
 
     /// Adds search capability
