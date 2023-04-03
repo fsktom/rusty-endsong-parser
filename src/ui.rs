@@ -108,7 +108,10 @@ impl ShellHelper {
         ];
 
         // so that I don't have to call .to_string() on every single entry in the array above...
-        self.completer_list = temp.iter().map(|s| s.to_string()).collect::<Vec<String>>();
+        self.completer_list = temp
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<String>>();
     }
 
     /// Changes tab-complete to ["artist", "album", "song"]
