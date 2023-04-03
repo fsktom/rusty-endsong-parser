@@ -87,7 +87,7 @@ impl ShellHelper {
 
     /// Changes tab-complete to prompt commands
     fn complete_commands(&mut self) {
-        let temp = [
+        self.completer_list = string_vec(&[
             "help",
             "print time",
             "print time date",
@@ -105,22 +105,12 @@ impl ShellHelper {
             "plot rel",
             "plot compare",
             "plot compare rel",
-        ];
-
-        // so that I don't have to call .to_string() on every single entry in the array above...
-        self.completer_list = temp
-            .iter()
-            .map(std::string::ToString::to_string)
-            .collect::<Vec<String>>();
+        ]);
     }
 
     /// Changes tab-complete to ["artist", "album", "song"]
     fn complete_aspects(&mut self) {
-        self.completer_list = vec![
-            "artist".to_string(),
-            "album".to_string(),
-            "song".to_string(),
-        ];
+        self.completer_list = string_vec(&["artist", "album", "song"]);
     }
 
     /// Changes tab-complete to all artists
@@ -171,6 +161,14 @@ impl Completer for ShellHelper {
         // assumes no escape characters...
         Ok((0, possibilities))
     }
+}
+
+/// Converts a collection of [`&str`][str]s into a [`Vec<String>`]
+fn string_vec(slice: &[&str]) -> Vec<String> {
+    slice
+        .iter()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<String>>()
 }
 
 /// Starts the CLI/shell instance
@@ -796,7 +794,7 @@ fn match_plot_album_relative(
     // 3rd prompt: relative to what
     rl.helper_mut()
         .unwrap()
-        .complete_list(vec!["all".to_string(), "artist".to_string()]);
+        .complete_list(string_vec(&["all", "artist"]));
     println!("Relative to all or artist?");
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
@@ -833,11 +831,9 @@ fn match_plot_song_relative(
         .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)?;
 
     // 4th prompt: relative to what
-    rl.helper_mut().unwrap().complete_list(vec![
-        "all".to_string(),
-        "artist".to_string(),
-        "album".to_string(),
-    ]);
+    rl.helper_mut()
+        .unwrap()
+        .complete_list(string_vec(&["all", "artist", "album"]));
 
     println!("Relative to all, artist or album?");
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
