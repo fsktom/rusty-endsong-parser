@@ -195,19 +195,16 @@ pub fn start(entries: &SongEntries) {
     rl.set_helper(Some(helper));
 
     let history_path = std::path::Path::new(".rep_history");
-    if !history_path.exists() {
-        match std::fs::File::create(history_path) {
-            Ok(_) => {}
-            Err(e) => {
-                eprintln!("Failed to create history file: {e}");
-            }
+    if !history_path.try_exists().unwrap() {
+        if let Err(e) = std::fs::File::create(history_path) {
+            eprintln!("Failed to create history file: {e}");
         }
     }
-    match rl.load_history(history_path) {
-        Ok(_) => (),
-        Err(e) => {
-            eprintln!("Failed to load history file at .rep_history: {e}");
-        }
+    if let Err(e) = rl.load_history(history_path) {
+        eprintln!(
+            "Failed to load history file at {}: {e}",
+            history_path.to_str().unwrap()
+        );
     }
 
     loop {
@@ -235,14 +232,11 @@ pub fn start(entries: &SongEntries) {
         rl.helper_mut().unwrap().complete_commands();
     }
 
-    match rl.save_history(history_path) {
-        Ok(_) => (),
-        Err(e) => {
-            eprintln!(
-                "Failed to save history to file {}: {e}",
-                &history_path.to_str().unwrap()
-            );
-        }
+    if let Err(e) = rl.save_history(history_path) {
+        eprintln!(
+            "Failed to save history to file {}: {e}",
+            history_path.to_str().unwrap()
+        );
     }
 }
 
