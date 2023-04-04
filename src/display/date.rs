@@ -41,7 +41,7 @@ pub fn print_time_played(
 /// * `asp` - the aspect you want informationa about containing the
 /// relevant struct
 pub fn print_aspect(
-    entries: &Vec<SongEntry>,
+    entries: &[SongEntry],
     asp: &AspectFull,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
@@ -86,7 +86,7 @@ pub fn print_aspect(
 
 /// Used by [`print_aspect()`]
 fn print_artist(
-    entries: &Vec<SongEntry>,
+    entries: &[SongEntry],
     artist: &HashMap<Album, u32>,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
@@ -127,7 +127,7 @@ pub fn gather_plays<Asp: Music>(
 ///
 /// Basically [`super::gather_albums_with_artist()`] but with date functionality
 fn gather_albums_with_artist_date(
-    entries: &Vec<SongEntry>,
+    entries: &[SongEntry],
     art: &Artist,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
@@ -151,7 +151,7 @@ fn gather_albums_with_artist_date(
 ///
 /// Basically [`super::gather_songs_with_album()`] but with date functionality
 fn gather_songs_with_album_date(
-    entries: &Vec<SongEntry>,
+    entries: &[SongEntry],
     alb: &Album,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,

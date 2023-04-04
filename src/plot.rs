@@ -50,7 +50,7 @@ pub fn compare(trace_one: (Box<dyn Trace>, String), trace_two: (Box<dyn Trace>, 
 /// * `add_now` - with this set to true, it will put the current time as the last date,
 /// otherwise it will be the last occurrence of `aspect`
 pub fn find_dates<Asp: Music>(
-    entries: &Vec<SongEntry>,
+    entries: &[SongEntry],
     aspect: &Asp,
     add_now: bool,
 ) -> Vec<DateTime<Tz>> {
