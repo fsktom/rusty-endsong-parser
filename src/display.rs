@@ -254,34 +254,30 @@ fn gather_songs(entries: &Vec<SongEntry>) -> HashMap<Song, u32> {
 }
 
 /// Used by [`print_top_helper()`]
-fn gather_songs_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Song, u32> {
+fn gather_songs_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        if Artist::new(&entry.artist) != *art {
-            continue;
+        if art.is_entry(entry) {
+            let song = Song::new(&entry.track, &entry.album, &entry.artist);
+
+            *songs.entry(song).or_insert(0) += 1;
         }
-
-        let song = Song::new(&entry.track, &entry.album, &entry.artist);
-
-        *songs.entry(song).or_insert(0) += 1;
     }
 
     songs
 }
 
 /// Used by [`print_top_helper()`], [`print_aspect()`] and [`print_album()`]
-fn gather_songs_with_album(entries: &Vec<SongEntry>, alb: &Album) -> HashMap<Song, u32> {
+fn gather_songs_with_album(entries: &[SongEntry], alb: &Album) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        if Album::new(&entry.album, &entry.artist) != *alb {
-            continue;
+        if alb.is_entry(entry) {
+            let song = Song::new(&entry.track, &entry.album, &entry.artist);
+
+            *songs.entry(song).or_insert(0) += 1;
         }
-
-        let song = Song::new(&entry.track, &entry.album, &entry.artist);
-
-        *songs.entry(song).or_insert(0) += 1;
     }
 
     songs
@@ -301,15 +297,14 @@ fn gather_albums(entries: &Vec<SongEntry>) -> HashMap<Album, u32> {
 }
 
 /// Used by [`print_top_helper()`] and [`print_aspect()`]
-fn gather_albums_with_artist(entries: &Vec<SongEntry>, art: &Artist) -> HashMap<Album, u32> {
+fn gather_albums_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
     for entry in entries {
-        if Artist::new(&entry.artist) != *art {
-            continue;
+        if art.is_entry(entry) {
+            let album = Album::new(&entry.album, &entry.artist);
+            *albums.entry(album).or_insert(0) += 1;
         }
-        let album = Album::new(&entry.album, &entry.artist);
-        *albums.entry(album).or_insert(0) += 1;
     }
 
     albums
@@ -467,9 +462,9 @@ pub fn find_song_from_album(
 
     for entry in entries {
         if Song::new(
-            &entry.track.to_lowercase(),
-            &entry.album.to_lowercase(),
-            &entry.artist.to_lowercase(),
+            entry.track.to_lowercase(),
+            entry.album.to_lowercase(),
+            entry.artist.to_lowercase(),
         )
         .eq(&usr_song)
         {
