@@ -85,18 +85,28 @@ fn print_top_helper<T: Music>(music_dict: &HashMap<T, u32>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
     let mut music_vec: Vec<(&T, &u32)> = music_dict.iter().collect();
     music_vec.sort_by(|a, b| b.1.cmp(a.1));
-    // TODO: secondary sorting
-    //       if plays are equal -> sort A->Z
+    // secondary sorting: if plays are equal -> sort A->Z
+    let mut new_vec: Vec<(&T, &u32)> = Vec::with_capacity(music_vec.len());
+    let mut temp: Vec<(&T, &u32)> = vec![*music_vec.first().unwrap()];
+    for el in music_vec {
+        if el.1 == temp.first().unwrap().1 {
+            temp.push(el);
+        } else {
+            temp.sort_by(|a, b| a.0.to_string().cmp(&b.0.to_string()));
+            new_vec.append(&mut temp);
+            temp = vec![el];
+        }
+    }
 
     // if the number of unique songs/... is lower than the parsed num
-    let ind: usize = if music_vec.len() < num {
-        music_vec.len()
+    let ind: usize = if new_vec.len() < num {
+        new_vec.len()
     } else {
         num
     };
 
     for i in 0..ind {
-        let mus = music_vec.get(i).unwrap();
+        let mus = new_vec.get(i).unwrap();
         let m = mus.0;
         let n = mus.1;
         println!("{}: {} | {} plays", leading_whitespace(i + 1, ind), m, n);
