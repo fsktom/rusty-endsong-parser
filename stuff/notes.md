@@ -61,3 +61,6 @@ and in VSC:
 
 [With Criterion crate](https://youtu.be/eIB3Pd5LBkc)
 [use also `cargo criterion`](https://crates.io/crates/cargo-criterion)
+
+### Performance
+[very good interview](https://www.youtube.com/watch?v=OtozASk68Os) - a lot applies to this program/my style of programming as well (e.g. the whole memory allocations I removed in [8b0fcdc](https://github.com/fsktom/rusty-endsong-parser/commit/8b0fcdc2d9f0cfbf9faae18de88b47e1a427326c)
