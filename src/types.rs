@@ -54,7 +54,7 @@ impl Display for Aspect {
 
 /// Used for functions that accept either
 /// a [`Song`], [`Album`] or [`Artist`] struct
-pub trait Music: Display + Clone {
+pub trait Music: Display + Clone + Eq + Ord {
     /// Checks if a [`SongEntry`] is a [`Music`]
     fn is_entry(&self, entry: &SongEntry) -> bool;
 }
@@ -69,7 +69,7 @@ pub trait HasArtist: Music {
 }
 
 /// Struct for representing an artist
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone, PartialOrd, Ord)]
 pub struct Artist {
     /// Name of the artist
     pub name: String,
@@ -96,7 +96,7 @@ impl Music for Artist {
 impl HasSongs for Artist {}
 
 /// Struct for representing an album
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone, PartialOrd, Ord)]
 pub struct Album {
     /// Name of the album
     pub name: String,
@@ -132,7 +132,7 @@ impl HasArtist for Album {
 
 /// Struct for representing a song
 // to allow for custom HashMap key
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone, PartialOrd, Ord)]
 pub struct Song {
     /// Name of the song
     pub name: String,

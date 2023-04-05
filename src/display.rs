@@ -81,48 +81,57 @@ pub fn print_top_from_album(entries: &[SongEntry], album: &Album, num: usize) {
 }
 
 /// Used by [`print_top()`]
-fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
+fn print_top_helper<Asp: Music>(music_dict: HashMap<Asp, u32>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
-    let mut music_vec: Vec<(T, u32)> = music_dict.into_iter().collect();
+    let mut music_vec: Vec<(Asp, u32)> = music_dict.into_iter().collect();
     let length = music_vec.len();
 
     // primary sorting: sort by plays
     music_vec.sort_by(|a, b| b.1.cmp(&a.1));
 
     // secondary sorting: if plays are equal -> sort A->Z
-    let mut new_vec: Vec<(T, u32)> = Vec::with_capacity(length);
-    let first = music_vec.first().unwrap().to_owned();
-    let mut temp: Vec<(T, u32)> = vec![first.clone()];
+    let mut alphabetical: Vec<(Asp, u32)> = Vec::with_capacity(length);
+    let mut same_plays: Vec<(Asp, u32)> = vec![music_vec.first().unwrap().to_owned()];
     for el in music_vec {
-        if el.0.to_string() == first.0.to_string() {
+        let first = same_plays.first().unwrap();
+        // ignore first element of list (cause it's already in same_plays)
+        if el.0 == first.0 {
             continue;
         }
-        if el.1 == temp.first().unwrap().1 {
-            temp.push(el);
+
+        // if the plays of the new element are equal to the one(s) already
+        // in same_plays -> add element to same_plays
+        if el.1 == first.1 {
+            same_plays.push(el);
+        // if they're not equal, that means same_plays can be sorted alphabetically
+        // bc all elements have same num of plays
+        // and then added to the new vector
         } else {
-            temp.sort_by(|a, b| a.0.to_string().cmp(&b.0.to_string()));
-            new_vec.append(&mut temp);
-            temp = vec![el];
+            same_plays.sort_by(|a, b| a.0.cmp(&b.0));
+            alphabetical.append(&mut same_plays);
+            same_plays = vec![el];
         }
     }
-    temp.sort_by(|a, b| a.0.to_string().cmp(&b.0.to_string()));
-    new_vec.append(&mut temp);
+    // final step bc possible that last element has same num of plays
+    // as the second-to-last element
+    same_plays.sort_by(|a, b| a.0.cmp(&b.0));
+    alphabetical.append(&mut same_plays);
 
     // something must have gone wrong if this fails
-    assert!(new_vec.len() == length);
+    assert!(alphabetical.len() == length);
 
     // if the number of unique aspects is lower than the parsed num
-    let ind: usize = if length < num { length } else { num };
+    let max_num: usize = if length < num { length } else { num };
 
-    for (i, (asp, plays)) in new_vec.iter().enumerate() {
+    for (i, (asp, plays)) in alphabetical.iter().enumerate() {
         println!(
             "{}: {} | {} plays",
-            leading_whitespace(i + 1, ind),
+            leading_whitespace(i + 1, max_num),
             asp,
             plays
         );
 
-        if i + 1 == ind {
+        if i + 1 == max_num {
             break;
         }
     }
