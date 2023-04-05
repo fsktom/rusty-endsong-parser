@@ -362,9 +362,9 @@ fn gather_artists(entries: &[SongEntry]) -> HashMap<Artist, u32> {
 /// * `asp` - the aspect you want informationa about containing the
 /// relevant struct
 pub fn print_aspect(entries: &[SongEntry], asp: &AspectFull) {
-    match asp {
+    match *asp {
         AspectFull::Artist(art) => {
-            println!("=== {} | {} plays ===", art, gather_plays(entries, *art));
+            println!("=== {} | {} plays ===", art, gather_plays(entries, art));
             // TODO! currently print_artist uses the whole time for num of plays!!!
             // e.g. printing Alestorm between 2022-01-01 and 2022-07-01
             // on only `endsong_0.json`
@@ -376,12 +376,12 @@ pub fn print_aspect(entries: &[SongEntry], asp: &AspectFull) {
             print_artist(entries, &gather_albums_with_artist(entries, art));
         }
         AspectFull::Album(alb) => {
-            println!("=== {} | {} plays ===", alb, gather_plays(entries, *alb));
+            println!("=== {} | {} plays ===", alb, gather_plays(entries, alb));
             // TODO! currently print_album uses the whole time for num of plays!!!
             print_album(&gather_songs_with_album(entries, alb));
         }
         AspectFull::Song(son) => {
-            println!("{} | {} plays", son, gather_plays(entries, *son));
+            println!("{} | {} plays", son, gather_plays(entries, son));
         }
     }
 }
@@ -395,34 +395,25 @@ fn gather_plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
 }
 
 /// Used by [`print_aspect()`]
-fn print_artist(entries: &[SongEntry], artist: &HashMap<Album, u32>) {
-    let mut artist_vec: Vec<(&Album, &u32)> = artist.iter().collect();
-    artist_vec.sort_by(|a, b| b.1.cmp(a.1));
+fn print_artist(entries: &[SongEntry], albums: &HashMap<Album, u32>) {
+    let mut albums_vec: Vec<(&Album, &u32)> = albums.iter().collect();
+    albums_vec.sort_by(|a, b| b.1.cmp(a.1));
 
-    for i in 0..artist_vec.len() {
-        let alb = artist_vec.get(i).unwrap().0;
-        let mus = gather_songs_with_album(entries, alb);
-        // calling gather_album here is unnecessary work
-        // it should add up the total plays somehwere else
-        println!("--- {} | {} plays ---", alb, gather_plays(entries, alb));
-        print_album(&mus);
+    for (alb, plays) in albums_vec {
+        println!("--- {alb} | {plays} plays ---");
+        print_album(&gather_songs_with_album(entries, alb));
     }
 }
 
 /// Used by [`print_aspect()`]
-fn print_album(album: &HashMap<Song, u32>) {
-    let mut album_vec: Vec<(&Song, &u32)> = album.iter().collect();
-    album_vec.sort_by(|a, b| b.1.cmp(a.1));
+fn print_album(songs: &HashMap<Song, u32>) {
+    let mut songs_vec: Vec<(&Song, &u32)> = songs.iter().collect();
+    songs_vec.sort_by(|a, b| b.1.cmp(a.1));
 
-    for i in 0..album_vec.len() {
-        let mus = album_vec.get(i).unwrap();
-        let m = mus.0;
-        let n = mus.1;
+    for (i, (song, plays)) in songs_vec.iter().enumerate() {
         println!(
-            "{}: {} | {} plays",
-            leading_whitespace(i + 1, album_vec.len()),
-            m,
-            n
+            "{}: {song} | {plays} plays",
+            leading_whitespace(i + 1, songs_vec.len())
         );
     }
 }

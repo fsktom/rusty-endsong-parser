@@ -4,11 +4,10 @@ use chrono::DateTime;
 use chrono_tz::Tz;
 
 use crate::types::AspectFull;
+use crate::types::IsBetween;
 use crate::types::Music;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
-
-use super::print_album;
 
 /// Prints the time played in a date range
 #[allow(clippy::cast_precision_loss)]
@@ -46,18 +45,18 @@ pub fn print_aspect(
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) {
-    match asp {
+    match *asp {
         AspectFull::Artist(art) => {
             println!(
                 "=== {} between {} and {} | {} plays ===",
                 art,
                 start.date_naive(),
                 end.date_naive(),
-                gather_plays(entries, *art, start, end)
+                gather_plays(entries, art, start, end)
             );
             print_artist(
                 entries,
-                &gather_albums_with_artist_date(entries, art, start, end),
+                &gather_albums_with_artist(entries, art, start, end),
                 start,
                 end,
             );
@@ -68,9 +67,9 @@ pub fn print_aspect(
                 alb,
                 start.date_naive(),
                 end.date_naive(),
-                gather_plays(entries, *alb, start, end)
+                gather_plays(entries, alb, start, end)
             );
-            print_album(&gather_songs_with_album_date(entries, alb, start, end));
+            super::print_album(&gather_songs_with_album(entries, alb, start, end));
         }
         AspectFull::Song(son) => {
             println!(
@@ -78,7 +77,7 @@ pub fn print_aspect(
                 son,
                 start.date_naive(),
                 end.date_naive(),
-                gather_plays(entries, *son, start, end)
+                gather_plays(entries, son, start, end)
             );
         }
     }
@@ -87,24 +86,16 @@ pub fn print_aspect(
 /// Used by [`print_aspect()`]
 fn print_artist(
     entries: &[SongEntry],
-    artist: &HashMap<Album, u32>,
+    albums: &HashMap<Album, u32>,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) {
-    let mut artist_vec: Vec<(&Album, &u32)> = artist.iter().collect();
-    artist_vec.sort_by(|a, b| b.1.cmp(a.1));
+    let mut albums_vec: Vec<(&Album, &u32)> = albums.iter().collect();
+    albums_vec.sort_by(|a, b| b.1.cmp(a.1));
 
-    for i in 0..artist_vec.len() {
-        let alb = artist_vec.get(i).unwrap().0;
-        let mus = gather_songs_with_album_date(entries, alb, start, end);
-        // calling gather_album here is unnecessary work
-        // it should add up the total plays somehwere else
-        println!(
-            "--- {} | {} plays ---",
-            alb,
-            gather_plays(entries, alb, start, end)
-        );
-        print_album(&mus);
+    for (alb, plays) in albums_vec {
+        println!("--- {alb} | {plays} plays ---");
+        super::print_album(&gather_songs_with_album(entries, alb, start, end));
     }
 }
 
@@ -119,14 +110,14 @@ pub fn gather_plays<Asp: Music>(
 ) -> usize {
     entries
         .iter()
-        .filter(|entry| aspect.is_entry(entry) && is_between(&entry.timestamp, start, end))
+        .filter(|entry| aspect.is_entry(entry) && entry.timestamp.is_between(start, end))
         .count()
 }
 
 /// Used by [`print_aspect()`]
 ///
 /// Basically [`super::gather_albums_with_artist()`] but with date functionality
-fn gather_albums_with_artist_date(
+fn gather_albums_with_artist(
     entries: &[SongEntry],
     art: &Artist,
     start: &DateTime<Tz>,
@@ -135,22 +126,19 @@ fn gather_albums_with_artist_date(
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
     for entry in entries {
-        if Artist::new(&entry.artist) != *art {
-            continue;
-        }
-        if entry.timestamp.ge(start) && entry.timestamp.le(end) {
-            let album = Album::new(&entry.album, &entry.artist);
-            *albums.entry(album).or_insert(0) += 1;
+        if art.is_entry(entry) && entry.timestamp.is_between(start, end) {
+            let alb = Album::new(&entry.album, &entry.artist);
+            *albums.entry(alb).or_insert(0) += 1;
         }
     }
 
     albums
 }
 
-/// Used by [`print_aspect()`]
+/// Used by [`print_aspect()`] and [`print_artist()`]
 ///
 /// Basically [`super::gather_songs_with_album()`] but with date functionality
-fn gather_songs_with_album_date(
+fn gather_songs_with_album(
     entries: &[SongEntry],
     alb: &Album,
     start: &DateTime<Tz>,
@@ -159,13 +147,8 @@ fn gather_songs_with_album_date(
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        if Album::new(&entry.album, &entry.artist) != *alb {
-            continue;
-        }
-
-        if entry.timestamp.ge(start) && entry.timestamp.le(end) {
+        if alb.is_entry(entry) && entry.timestamp.is_between(start, end) {
             let song = Song::new(&entry.track, &entry.album, &entry.artist);
-
             *songs.entry(song).or_insert(0) += 1;
         }
     }
@@ -177,11 +160,6 @@ fn gather_songs_with_album_date(
 pub fn sum_plays(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>) -> usize {
     entries
         .iter()
-        .filter(|entry| is_between(&entry.timestamp, start, end))
+        .filter(|entry| entry.timestamp.is_between(start, end))
         .count()
-}
-
-/// Checks if the given date is between (or equal) to the other two dates
-pub fn is_between(date: &DateTime<Tz>, start: &DateTime<Tz>, end: &DateTime<Tz>) -> bool {
-    date.ge(start) && date.le(end)
 }

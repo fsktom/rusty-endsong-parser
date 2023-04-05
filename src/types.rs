@@ -180,7 +180,7 @@ impl HasArtist for Song {
 #[derive(Clone, Debug)]
 pub struct SongEntry {
     /// the time at which the song has been played
-    pub timestamp: DateTime<chrono_tz::Tz>,
+    pub timestamp: DateTime<Tz>,
     /// for how long the song has been played
     pub time_played: Duration,
     /// name of the song
@@ -301,7 +301,7 @@ impl SongEntries {
         let mut sum = Duration::milliseconds(0);
         for entry in self
             .iter()
-            .filter(|entry| crate::display::date::is_between(&entry.timestamp, start, end))
+            .filter(|entry| entry.timestamp.is_between(start, end))
         {
             // AddAssign is not implemented in time-0.1.45 yet which most recent chrono
             // version 0.4 is using :)))
@@ -640,6 +640,19 @@ impl Display for Color {
             Color::Red => write!(f, "\x1b[1;31m"),
             Color::Pink => write!(f, "\x1b[1;35m"),
         }
+    }
+}
+
+/// Trait for comparing dates (for now)
+pub trait IsBetween {
+    /// Checks if the given date is between (or equal) to the other two dates
+    ///
+    /// Can possibly be later used for things other than dates too lol
+    fn is_between(&self, start: &Self, end: &Self) -> bool;
+}
+impl IsBetween for DateTime<Tz> {
+    fn is_between(&self, start: &Self, end: &Self) -> bool {
+        self >= start && self <= end
     }
 }
 
