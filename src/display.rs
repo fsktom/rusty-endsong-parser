@@ -32,17 +32,17 @@ pub fn print_top(entries: &[SongEntry], asp: &Aspect, num: usize) {
     match asp {
         Aspect::Songs => {
             println!("=== TOP {num} SONGS ===");
-            print_top_helper(&gather_songs(entries), num);
+            print_top_helper(gather_songs(entries), num);
             println!();
         }
         Aspect::Albums => {
             println!("=== TOP {num} ALBUMS ===");
-            print_top_helper(&gather_albums(entries), num);
+            print_top_helper(gather_albums(entries), num);
             println!();
         }
         Aspect::Artists => {
             println!("=== TOP {num} ARTISTS ===");
-            print_top_helper(&gather_artists(entries), num);
+            print_top_helper(gather_artists(entries), num);
             println!();
         }
     }
@@ -57,12 +57,12 @@ pub fn print_top_from_artist(entries: &[SongEntry], asp: &Aspect, artist: &Artis
     match asp {
         Aspect::Songs => {
             println!("=== TOP {num} SONGS FROM {artist} ===");
-            print_top_helper(&gather_songs_with_artist(entries, artist), num);
+            print_top_helper(gather_songs_with_artist(entries, artist), num);
             println!();
         }
         Aspect::Albums => {
             println!("=== TOP {num} ALBUMS FROM {artist} ===");
-            print_top_helper(&gather_albums_with_artist(entries, artist), num);
+            print_top_helper(gather_albums_with_artist(entries, artist), num);
             println!();
         }
         Aspect::Artists => println!("gay"),
@@ -76,22 +76,23 @@ pub fn print_top_from_artist(entries: &[SongEntry], asp: &Aspect, artist: &Artis
 /// Will automatically change to total number of songs from that album if `num` is higher than that
 pub fn print_top_from_album(entries: &[SongEntry], album: &Album, num: usize) {
     println!("=== TOP {num} SONGS FROM {album} ===");
-    print_top_helper(&gather_songs_with_album(entries, album), num);
+    print_top_helper(gather_songs_with_album(entries, album), num);
     println!();
 }
 
 /// Used by [`print_top()`]
-fn print_top_helper<T: Music>(music_dict: &HashMap<T, u32>, num: usize) {
+fn print_top_helper<T: Music>(music_dict: HashMap<T, u32>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
-    let mut music_vec: Vec<(&T, &u32)> = music_dict.iter().collect();
+    let mut music_vec: Vec<(T, u32)> = music_dict.into_iter().collect();
     let length = music_vec.len();
 
     // primary sorting: sort by plays
-    music_vec.sort_by(|a, b| b.1.cmp(a.1));
+    music_vec.sort_by(|a, b| b.1.cmp(&a.1));
+
     // secondary sorting: if plays are equal -> sort A->Z
-    let mut new_vec: Vec<(&T, &u32)> = Vec::with_capacity(length);
-    let first = *music_vec.first().unwrap();
-    let mut temp: Vec<(&T, &u32)> = vec![first];
+    let mut new_vec: Vec<(T, u32)> = Vec::with_capacity(length);
+    let first = music_vec.first().unwrap().to_owned();
+    let mut temp: Vec<(T, u32)> = vec![first.clone()];
     for el in music_vec {
         if el.0.to_string() == first.0.to_string() {
             continue;
@@ -110,7 +111,7 @@ fn print_top_helper<T: Music>(music_dict: &HashMap<T, u32>, num: usize) {
     // something must have gone wrong if this fails
     assert!(new_vec.len() == length);
 
-    // if the number of unique songs/... is lower than the parsed num
+    // if the number of unique aspects is lower than the parsed num
     let ind: usize = if length < num { length } else { num };
 
     for (i, (asp, plays)) in new_vec.iter().enumerate() {
