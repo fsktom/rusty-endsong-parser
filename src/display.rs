@@ -84,11 +84,18 @@ pub fn print_top_from_album(entries: &[SongEntry], album: &Album, num: usize) {
 fn print_top_helper<T: Music>(music_dict: &HashMap<T, u32>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
     let mut music_vec: Vec<(&T, &u32)> = music_dict.iter().collect();
+    let length = music_vec.len();
+
+    // primary sorting: sort by plays
     music_vec.sort_by(|a, b| b.1.cmp(a.1));
     // secondary sorting: if plays are equal -> sort A->Z
-    let mut new_vec: Vec<(&T, &u32)> = Vec::with_capacity(music_vec.len());
-    let mut temp: Vec<(&T, &u32)> = vec![*music_vec.first().unwrap()];
+    let mut new_vec: Vec<(&T, &u32)> = Vec::with_capacity(length);
+    let first = *music_vec.first().unwrap();
+    let mut temp: Vec<(&T, &u32)> = vec![first];
     for el in music_vec {
+        if el.0.to_string() == first.0.to_string() {
+            continue;
+        }
         if el.1 == temp.first().unwrap().1 {
             temp.push(el);
         } else {
@@ -97,19 +104,26 @@ fn print_top_helper<T: Music>(music_dict: &HashMap<T, u32>, num: usize) {
             temp = vec![el];
         }
     }
+    temp.sort_by(|a, b| a.0.to_string().cmp(&b.0.to_string()));
+    new_vec.append(&mut temp);
+
+    // something must have gone wrong if this fails
+    assert!(new_vec.len() == length);
 
     // if the number of unique songs/... is lower than the parsed num
-    let ind: usize = if new_vec.len() < num {
-        new_vec.len()
-    } else {
-        num
-    };
+    let ind: usize = if length < num { length } else { num };
 
-    for i in 0..ind {
-        let mus = new_vec.get(i).unwrap();
-        let m = mus.0;
-        let n = mus.1;
-        println!("{}: {} | {} plays", leading_whitespace(i + 1, ind), m, n);
+    for (i, (asp, plays)) in new_vec.iter().enumerate() {
+        println!(
+            "{}: {} | {} plays",
+            leading_whitespace(i + 1, ind),
+            asp,
+            plays
+        );
+
+        if i + 1 == ind {
+            break;
+        }
     }
 }
 
