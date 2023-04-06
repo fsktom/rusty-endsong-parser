@@ -3,6 +3,7 @@
 //! to the [`std::io::stdout`]
 use crate::types::Aspect;
 use crate::types::AspectFull;
+use crate::types::Mode;
 use crate::types::Music;
 use crate::types::NotFoundError;
 use crate::types::SongEntry;
@@ -53,19 +54,18 @@ pub fn print_top(entries: &[SongEntry], asp: &Aspect, num: usize) {
 /// * `asp` - [`Aspect::Songs`] for top songs and [`Aspect::Albums`] for top albums
 /// * `artist` - the [`Artist`] you want the top songs/albums from
 /// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
-pub fn print_top_from_artist(entries: &[SongEntry], asp: &Aspect, artist: &Artist, num: usize) {
-    match asp {
-        Aspect::Songs => {
+pub fn print_top_from_artist(entries: &[SongEntry], mode: &Mode, artist: &Artist, num: usize) {
+    match mode {
+        Mode::Songs => {
             println!("=== TOP {num} SONGS FROM {artist} ===");
             print_top_helper(gather_songs_with_artist(entries, artist), num);
             println!();
         }
-        Aspect::Albums => {
+        Mode::Albums => {
             println!("=== TOP {num} ALBUMS FROM {artist} ===");
             print_top_helper(gather_albums_with_artist(entries, artist), num);
             println!();
         }
-        Aspect::Artists => println!("gay"),
     }
 }
 

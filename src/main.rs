@@ -27,6 +27,7 @@ use chrono::TimeZone;
 
 use types::Aspect;
 use types::AspectFull;
+use types::Mode;
 use types::SongEntries;
 
 use parse::LOCATION_TZ;
@@ -69,8 +70,8 @@ fn test(entries: &SongEntries) {
     entries.print_top(&Aspect::Artists, 10);
 
     let powerwolf = types::Artist::new(String::from("Powerwolf"));
-    entries.print_top_from_artist(&Aspect::Songs, &powerwolf, 10);
-    entries.print_top_from_artist(&Aspect::Albums, &powerwolf, 10);
+    entries.print_top_from_artist(&Mode::Songs, &powerwolf, 10);
+    entries.print_top_from_artist(&Mode::Albums, &powerwolf, 10);
 
     let coat = types::Album::new("Coat of Arms", "Sabaton");
     entries.print_top_from_album(&coat, 50);

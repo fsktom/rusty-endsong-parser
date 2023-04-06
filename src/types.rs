@@ -52,6 +52,17 @@ impl Display for Aspect {
     }
 }
 
+/// For choosing mode of a function, similar to [`Aspect`] but
+/// without [`Aspect::Artists`]
+///
+/// Used in [`display::print_top_from_artist()`]
+pub enum Mode {
+    /// to print albums from artist
+    Albums,
+    /// to print songs from artists
+    Songs,
+}
+
 /// Used for functions that accept either
 /// a [`Song`], [`Album`] or [`Artist`] struct
 pub trait Music: Display + Clone + Eq + Ord {
@@ -243,8 +254,8 @@ impl SongEntries {
     /// Will automatically change to total number of that aspect if `num` is higher than that
     ///
     /// Wrapper for [`display::print_top_from_artist()`]
-    pub fn print_top_from_artist(&self, asp: &Aspect, artist: &Artist, num: usize) {
-        display::print_top_from_artist(self, asp, artist, num);
+    pub fn print_top_from_artist(&self, mode: &Mode, artist: &Artist, num: usize) {
+        display::print_top_from_artist(self, mode, artist, num);
     }
 
     /// Prints top songs from an album
