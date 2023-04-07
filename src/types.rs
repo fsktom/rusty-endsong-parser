@@ -1,5 +1,6 @@
 //! Module containg many types used throughout the program
 // https://doc.rust-lang.org/stable/book/ch06-01-defining-an-enum.html
+use std::cmp::Ordering;
 use std::error::Error;
 use std::fmt::Display;
 
@@ -107,7 +108,7 @@ impl Music for Artist {
 impl HasSongs for Artist {}
 
 /// Struct for representing an album
-#[derive(PartialEq, Eq, Hash, Debug, Clone, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Album {
     /// Name of the album
     pub name: String,
@@ -129,6 +130,26 @@ impl Display for Album {
         write!(f, "{} - {}", self.artist.name, self.name)
     }
 }
+impl PartialOrd for Album {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match self.artist.partial_cmp(&other.artist) {
+            // if the artists are the same, compare the albums
+            Some(Ordering::Equal) => self.name.partial_cmp(&other.name),
+            // otherwise, compare the artists
+            _ => self.artist.partial_cmp(&other.artist),
+        }
+    }
+}
+impl Ord for Album {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.artist.cmp(&other.artist) {
+            // if the artists are the same, compare the albums
+            Ordering::Equal => self.name.cmp(&other.name),
+            // otherwise, compare the artists
+            _ => self.artist.cmp(&other.artist),
+        }
+    }
+}
 impl Music for Album {
     fn is_entry(&self, entry: &SongEntry) -> bool {
         entry.artist.eq(&self.artist.name) && entry.album.eq(&self.name)
@@ -143,7 +164,7 @@ impl HasArtist for Album {
 
 /// Struct for representing a song
 // to allow for custom HashMap key
-#[derive(PartialEq, Eq, Hash, Debug, Clone, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Song {
     /// Name of the song
     pub name: String,
@@ -168,6 +189,36 @@ impl Display for Song {
             "{} - {} ({})",
             self.album.artist.name, self.name, self.album.name
         )
+    }
+}
+impl PartialOrd for Song {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match self.album.artist.partial_cmp(&other.album.artist) {
+            // if the artists are the same, compare the song names
+            Some(Ordering::Equal) => match self.name.partial_cmp(&other.name) {
+                // if the song names are the same, compare the album names
+                Some(Ordering::Equal) => self.album.name.partial_cmp(&other.album.name),
+                // otherwise, compare the song names
+                _ => self.name.partial_cmp(&other.name),
+            },
+            // otherwise, compare the artists
+            _ => self.album.artist.partial_cmp(&other.album.artist),
+        }
+    }
+}
+impl Ord for Song {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.album.artist.cmp(&other.album.artist) {
+            // if the artists are the same, compare the song names
+            Ordering::Equal => match self.name.cmp(&other.name) {
+                // if the song names are the same, compare the album names
+                Ordering::Equal => self.album.name.cmp(&other.album.name),
+                // otherwise, compare the song names
+                _ => self.name.cmp(&other.name),
+            },
+            // otherwise, compare the artists
+            _ => self.album.artist.cmp(&other.album.artist),
+        }
     }
 }
 impl Music for Song {
@@ -711,6 +762,118 @@ mod tests {
                 name: "The Final Solution".to_string(),
                 album: Album::new("Coat of Arms", "Sabaton")
             }
+        );
+    }
+
+    /// Tests [`PartialOrd`] and [`Ord`] for [`Artist`]
+    #[test]
+    fn ord_artist() {
+        assert!(Artist::new("Sabaton") > Artist::new("Sabatoa"));
+        assert!(
+            Artist::new("Sabaton").partial_cmp(&Artist::new("Sabatoa")) == Some(Ordering::Greater)
+        );
+
+        assert!(Artist::new("Sabaton") == Artist::new("Sabaton"));
+        assert!(
+            Artist::new("Sabaton").partial_cmp(&Artist::new("Sabaton")) == Some(Ordering::Equal)
+        );
+
+        assert!(Artist::new("Sabaton") < Artist::new("Sabatoz"));
+        assert!(
+            Artist::new("Sabaton").partial_cmp(&Artist::new("Sabatoz")) == Some(Ordering::Less)
+        );
+    }
+
+    /// Tests [`PartialOrd`] and [`Ord`] for [`Album`]
+    #[test]
+    fn ord_album() {
+        assert!(Album::new("Coat of Arms", "Sabaton") > Album::new("Carolus Rex", "Sabaton"));
+        assert!(
+            Album::new("Coat of Arms", "Sabaton")
+                .partial_cmp(&Album::new("Carolus Rex", "Sabaton"))
+                == Some(Ordering::Greater)
+        );
+
+        assert!(Album::new("AAAA", "ZZZZZ") > Album::new("Carolus Rex", "Sabaton"));
+        assert!(
+            Album::new("AAAA", "ZZZZZ").partial_cmp(&Album::new("Carolus Rex", "Sabaton"))
+                == Some(Ordering::Greater)
+        );
+
+        assert!(Album::new("Carolus Rex", "Sabaton") == Album::new("Carolus Rex", "Sabaton"));
+        assert!(
+            Album::new("Carolus Rex", "Sabaton").partial_cmp(&Album::new("Carolus Rex", "Sabaton"))
+                == Some(Ordering::Equal)
+        );
+
+        assert!(Album::new("ZZZZZZZ", "Alestorm") < Album::new("AAAAAA", "Sabaton"));
+        assert!(
+            Album::new("ZZZZZZZ", "Alestorm").partial_cmp(&Album::new("AAAAAA", "Sabaton"))
+                == Some(Ordering::Less)
+        );
+    }
+
+    /// Tests [`PartialOrd`] and [`Ord`] for [`Song`]
+    #[test]
+    fn ord_song() {
+        assert!(
+            Song::new("Swedish Pagans", "Carolus Rex", "Sabaton")
+                > Song::new("Coat of Arms", "Coat of Arms", "Sabaton")
+        );
+        assert!(
+            Song::new("Swedish Pagans", "Carolus Rex", "Sabaton").partial_cmp(&Song::new(
+                "Coat of Arms",
+                "Coat of Arms",
+                "Sabaton"
+            )) == Some(Ordering::Greater)
+        );
+
+        assert!(
+            Song::new(
+                "Forbidden Equations Deep Within The Epimethean Wasteland",
+                "Hypercube Necrodimensions",
+                "Wizardthrone"
+            ) > Song::new(
+                "Forbidden Equations Deep Within The Epimethean Wasteland",
+                "Forbidden Equations Deep Within The Epimethean Wasteland",
+                "Wizardthrone"
+            )
+        );
+        assert!(
+            Song::new(
+                "Forbidden Equations Deep Within The Epimethean Wasteland",
+                "Hypercube Necrodimensions",
+                "Wizardthrone"
+            )
+            .partial_cmp(&Song::new(
+                "Forbidden Equations Deep Within The Epimethean Wasteland",
+                "Forbidden Equations Deep Within The Epimethean Wasteland",
+                "Wizardthrone"
+            )) == Some(Ordering::Greater)
+        );
+
+        assert!(
+            Song::new("Swedish Pagans", "Carolus Rex", "Sabaton")
+                == Song::new("Swedish Pagans", "Carolus Rex", "Sabaton")
+        );
+        assert!(
+            Song::new("Swedish Pagans", "Carolus Rex", "Sabaton").partial_cmp(&Song::new(
+                "Swedish Pagans",
+                "Carolus Rex",
+                "Sabaton"
+            )) == Some(Ordering::Equal)
+        );
+
+        assert!(
+            Song::new("Hearts on Fire", "Crimson Thunder", "HammerFall")
+                < Song::new("The Final Solution", "Coat of Arms", "Sabaton")
+        );
+        assert!(
+            Song::new("Hearts on Fire", "Crimson Thunder", "HammerFall").partial_cmp(&Song::new(
+                "The Final Solution",
+                "Coat of Arms",
+                "Sabaton"
+            )) == Some(Ordering::Less)
         );
     }
 }
