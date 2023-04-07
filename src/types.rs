@@ -236,14 +236,17 @@ impl SongEntries {
 
     /// Prints the top `num` of an `asp`
     ///
-    /// * `asp` - [`Aspect::Songs`] (affected by [`display::SUM_ALBUMS`]) for top songs, [`Aspect::Albums`] for top albums and
-    /// [`Aspect::Artists`] for top artists
+    /// * `asp` - [`Aspect::Songs`] for top songs, [`Aspect::Albums`]
+    ///  for top albums and [`Aspect::Artists`] for top artists
     /// * `num` - number of displayed top aspects.
     /// Will automatically change to total number of that aspect if `num` is higher than that
-    ///
-    /// Wrapper for [`display::print_top()`]
-    pub fn print_top(&self, asp: &Aspect, num: usize) {
-        display::print_top(self, asp, num);
+    /// * `sum_songs_from_different_albums` - only matters if `asp` is [`Aspect::Songs`].
+    /// If set to true, it will sum up the plays of
+    /// one song across multiple albums it may be in.
+    /// The album displayed in the parantheses will be the one it has the
+    /// highest amount of listens from.
+    pub fn print_top(&self, asp: &Aspect, num: usize, sum_songs_from_different_albums: bool) {
+        display::print_top(self, asp, num, sum_songs_from_different_albums);
     }
 
     /// Prints top songs or albums from an artist

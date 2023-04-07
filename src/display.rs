@@ -15,25 +15,27 @@ use std::collections::HashMap;
 /// date functionality
 pub mod date;
 
-/// If set to true, it will sum up the plays of one song across multiple
-/// albums it may be in
-///
-/// Only applies to printing top songs with [`print_top()`]!
-///
-/// The album displayed in the parantheses will be the one it has the
-/// highest amount of listens from
-pub const SUM_ALBUMS: bool = true;
-
 /// Prints the top `num` of an `asp`
 ///
-/// * `asp` - [`Aspect::Songs`] (affected by [`SUM_ALBUMS`]) for top songs, [`Aspect::Albums`] for top albums and
-/// [`Aspect::Artists`] for top artists
-/// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
-pub fn print_top(entries: &[SongEntry], asp: &Aspect, num: usize) {
+/// * `asp` - [`Aspect::Songs`] for top songs, [`Aspect::Albums`]
+///  for top albums and [`Aspect::Artists`] for top artists
+/// * `num` - number of displayed top aspects.
+/// Will automatically change to total number of that aspect if `num` is higher than that
+/// * `sum_songs_from_different_albums` - only matters if `asp` is [`Aspect::Songs`].
+/// If set to true, it will sum up the plays of
+/// one song across multiple albums it may be in.
+/// The album displayed in the parantheses will be the one it has the
+/// highest amount of listens from.
+pub fn print_top(
+    entries: &[SongEntry],
+    asp: &Aspect,
+    num: usize,
+    sum_songs_from_different_albums: bool,
+) {
     match asp {
         Aspect::Songs => {
             println!("=== TOP {num} SONGS ===");
-            print_top_helper(gather_songs(entries), num);
+            print_top_helper(gather_songs(entries, sum_songs_from_different_albums), num);
             println!();
         }
         Aspect::Albums => {
@@ -172,7 +174,7 @@ fn leading_whitespace(num: usize, max_num: usize) -> String {
 
 /// Basically [`Song`] but without the [`album`][Song] field
 ///
-/// used in [`print_top()`] if [`SUM_ALBUMS`] is set to true
+/// used in [`print_top()`] if `sum_songs_from_different_albums` is set to true
 /// and in [`find_song()`]
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 struct SongJustArtist {
@@ -201,7 +203,10 @@ impl From<&Song> for SongJustArtist {
 
 /// Used by [`print_top_helper()`]
 #[allow(clippy::needless_range_loop)]
-fn gather_songs(entries: &[SongEntry]) -> HashMap<Song, u32> {
+fn gather_songs(
+    entries: &[SongEntry],
+    sum_songs_from_different_albums: bool,
+) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
@@ -213,7 +218,7 @@ fn gather_songs(entries: &[SongEntry]) -> HashMap<Song, u32> {
         *songs.entry(song).or_insert(0) += 1;
     }
 
-    if SUM_ALBUMS {
+    if sum_songs_from_different_albums {
         /// Tuple struct containing an Album with the amount of plays
         #[derive(PartialEq, Eq, Hash, Debug, Clone)]
         struct AlbumPlays(Album, u32);

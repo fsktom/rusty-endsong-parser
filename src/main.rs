@@ -65,9 +65,9 @@ fn main() {
 /// or its wrapper associated methods from [`SongEntries`]
 #[allow(dead_code)]
 fn test(entries: &SongEntries) {
-    entries.print_top(&Aspect::default(), 10);
-    entries.print_top(&Aspect::Albums, 10);
-    entries.print_top(&Aspect::Artists, 10);
+    entries.print_top(&Aspect::default(), 10, false);
+    entries.print_top(&Aspect::Albums, 10, false);
+    entries.print_top(&Aspect::Artists, 10, false);
 
     let powerwolf = types::Artist::new(String::from("Powerwolf"));
     entries.print_top_from_artist(&Mode::Songs, &powerwolf, 10);
