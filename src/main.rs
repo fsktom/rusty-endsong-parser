@@ -51,6 +51,7 @@ fn main() {
         // format!("{root}endsong_5.json"),
         // format!("{root}endsong_6.json"),
         // format!("{root}endsong_7.json"),
+        // format!("{root}endsong_8.json"),
     ];
 
     let entries = SongEntries::new(&paths).unwrap();
