@@ -2,7 +2,7 @@
 //! into usable Rust data types
 use std::error::Error;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::Read;
 use std::path::Path;
 
 use chrono::{DateTime, TimeZone};
@@ -100,8 +100,10 @@ pub struct Entry {
 /// Parses a single `endsong.json` file into a usable format
 fn parse_single<P: AsRef<Path>>(path: P) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     let u = read_entries_from_file(path)?;
-    let mut songs: Vec<SongEntry> = Vec::new();
-    let mut podcasts: Vec<PodEntry> = Vec::new();
+    // at least for me: about 15.8k-15.95k entries per file
+    // to prevent reallocations?
+    let mut songs: Vec<SongEntry> = Vec::with_capacity(16_000);
+    let mut podcasts: Vec<PodEntry> = Vec::with_capacity(1_000);
     for entry in u {
         match entry_to_songentry(entry) {
             Ok(song) => songs.push(song),
@@ -114,7 +116,9 @@ fn parse_single<P: AsRef<Path>>(path: P) -> Result<Vec<SongEntry>, Box<dyn Error
 
 /// Main parsing function that parses many `endsong.json` files
 pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Error>> {
-    let mut song_entries: Vec<SongEntry> = Vec::new();
+    // at least for me: about 15.8k-15.95k entries per file
+    // to prevent reallocations?
+    let mut song_entries: Vec<SongEntry> = Vec::with_capacity(16_000 * paths.len());
     for path in paths {
         let mut one = parse_single(path)?;
         song_entries.append(&mut one);
@@ -125,12 +129,10 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Erro
 // https://docs.serde.rs/serde_json/fn.from_reader.html
 /// Responsible for parsing the json into a vector of the general [Entry]
 fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn Error>> {
-    // Open the file in read-only mode with buffer.
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-
-    // Read the JSON contents of tshe file as an instance of `User`.
-    let full_entries = serde_json::from_reader(reader)?;
+    // https://github.com/serde-rs/json/issues/160#issuecomment-253446892
+    let mut file_contents = String::new();
+    File::open(path)?.read_to_string(&mut file_contents)?;
+    let full_entries: Vec<Entry> = serde_json::from_str(&file_contents)?;
 
     // Return entries
     Ok(full_entries)
