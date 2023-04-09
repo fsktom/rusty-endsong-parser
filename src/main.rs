@@ -38,7 +38,7 @@ use parse::LOCATION_TZ;
 fn main() {
     // different root path depending on my OS
     let root = match std::env::consts::OS {
-        "windows" => "C:\\Temp\\Endsong\\",
+        "windows" => r"C:\\Temp\\Endsong\\",
         "macos" => "/Users/filip/Other/Endsong/",
         _ => "/mnt/c/temp/Endsong/",
     };
@@ -70,7 +70,7 @@ fn test(entries: &SongEntries) {
     entries.print_top(&Aspect::Albums, 10, false);
     entries.print_top(&Aspect::Artists, 10, false);
 
-    let powerwolf = types::Artist::new(String::from("Powerwolf"));
+    let powerwolf = types::Artist::new("Powerwolf");
     entries.print_top_from_artist(&Mode::Songs, &powerwolf, 10);
     entries.print_top_from_artist(&Mode::Albums, &powerwolf, 10);
 
