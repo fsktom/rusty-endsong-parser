@@ -44,17 +44,17 @@ fn main() {
     };
     let paths = [
         format!("{root}endsong_0.json"),
-        // format!("{root}endsong_1.json"),
-        // format!("{root}endsong_2.json"),
-        // format!("{root}endsong_3.json"),
-        // format!("{root}endsong_4.json"),
-        // format!("{root}endsong_5.json"),
-        // format!("{root}endsong_6.json"),
-        // format!("{root}endsong_7.json"),
-        // format!("{root}endsong_8.json"),
+        format!("{root}endsong_1.json"),
+        format!("{root}endsong_2.json"),
+        format!("{root}endsong_3.json"),
+        format!("{root}endsong_4.json"),
+        format!("{root}endsong_5.json"),
+        format!("{root}endsong_6.json"),
+        format!("{root}endsong_7.json"),
+        format!("{root}endsong_8.json"),
     ];
 
-    let entries = SongEntries::new(&paths).unwrap();
+    let entries = SongEntries::new(&paths[..=0]).unwrap();
 
     // test(&entries);
     // test_plot(&entries);
