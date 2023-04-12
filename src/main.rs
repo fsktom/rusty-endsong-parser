@@ -128,6 +128,11 @@ fn test(entries: &SongEntries) {
     dbg!(display::date::sum_plays(entries, &start, &end));
     display::date::print_time_played(entries, &start, &end);
     dbg!(entries.listening_time(&start, &end).num_minutes());
+
+    entries.print_aspect(&AspectFull::Album(&types::Album::new(
+        "Built To Last",
+        "HammerFall",
+    )));
 }
 
 /// tests various [`plot`] functions

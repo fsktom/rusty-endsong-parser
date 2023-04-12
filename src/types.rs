@@ -12,7 +12,7 @@ use crate::display;
 use crate::parse;
 use crate::plot;
 
-/// Algebraic data type similar to [Aspect]
+/// Algebraic data type similar to [`Aspect`]
 /// but used by functions such as [`display::print_aspect()`]
 /// to get more specfic data
 ///
@@ -26,7 +26,6 @@ pub enum AspectFull<'a> {
     Song(&'a Song),
 }
 
-// you can derive Default in Rust 1.62 https://github.com/rust-lang/rust/pull/94457/
 /// An enum that is among other things used by functions such as
 /// [`display::print_top()`] and its derivatives to know whether
 /// to print top songs ([`Aspect::Songs`]), albums ([`Aspect::Albums`])
@@ -264,7 +263,7 @@ impl SongEntries {
     ///
     /// Returns an [`Error`] if it encounters problems while parsing
     ///
-    /// * `paths` - a vector containing paths to each `endsong.json` file
+    /// * `paths` - a slice of paths to each `endsong.json` file
     pub fn new<P: AsRef<std::path::Path>>(paths: &[P]) -> Result<SongEntries, Box<dyn Error>> {
         Ok(SongEntries(parse::parse(paths)?))
     }
@@ -273,7 +272,7 @@ impl SongEntries {
     pub fn first_date(&self) -> DateTime<Tz> {
         self.iter()
             .min_by(|x, y| x.timestamp.cmp(&y.timestamp))
-            .unwrap()
+            .unwrap() // unwrap ok bc there is at least one entry
             .timestamp
     }
 
@@ -281,7 +280,7 @@ impl SongEntries {
     pub fn last_date(&self) -> DateTime<Tz> {
         self.iter()
             .max_by(|x, y| x.timestamp.cmp(&y.timestamp))
-            .unwrap()
+            .unwrap() // unwrap ok bc there is at least one entry
             .timestamp
     }
 
@@ -461,8 +460,8 @@ impl SongEntries {
 
     /// Adds search capability
     ///
-    /// Use with methods from [`Find`]: [`.artist()`](Find::artist()), [`.album()`](Find::album()),
-    /// [`.song_from_album()`](Find::song_from_album()) and [`.song()`](Find::song())
+    /// Use with methods from [`Find`]: [`.artist()`][Find::artist()], [`.album()`][Find::album()],
+    /// [`.song_from_album()`][Find::song_from_album()] and [`.song()`][Find::song()]
     pub fn find(&self) -> Find {
         Find(self)
     }
