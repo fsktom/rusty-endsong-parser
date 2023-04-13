@@ -263,7 +263,7 @@ impl SongEntries {
     ///
     /// Returns an [`Error`] if it encounters problems while parsing
     ///
-    /// * `paths` - a slice of paths to each `endsong.json` file
+    /// * `paths` - a slice of [`Path`][`std::path::Path`]s to each `endsong.json` file
     pub fn new<P: AsRef<std::path::Path>>(paths: &[P]) -> Result<SongEntries, Box<dyn Error>> {
         Ok(SongEntries(parse::parse(paths)?))
     }
