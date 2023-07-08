@@ -62,11 +62,11 @@ pub fn find_dates<Asp: Music>(
         }
     }
 
-    dates.sort();
-
     if add_now {
         dates.push(user_input_date_parser("now").unwrap());
     }
+
+    // should be sorted because &[SongEntries] should have been sorted at the beginning
     dates
 }
 

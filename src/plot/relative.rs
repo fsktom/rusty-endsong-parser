@@ -45,18 +45,21 @@ pub fn to_artist<Asp: HasArtist>(entries: &SongEntries, aspect: &Asp) -> (Box<dy
     // each data point lies at the occurrence -> looks weird when you haven't listened in a long time
     // maybe make it so there's at least a data point once a week?
     let dates = find_dates(entries, aspect, false);
+    let artist_dates = find_dates(entries, aspect.artist(), false);
 
-    let start = dates.first().unwrap();
-    let sum_start = &entries.first_date();
+    // since each date represents a single listen, we can just count up
+    let mut amount_of_plays = 1.0;
 
     #[allow(clippy::cast_precision_loss)]
     for date in &dates {
         times.push(date.timestamp());
-        let sum_of_plays = date::gather_plays(entries, aspect, start, date) as f64;
-        let sum_of_artist_plays =
-            date::gather_plays(entries, aspect.artist(), sum_start, date) as f64;
+
+        let end = artist_dates.binary_search(date).unwrap();
+        let sum_of_artist_plays = artist_dates[..=end].len() as f64;
+
         // *100 so that the percentage is easier to read...
-        plays.push(100.0 * (sum_of_plays / sum_of_artist_plays));
+        plays.push(100.0 * (amount_of_plays / sum_of_artist_plays));
+        amount_of_plays += 1.0;
     }
 
     let title = format!("{aspect} | relative to the artist");
@@ -75,17 +78,21 @@ pub fn to_album(entries: &SongEntries, aspect: &Song) -> (Box<dyn Trace>, String
     // each data point lies at the occurrence -> looks weird when you haven't listened in a long time
     // maybe make it so there's at least a data point once a week?
     let dates = find_dates(entries, aspect, false);
+    let album_dates = find_dates(entries, &aspect.album, false);
 
-    let start = dates.first().unwrap();
-    let sum_start = &entries.first_date();
+    // since each date represents a single listen, we can just count up
+    let mut amount_of_plays = 1.0;
 
     #[allow(clippy::cast_precision_loss)]
     for date in &dates {
         times.push(date.timestamp());
-        let sum_of_plays = date::gather_plays(entries, aspect, start, date) as f64;
-        let sum_of_album_plays = date::gather_plays(entries, &aspect.album, sum_start, date) as f64;
+
+        let end = album_dates.binary_search(date).unwrap();
+        let sum_of_album_plays = album_dates[..=end].len() as f64;
+
         // *100 so that the percentage is easier to read...
-        plays.push(100.0 * (sum_of_plays / sum_of_album_plays));
+        plays.push(100.0 * (amount_of_plays / sum_of_album_plays));
+        amount_of_plays += 1.0;
     }
 
     let title = format!("{aspect} | relative to the album");

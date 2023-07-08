@@ -1,4 +1,4 @@
-use rusty_endsong_parser::types::{Artist, SongEntries};
+use rusty_endsong_parser::types::{Album, Artist, SongEntries};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
@@ -22,15 +22,22 @@ fn lol(c: &mut Criterion) {
 
     let entries = black_box(SongEntries::new(&paths[..=2]).unwrap());
 
+    let powerwolf = black_box(Artist::new("Powerwolf"));
     c.bench_function("absolute", |c| {
         c.iter(|| {
-            entries.traces().absolute(&Artist::new("Powerwolf"));
+            entries.traces().absolute(&powerwolf);
+        })
+    });
+    c.bench_function("relative", |c| {
+        c.iter(|| {
+            entries.traces().relative(&powerwolf);
         })
     });
 
-    c.bench_function("relative", |c| {
+    let coat = black_box(Album::new("Coat of Arms", "Sabaton"));
+    c.bench_function("relative_to_artist", |c| {
         c.iter(|| {
-            entries.traces().relative(&Artist::new("Powerwolf"));
+            entries.traces().relative_to_artist(&coat);
         })
     });
 }

@@ -108,9 +108,17 @@ pub fn gather_plays<Asp: Music>(
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) -> usize {
-    entries
+    let begin = entries
+        .binary_search_by(|entry| entry.timestamp.cmp(start))
+        .unwrap();
+
+    let stop = entries
+        .binary_search_by(|entry| entry.timestamp.cmp(end))
+        .unwrap();
+
+    entries[begin..=stop]
         .iter()
-        .filter(|entry| aspect.is_entry(entry) && entry.timestamp.is_between(start, end))
+        .filter(|entry| aspect.is_entry(entry))
         .count()
 }
 
