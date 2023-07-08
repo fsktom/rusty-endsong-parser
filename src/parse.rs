@@ -123,6 +123,9 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Erro
         let mut one = parse_single(path)?;
         song_entries.append(&mut one);
     }
+
+    song_entries.sort_unstable_by(|a, b| a.timestamp.cmp(&b.timestamp));
+
     Ok(song_entries)
 }
 

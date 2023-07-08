@@ -15,16 +15,18 @@ pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace
     // maybe make it so there's at least a data point once a week?
     let dates = find_dates(entries, aspect, false);
 
-    let start = dates.first().unwrap();
     let sum_start = &entries.first_date();
+
+    // since each date represents a single listen, we can just count up
+    let mut amount_of_plays = 1.0;
 
     #[allow(clippy::cast_precision_loss)]
     for date in &dates {
         times.push(date.timestamp());
-        let sum_of_plays = date::gather_plays(entries, aspect, start, date) as f64;
         let sum_of_all_plays = date::sum_plays(entries, sum_start, date) as f64;
         // *100 so that the percentage is easier to read...
-        plays.push(100.0 * (sum_of_plays / sum_of_all_plays));
+        plays.push(100.0 * (amount_of_plays / sum_of_all_plays));
+        amount_of_plays += 1.0;
     }
 
     let title = format!("{aspect} | relative to all plays");
