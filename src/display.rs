@@ -149,10 +149,11 @@ fn print_top_helper<Asp: Music>(music_dict: HashMap<Asp, u32>, num: usize) {
 ///
 /// # Examples
 /// ```
+/// use rusty_endsong_parser::display::leading_whitespace;
 /// assert_eq!(leading_whitespace(7usize, 100usize), String::from("  #7"));
 /// assert_eq!(leading_whitespace(7usize, 1000usize), String::from("   #7"));
 /// ```
-fn leading_whitespace(num: usize, max_num: usize) -> String {
+pub fn leading_whitespace(num: usize, max_num: usize) -> String {
     // https://github.com/Filip-Tomasko/endsong-parser-python/blob/main/src/endsong_parser.py#L551-L578
     let mut order_format = String::new();
 

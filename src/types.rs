@@ -489,13 +489,6 @@ impl std::ops::DerefMut for SongEntries {
 /// [`display::find_artist()`], [`display::find_album()`],
 /// [`display::find_song_from_album()`] and [`display::find_song()`]
 ///
-/// # Examples
-///
-/// ```
-/// let entries = SongEntries::new(paths);
-/// dbg!(entries.find().artist("Sabaton"));
-/// ```
-///
 /// # Errors
 ///
 /// Methods can return an [`Err`] with [`NotFoundError`]
