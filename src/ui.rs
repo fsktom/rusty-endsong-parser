@@ -221,7 +221,7 @@ pub fn start(entries: &SongEntries) {
                 break;
             }
             Err(ReadlineError::Eof) => {
-                eprintln!("CTRL-D - execution has stopped!");
+                eprintln!("CTRL+D - execution has stopped!");
                 break;
             }
             Err(err) => {
