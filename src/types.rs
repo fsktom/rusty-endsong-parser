@@ -270,18 +270,14 @@ impl SongEntries {
 
     /// Returns the date of the first (time-wise) occurrence of any [`SongEntry`]
     pub fn first_date(&self) -> DateTime<Tz> {
-        self.iter()
-            .min_by(|x, y| x.timestamp.cmp(&y.timestamp))
-            .unwrap() // unwrap ok bc there is at least one entry
-            .timestamp
+        // bc it's sorted (see parse.rs) -> first entry is the earliest
+        self.iter().next().unwrap().timestamp
     }
 
     /// Returns the date of the last (time-wise) occurrence of any [`SongEntry`]
     pub fn last_date(&self) -> DateTime<Tz> {
-        self.iter()
-            .max_by(|x, y| x.timestamp.cmp(&y.timestamp))
-            .unwrap() // unwrap ok bc there is at least one entry
-            .timestamp
+        // bc it's sorted (see parse.rs) -> last entry is the latest
+        self.iter().next_back().unwrap().timestamp
     }
 
     /// Prints the top `num` of an `asp`
@@ -867,5 +863,29 @@ mod tests {
                 "Sabaton"
             )) == Some(Ordering::Less)
         );
+    }
+
+    #[test]
+    fn test_dates() {
+        // MAYBE RATHER INTEGRATION TEST THAN UNIT TEST?!
+        let paths = vec![format!(
+            "{}/stuff/example_endsong/endsong_0.json",
+            std::env::current_dir().unwrap().display()
+        )];
+        let entries = crate::types::SongEntries::new(&paths).unwrap();
+
+        let first = entries
+            .iter()
+            .min_by(|x, y| x.timestamp.cmp(&y.timestamp))
+            .unwrap() // unwrap ok bc there is at least one entry
+            .timestamp;
+        assert_eq!(first, entries.first_date());
+
+        let last = entries
+            .iter()
+            .max_by(|x, y| x.timestamp.cmp(&y.timestamp))
+            .unwrap() // unwrap ok bc there is at least one entry
+            .timestamp;
+        assert_eq!(last, entries.last_date());
     }
 }
