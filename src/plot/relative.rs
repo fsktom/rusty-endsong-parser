@@ -38,7 +38,7 @@ pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace
 /// relative to total plays of the affiated [`Artist`][crate::types::Artist]
 pub fn to_artist<Asp: HasArtist>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
     let mut times = Vec::<i64>::new();
-    // percentages relative to the sum of all plays
+    // percentages relative to the sum of respective artist plays
     let mut plays = Vec::<f64>::new();
 
     // TODO!
@@ -71,7 +71,7 @@ pub fn to_artist<Asp: HasArtist>(entries: &SongEntries, aspect: &Asp) -> (Box<dy
 /// relative to total plays of the affiated [`Album`][crate::types::Album]
 pub fn to_album(entries: &SongEntries, aspect: &Song) -> (Box<dyn Trace>, String) {
     let mut times = Vec::<i64>::new();
-    // percentages relative to the sum of all plays
+    // percentages relative to the sum of respective album plays
     let mut plays = Vec::<f64>::new();
 
     // TODO!
