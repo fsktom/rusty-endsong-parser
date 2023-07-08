@@ -26,5 +26,5 @@ criterion = "0.5"
 debug = true
 
 [[bench]]
-name = "printing_top"
+name = "search"
 harness = false
