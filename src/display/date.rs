@@ -168,11 +168,12 @@ fn gather_songs_with_album(
 pub fn sum_plays(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>) -> usize {
     let begin = entries
         .binary_search_by(|entry| entry.timestamp.cmp(start))
-        .unwrap();
-
+        .unwrap_or(0);
+    // unwrap_or because it may fail when you input a date that is before the first entry
+    // or after the last entry I think?
     let stop = entries
         .binary_search_by(|entry| entry.timestamp.cmp(end))
-        .unwrap();
+        .unwrap_or(entries.len() - 1);
 
     entries[begin..=stop].len()
 }

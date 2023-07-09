@@ -46,6 +46,8 @@ enum InvalidArgumentError {
     Album,
     /// Error message: Invalid argument! Try using 'artist', 'album' or 'song' next time
     Aspect,
+    /// Error message: Date range is in wrong order - start date is after end date!
+    DateWrongOrder,
 }
 impl std::fmt::Display for InvalidArgumentError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -61,6 +63,12 @@ impl std::fmt::Display for InvalidArgumentError {
                 f,
                 "Invalid argument! Try using 'artist', 'album' or 'song' next time"
             ),
+            InvalidArgumentError::DateWrongOrder => {
+                write!(
+                    f,
+                    "Date range is in wrong order - start date is after end date!"
+                )
+            }
         }
     }
 }
@@ -319,6 +327,10 @@ fn match_print_time_date(
     println!("End date? YYYY-MM-DD or 'now'");
     let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
     let end_date = user_input_date_parser(&usr_input_end_date)?;
+
+    if start_date >= end_date {
+        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
+    }
 
     crate::display::print_time_played_date(entries, &start_date, &end_date);
     Ok(())
