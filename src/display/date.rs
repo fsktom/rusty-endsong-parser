@@ -102,19 +102,35 @@ fn print_artist(
 /// Counts up the plays of a single [`Music`] within the date range
 ///
 /// Basically [`display::gather_plays()`][super::gather_plays()] but with date functionality
+///
+/// # Panics
+///
+/// Panics if `start` is after `end`
 pub fn gather_plays<Asp: Music>(
     entries: &[SongEntry],
     aspect: &Asp,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) -> usize {
-    let begin = entries
-        .binary_search_by(|entry| entry.timestamp.cmp(start))
-        .unwrap();
+    assert!(start <= end, "Start date is after end date!");
 
-    let stop = entries
-        .binary_search_by(|entry| entry.timestamp.cmp(end))
-        .unwrap();
+    let begin = match entries.binary_search_by(|entry| entry.timestamp.cmp(start)) {
+        // timestamp from entry
+        Ok(i) => i,
+        // user inputted date - i because you want it to begin at the closest entry
+        Err(i) if i != entries.len() => i,
+        // user inputted date that's after the last entry
+        Err(_) => entries.len() - 1,
+    };
+
+    let stop = match entries.binary_search_by(|entry| entry.timestamp.cmp(end)) {
+        // timestamp from entry
+        Ok(i) => i,
+        // user inputted date - i-1 becuase i would include one entry too much
+        Err(i) if i != 0 => i - 1,
+        // user inputted date that's before the first entry
+        Err(_) => 0,
+    };
 
     entries[begin..=stop]
         .iter()
@@ -165,15 +181,30 @@ fn gather_songs_with_album(
 }
 
 /// Sums all plays in the given date frame
+///
+/// # Panics
+///
+/// Panics if `start` is after `end`
 pub fn sum_plays(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>) -> usize {
-    let begin = entries
-        .binary_search_by(|entry| entry.timestamp.cmp(start))
-        .unwrap_or(0);
-    // unwrap_or because it may fail when you input a date that is before the first entry
-    // or after the last entry I think?
-    let stop = entries
-        .binary_search_by(|entry| entry.timestamp.cmp(end))
-        .unwrap_or(entries.len() - 1);
+    assert!(start <= end, "Start date is after end date!");
+
+    let begin = match entries.binary_search_by(|entry| entry.timestamp.cmp(start)) {
+        // timestamp from entry
+        Ok(i) => i,
+        // user inputted date - i because you want it to begin at the closest entry
+        Err(i) if i != entries.len() => i,
+        // user inputted date that's after the last entry
+        Err(_) => entries.len() - 1,
+    };
+
+    let stop = match entries.binary_search_by(|entry| entry.timestamp.cmp(end)) {
+        // timestamp from entry
+        Ok(i) => i,
+        // user inputted date - i-1 becuase i would include one entry too much
+        Err(i) if i != 0 => i - 1,
+        // user inputted date that's before the first entry
+        Err(_) => 0,
+    };
 
     entries[begin..=stop].len()
 }
