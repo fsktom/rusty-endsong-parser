@@ -130,6 +130,12 @@ fn print_commands<'a>() -> Vec<[&'a str; 3]> {
         opens another prompt where you input the date range",
         ],
         [
+            "print max time",
+            "pmt",
+            "calculates the dates during which you listened
+        the most to music for a given duration",
+        ],
+        [
             "print artist",
             "part",
             "prints every album from the artist

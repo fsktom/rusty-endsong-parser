@@ -9,7 +9,7 @@ use std::borrow::Cow;
 use std::error::Error;
 use std::vec;
 
-use chrono::{DateTime, TimeZone};
+use chrono::{DateTime, Duration, TimeZone};
 use chrono_tz::Tz;
 use rustyline::{completion::Completer, Helper, Hinter, Validator};
 use rustyline::{
@@ -48,6 +48,8 @@ enum InvalidArgumentError {
     Aspect,
     /// Error message: Date range is in wrong order - start date is after end date!
     DateWrongOrder,
+    /// Error message: Invalid argument! Try using 'weeks' or 'days' next time
+    DurationType,
 }
 impl std::fmt::Display for InvalidArgumentError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -63,12 +65,14 @@ impl std::fmt::Display for InvalidArgumentError {
                 f,
                 "Invalid argument! Try using 'artist', 'album' or 'song' next time"
             ),
-            InvalidArgumentError::DateWrongOrder => {
-                write!(
-                    f,
-                    "Date range is in wrong order - start date is after end date!"
-                )
-            }
+            InvalidArgumentError::DateWrongOrder => write!(
+                f,
+                "Date range is in wrong order - start date is after end date!"
+            ),
+            InvalidArgumentError::DurationType => write!(
+                f,
+                " Invalid argument! Try using 'weeks' or 'days' next time"
+            ),
         }
     }
 }
@@ -99,6 +103,7 @@ impl ShellHelper {
             "help",
             "print time",
             "print time date",
+            "print max time",
             "print artist",
             "print album",
             "print song",
@@ -284,6 +289,7 @@ fn match_input(
         "help" | "h" => help::help(),
         "print time" | "pt" => crate::display::print_time_played(entries),
         "print time date" | "ptd" => match_print_time_date(entries, rl)?,
+        "print max time" | "pmt" => match_print_max_time(entries, rl)?,
         "print artist" | "part" => match_print_artist(entries, rl)?,
         "print album" | "palb" => match_print_album(entries, rl)?,
         "print song" | "pson" => match_print_song(entries, rl)?,
@@ -333,6 +339,39 @@ fn match_print_time_date(
     }
 
     crate::display::print_time_played_date(entries, &start_date, &end_date);
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `print max time` command
+fn match_print_max_time(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    rl.helper_mut().unwrap().reset();
+    // 1st prompt: duration in days or weeks
+    let valid_inputs = vec!["days".to_string(), "weeks".to_string()];
+    rl.helper_mut().unwrap().complete_list(valid_inputs.clone());
+    println!("Input time period in days or weeks?");
+    let duration_type = rl.readline(PROMPT_SECONDARY)?;
+    if !valid_inputs.contains(&duration_type) {
+        return Err(Box::new(InvalidArgumentError::DurationType));
+    };
+
+    // 2nd prompt: actual duration number
+    println!("What's the time period? Whole numbers only");
+    let usr_input_duration = rl.readline(PROMPT_SECONDARY)?;
+    let duration_num = usr_input_duration.parse::<i64>()?;
+
+    let (_, start, end) = match duration_type.as_str() {
+        "days" => entries.max_listening_time(Duration::days(duration_num)),
+        "weeks" => entries.max_listening_time(Duration::weeks(duration_num)),
+        // is unreachable because of the check above
+        _ => unreachable!(),
+    };
+
+    // temporary, maybe later make a custom one
+    crate::display::date::print_time_played(entries, &start, &end);
+
     Ok(())
 }
 
