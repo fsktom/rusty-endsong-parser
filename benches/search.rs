@@ -1,4 +1,7 @@
-use rusty_endsong_parser::types::{Album, Artist, SongEntries};
+use rusty_endsong_parser::{
+    types::{Album, Artist, SongEntries},
+    ui::user_input_date_parser,
+};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
@@ -38,6 +41,14 @@ fn lol(c: &mut Criterion) {
     c.bench_function("relative_to_artist", |c| {
         c.iter(|| {
             entries.traces().relative_to_artist(&coat);
+        })
+    });
+
+    let start = user_input_date_parser("2020-01-01").unwrap();
+    let end = user_input_date_parser("2021-01-01").unwrap();
+    c.bench_function("listening_time", |c| {
+        c.iter(|| {
+            entries.listening_time(&start, &end);
         })
     });
 }

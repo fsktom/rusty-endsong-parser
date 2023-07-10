@@ -352,17 +352,35 @@ impl SongEntries {
     }
 
     /// Returns the time listened in a given date period
+    ///
+    /// # Panics
+    ///
+    /// Panics if `start` is after `end`
     pub fn listening_time(&self, start: &DateTime<Tz>, end: &DateTime<Tz>) -> Duration {
+        assert!(start <= end, "Start date is after end date!");
+
+        let begin = match self.binary_search_by(|entry| entry.timestamp.cmp(start)) {
+            // timestamp from entry
+            Ok(i) => i,
+            // user inputted date - i because you want it to begin at the closest entry
+            Err(i) if i != self.len() => i,
+            // user inputted date that's after the last entry
+            Err(_) => self.len() - 1,
+        };
+
+        let stop = match self.binary_search_by(|entry| entry.timestamp.cmp(end)) {
+            // timestamp from entry
+            Ok(i) => i,
+            // user inputted date - i-1 becuase i would include one entry too much
+            Err(i) if i != 0 => i - 1,
+            // user inputted date that's before the first entry
+            Err(_) => 0,
+        };
+
         // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
-        // self.iter()
-        //     .filter(|entry| crate::display::date::is_between(&entry.timestamp, start, end))
-        //     .map(|entry| entry.time_played)
-        //     .sum::<Duration>()
+        // self[begin..=stop].iter().map(|entry| entry.time_played).sum::<Duration>();
         let mut sum = Duration::milliseconds(0);
-        for entry in self
-            .iter()
-            .filter(|entry| entry.timestamp.is_between(start, end))
-        {
+        for entry in self[begin..=stop].iter() {
             // AddAssign is not implemented in time-0.1.45 yet which most recent chrono
             // version 0.4 is using :)))
             // https://github.com/chronotope/chrono/issues/602#issuecomment-1436548077
