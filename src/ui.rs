@@ -129,6 +129,7 @@ impl ShellHelper {
     /// Changes tab-complete to all artists
     fn complete_list(&mut self, completer_list: Vec<String>) {
         self.completer_list = completer_list;
+        self.completer_list.sort_unstable();
     }
 }
 impl Highlighter for ShellHelper {
