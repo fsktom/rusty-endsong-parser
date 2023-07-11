@@ -299,9 +299,9 @@ fn match_input(
         "print album date" | "palbd" => match_print_album_date(entries, rl)?,
         "print song date" | "psond" => match_print_song_date(entries, rl)?,
         "print songs date" | "psonsd" => match_print_songs_date(entries, rl)?,
-        "print top artists" | "ptarts" => match_print_top(entries, rl, &Aspect::Artists, false)?,
-        "print top albums" | "ptalbs" => match_print_top(entries, rl, &Aspect::Albums, false)?,
-        "print top songs" | "ptsons" => match_print_top(entries, rl, &Aspect::Songs, true)?,
+        "print top artists" | "ptarts" => match_print_top(entries, rl, Aspect::Artists, false)?,
+        "print top albums" | "ptalbs" => match_print_top(entries, rl, Aspect::Albums, false)?,
+        "print top songs" | "ptsons" => match_print_top(entries, rl, Aspect::Songs, true)?,
         "plot" | "g" => match_plot(entries, rl)?,
         "plot rel" | "gr" => match_plot_relative(entries, rl)?,
         "plot compare" | "gc" => match_plot_compare(entries, rl)?,
@@ -624,7 +624,7 @@ fn match_print_songs_date(
 fn match_print_top(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-    asp: &Aspect,
+    asp: Aspect,
     ask_for_sum: bool,
 ) -> Result<(), Box<dyn Error>> {
     rl.helper_mut().unwrap().reset();

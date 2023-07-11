@@ -31,7 +31,7 @@ pub enum AspectFull<'a> {
 /// [`display::print_top()`] and its derivatives to know whether
 /// to print top songs ([`Aspect::Songs`]), albums ([`Aspect::Albums`])
 /// or artists ([`Aspect::Artists`])
-#[derive(Default)]
+#[derive(Copy, Clone, Debug, Default)]
 pub enum Aspect {
     /// to print top artists
     Artists,
@@ -57,6 +57,7 @@ impl Display for Aspect {
 /// without [`Aspect::Artists`]
 ///
 /// Used in [`display::print_top_from_artist()`]
+#[derive(Copy, Clone, Debug)]
 pub enum Mode {
     /// to print albums from artist
     Albums,
@@ -292,7 +293,7 @@ impl SongEntries {
     /// one song across multiple albums it may be in.
     /// The album displayed in the parantheses will be the one it has the
     /// highest amount of listens from.
-    pub fn print_top(&self, asp: &Aspect, num: usize, sum_songs_from_different_albums: bool) {
+    pub fn print_top(&self, asp: Aspect, num: usize, sum_songs_from_different_albums: bool) {
         display::print_top(self, asp, num, sum_songs_from_different_albums);
     }
 
@@ -304,7 +305,7 @@ impl SongEntries {
     /// Will automatically change to total number of that aspect if `num` is higher than that
     ///
     /// Wrapper for [`display::print_top_from_artist()`]
-    pub fn print_top_from_artist(&self, mode: &Mode, artist: &Artist, num: usize) {
+    pub fn print_top_from_artist(&self, mode: Mode, artist: &Artist, num: usize) {
         display::print_top_from_artist(self, mode, artist, num);
     }
 

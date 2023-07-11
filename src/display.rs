@@ -28,7 +28,7 @@ pub mod date;
 /// highest amount of listens from.
 pub fn print_top(
     entries: &[SongEntry],
-    asp: &Aspect,
+    asp: Aspect,
     num: usize,
     sum_songs_from_different_albums: bool,
 ) {
@@ -53,10 +53,11 @@ pub fn print_top(
 
 /// Prints top songs or albums from an artist
 ///
-/// * `asp` - [`Aspect::Songs`] for top songs and [`Aspect::Albums`] for top albums
+/// * `mode` - [`Mode::Songs`] for top songs and [`Mode::Albums`] for top albums
 /// * `artist` - the [`Artist`] you want the top songs/albums from
-/// * `num` - number of displayed top aspects. Will automatically change to total number of that aspect if `num` is higher than that
-pub fn print_top_from_artist(entries: &[SongEntry], mode: &Mode, artist: &Artist, num: usize) {
+/// * `num` - number of displayed top songs/albums.
+/// Will automatically change to total number of that aspect if `num` is higher than that
+pub fn print_top_from_artist(entries: &[SongEntry], mode: Mode, artist: &Artist, num: usize) {
     match mode {
         Mode::Songs => {
             println!("=== TOP {num} SONGS FROM {artist} ===");
