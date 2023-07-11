@@ -6,6 +6,7 @@ use std::fmt::Display;
 
 use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
+use itertools::Itertools;
 pub use plotly::Trace;
 
 use crate::display;
@@ -422,47 +423,32 @@ impl SongEntries {
         (highest, start_max, end_max)
     }
 
-    /// Returns a [`Vec<String>`] with the names of all [`Artist`]s in the dataset
+    /// Returns a [`Vec<String>`] with the names of all [`Artists`][Artist] in the dataset
     pub fn artists(&self) -> Vec<String> {
-        let mut vec = self
-            .iter()
+        self.iter()
             .map(|entry| entry.artist.clone())
-            .collect::<Vec<String>>();
-        vec.sort();
-        // sort and dedup to remove duplicates xd
-        // https://www.reddit.com/r/rust/comments/38zzbk/best_way_to_remove_duplicates_from_a_veclist/crz84bq/
-        vec.dedup();
-        vec
+            .unique()
+            .collect::<Vec<String>>()
     }
 
-    /// Returns a [`Vec<String>`] with the names of the [`Album`]s
+    /// Returns a [`Vec<String>`] with the names of the [`Albums`][Album]
     /// corresponding to the `artist`
     pub fn albums(&self, artist: &Artist) -> Vec<String> {
-        let mut vec = self
-            .iter()
+        self.iter()
             .filter(|entry| artist.is_entry(entry))
             .map(|entry| entry.album.clone())
-            .collect::<Vec<String>>();
-        vec.sort();
-        // sort and dedup to remove duplicates xd
-        // https://www.reddit.com/r/rust/comments/38zzbk/best_way_to_remove_duplicates_from_a_veclist/crz84bq/
-        vec.dedup();
-        vec
+            .unique()
+            .collect::<Vec<String>>()
     }
 
-    /// Returns a [`Vec<String>`] with the names of the [`Song`]s
-    /// corresponding to the `album`
+    /// Returns a [`Vec<String>`] with the names of the [`Songs`][Song]
+    /// corresponding to the `aspect`
     pub fn songs<Asp: HasSongs>(&self, aspect: &Asp) -> Vec<String> {
-        let mut vec = self
-            .iter()
+        self.iter()
             .filter(|entry| aspect.is_entry(entry))
             .map(|entry| entry.track.clone())
-            .collect::<Vec<String>>();
-        vec.sort();
-        // sort and dedup to remove duplicates xd
-        // https://www.reddit.com/r/rust/comments/38zzbk/best_way_to_remove_duplicates_from_a_veclist/crz84bq/
-        vec.dedup();
-        vec
+            .unique()
+            .collect::<Vec<String>>()
     }
 
     /// Adds search capability

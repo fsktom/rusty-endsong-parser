@@ -347,7 +347,6 @@ fn match_print_max_time(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
-    rl.helper_mut().unwrap().reset();
     // 1st prompt: duration in days or weeks
     let valid_inputs = vec!["days".to_string(), "weeks".to_string()];
     rl.helper_mut().unwrap().complete_list(valid_inputs.clone());
@@ -357,6 +356,7 @@ fn match_print_max_time(
         return Err(Box::new(InvalidArgumentError::DurationType));
     };
 
+    rl.helper_mut().unwrap().reset();
     // 2nd prompt: actual duration number
     println!("What's the time period? Whole numbers only");
     let usr_input_duration = rl.readline(PROMPT_SECONDARY)?;

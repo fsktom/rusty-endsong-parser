@@ -25,7 +25,19 @@ fn lol(c: &mut Criterion) {
 
     let entries = black_box(SongEntries::new(&paths[..=2]).unwrap());
 
+    c.bench_function("artists_vec", |c| {
+        c.iter(|| {
+            entries.artists();
+        })
+    });
+
     let powerwolf = black_box(Artist::new("Powerwolf"));
+    c.bench_function("albums_vec", |c| {
+        c.iter(|| {
+            entries.albums(&powerwolf);
+        })
+    });
+
     c.bench_function("absolute", |c| {
         c.iter(|| {
             entries.traces().absolute(&powerwolf);

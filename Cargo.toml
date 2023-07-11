@@ -17,6 +17,7 @@ chrono-tz = "0.8"
 rustyline = { version = "12.*", features = ["derive"] }
 unicode-width = "0.1.10"
 plotly = "0.8"
+itertools = "0.11"
 
 [dev-dependencies]
 criterion = "0.5"
