@@ -344,11 +344,9 @@ impl SongEntries {
     pub fn total_listening_time(&self) -> Duration {
         // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
         // self.iter().map(|entry| entry.time_played).sum::<Duration>()
-        let mut sum = Duration::milliseconds(0);
-        for entry in self.iter() {
-            sum = sum + entry.time_played;
-        }
-        sum
+        self.iter()
+            .map(|entry| entry.time_played)
+            .fold(Duration::milliseconds(0), |sum, dur| sum + dur)
     }
 
     /// Returns the time listened in a given date period
@@ -379,15 +377,10 @@ impl SongEntries {
 
         // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
         // self[begin..=stop].iter().map(|entry| entry.time_played).sum::<Duration>();
-        let mut sum = Duration::milliseconds(0);
-        for entry in self[begin..=stop].iter() {
-            // AddAssign is not implemented in time-0.1.45 yet which most recent chrono
-            // version 0.4 is using :)))
-            // https://github.com/chronotope/chrono/issues/602#issuecomment-1436548077
-            // time 0.3 also supports iter::sum :)))
-            sum = sum + entry.time_played;
-        }
-        sum
+        self[begin..=stop]
+            .iter()
+            .map(|entry| entry.time_played)
+            .fold(Duration::milliseconds(0), |sum, dur| sum + dur)
     }
 
     /// Finds the date period with the most listening time for the given `time_span`
