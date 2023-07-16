@@ -1,6 +1,7 @@
 //! Module containg many types used throughout the program
 // https://doc.rust-lang.org/stable/book/ch06-01-defining-an-enum.html
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
 
@@ -450,6 +451,41 @@ impl SongEntries {
             .map(|entry| entry.track.clone())
             .unique()
             .collect::<Vec<String>>()
+    }
+
+    /// Returns the length of the song
+    ///
+    /// `song` has to be a valid entry in the dataset
+    ///
+    /// Assuming the length of the song is the most common playime of a song.
+    /// Not the highest, because skipping through a song while playing it can
+    /// make the `ms_played` value of the entry higher than the actual
+    /// length of the song.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `song` is not a valid entry in the dataset
+    pub fn song_length(&self, song: &Song) -> Duration {
+        // map of durations with their amount of occurences
+        let mut durations = HashMap::<Duration, usize>::new();
+
+        for dur in self
+            .iter()
+            .filter(|entry| song.is_entry(entry))
+            .map(|entry| entry.time_played)
+        {
+            durations
+                .entry(dur)
+                .and_modify(|amount| *amount += 1)
+                .or_insert(1);
+        }
+
+        durations
+            .into_iter()
+            .max_by_key(|(_, count)| *count)
+            // unwrap() ok because assumption is that `song` exists in dataset
+            .unwrap()
+            .0
     }
 
     /// Adds search capability

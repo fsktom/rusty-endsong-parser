@@ -1,10 +1,11 @@
 use rusty_endsong_parser::{
-    types::{Album, Artist, SongEntries},
+    types::{Album, Artist, Song, SongEntries},
     ui::user_input_date_parser,
 };
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
+#[allow(dead_code)]
 fn lol(c: &mut Criterion) {
     let root = match std::env::consts::OS {
         "windows" => r"C:\\Temp\\Endsong\\",
@@ -21,6 +22,7 @@ fn lol(c: &mut Criterion) {
         format!("{root}endsong_6.json"),
         format!("{root}endsong_7.json"),
         format!("{root}endsong_8.json"),
+        format!("{root}endsong_9.json"),
     ];
 
     let entries = black_box(SongEntries::new(&paths[..=2]).unwrap());
@@ -65,5 +67,39 @@ fn lol(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, lol);
+fn kekw(c: &mut Criterion) {
+    let root = match std::env::consts::OS {
+        "windows" => r"C:\\Temp\\Endsong\\",
+        "macos" => "/Users/filip/Other/Endsong/",
+        _ => "/mnt/c/temp/Endsong/",
+    };
+    let paths = [
+        format!("{root}endsong_0.json"),
+        format!("{root}endsong_1.json"),
+        format!("{root}endsong_2.json"),
+        format!("{root}endsong_3.json"),
+        format!("{root}endsong_4.json"),
+        format!("{root}endsong_5.json"),
+        format!("{root}endsong_6.json"),
+        format!("{root}endsong_7.json"),
+        format!("{root}endsong_8.json"),
+        format!("{root}endsong_9.json"),
+    ];
+
+    let entries = black_box(SongEntries::new(&paths[..=9]).unwrap());
+
+    let lth = Song::new(
+        "Last Train Home",
+        "Still Life (Talking)",
+        "Pat Metheny Group",
+    );
+    c.bench_function("song_length", |c| {
+        c.iter(|| {
+            entries.song_length(&lth);
+        })
+    });
+}
+
+// criterion_group!(benches, lol);
+criterion_group!(benches, kekw);
 criterion_main!(benches);

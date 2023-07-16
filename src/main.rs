@@ -52,6 +52,7 @@ fn main() {
         format!("{root}endsong_6.json"),
         format!("{root}endsong_7.json"),
         format!("{root}endsong_8.json"),
+        format!("{root}endsong_9.json"),
     ];
 
     let entries = SongEntries::new(&paths[..=0]).unwrap();
@@ -133,6 +134,14 @@ fn test(entries: &SongEntries) {
         "Built To Last",
         "HammerFall",
     )));
+
+    let s = types::Song::new("STYX HELIX", "eYe's", "MYTH & ROID");
+    assert!(entries
+        .find()
+        .song_from_album("STYX HELIX", "eYe's", "MYTH & ROID")
+        .is_ok());
+    let a = entries.song_length(&s);
+    dbg!(a.num_minutes(), a.num_seconds() - a.num_minutes() * 60);
 }
 
 /// tests various [`plot`] functions
