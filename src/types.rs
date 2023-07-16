@@ -476,7 +476,7 @@ impl SongEntries {
         {
             durations
                 .entry(dur)
-                .and_modify(|amount| *amount += 1)
+                .and_modify(|count| *count += 1)
                 .or_insert(1);
         }
 
