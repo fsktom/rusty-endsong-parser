@@ -56,10 +56,10 @@ fn main() {
         format!("{root}endsong_9.json"),
     ];
 
-    let entries = SongEntries::new(&paths[..=8]).unwrap();
+    let entries = SongEntries::new(&paths[..=0]).unwrap();
 
     // test(&entries);
-    // test_two(&entries);
+    // test_two(&mut entries);
     // test_plot(&entries);
 
     ui::start(&entries);
@@ -140,7 +140,7 @@ fn test(entries: &SongEntries) {
 
 /// another test function
 #[allow(dead_code)]
-fn test_two(entries: &SongEntries) {
+fn test_two(entries: &mut SongEntries) {
     let s = types::Song::new("STYX HELIX", "eYe's", "MYTH & ROID");
     assert!(entries
         .find()
@@ -158,6 +158,10 @@ fn test_two(entries: &SongEntries) {
         alb_dur = alb_dur + entries.song_length(song);
     }
     dbg!(alb_dur.display(), ct_songs.len());
+
+    dbg!(entries.len());
+    entries.filter(30);
+    dbg!(entries.len());
 }
 
 /// tests various [`plot`] functions

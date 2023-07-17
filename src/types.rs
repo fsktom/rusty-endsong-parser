@@ -497,9 +497,19 @@ impl SongEntries {
                 .or_insert(1);
         }
 
+        // has to be done because possible that multiple durations
+        // have the same amount of occurences
+        // -> from max_by_key docs:
+        // "If several elements are equally maximum, the last element is returned"
+        // but I need the one with the max occurrence AND the max duration
+        // otherwise it's not deterministic
+        // notice the non-determinism while doing SongEntries.filter() xd
+        let max_occurrence = *durations.iter().max_by_key(|(_, count)| *count).unwrap().1;
+
         durations
             .into_iter()
-            .max_by_key(|(_, count)| *count)
+            .filter(|(_, count)| *count == max_occurrence)
+            .max_by_key(|(dur, _)| *dur)
             // unwrap() ok because assumption is that `song` exists in dataset
             .unwrap()
             .0
@@ -559,6 +569,43 @@ impl SongEntries {
     /// Used to get traces for [`plot_single()`] and [`plot_compare()`]
     pub fn traces(&self) -> Traces {
         Traces(self)
+    }
+
+    /// Returns a [`HashMap`] with the [`Songs`][Song] as keys and
+    /// their durations as values
+    pub fn song_durations(&self) -> HashMap<Song, Duration> {
+        let mut durations = HashMap::<Song, Duration>::new();
+
+        for song in self
+            .iter()
+            .map(|entry| Song::new(&entry.track, &entry.album, &entry.artist))
+        {
+            durations
+                .entry(song.clone())
+                .or_insert(self.song_length(&song));
+        }
+
+        durations
+    }
+
+    /// Filters out song entries that have been played
+    /// below a certain threshold of their duration
+    ///
+    /// `threshold` is a value between 0 and 100 (%)
+    #[allow(dead_code)]
+    pub fn filter(&mut self, threshold: i32) {
+        let durations = self.song_durations();
+
+        // discards every entry whose time_played is below the
+        // threshhold percentage of its duration
+        self.retain(|entry| {
+            let (_, dur) = durations
+                .iter()
+                .find(|(son, _)| son.is_entry(entry))
+                .unwrap();
+
+            entry.time_played >= (*dur * threshold) / 100
+        });
     }
 }
 // https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
