@@ -594,7 +594,7 @@ impl<'a> Find<'a> {
         display::find_song(self, song_name, artist_name)
     }
 
-    /// /// Returns a [`Vec<Song>`] with all the songs in the given album
+    /// Returns a [`Vec<Song>`] with all the songs in the given album
     ///
     /// # Panics
     ///
