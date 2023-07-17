@@ -580,9 +580,10 @@ impl SongEntries {
             .iter()
             .map(|entry| Song::new(&entry.track, &entry.album, &entry.artist))
         {
-            durations
-                .entry(song.clone())
-                .or_insert(self.song_length(&song));
+            let a = song.clone();
+            if durations.get(&a).is_none() {
+                durations.insert(a, self.song_length(&song));
+            }
         }
 
         durations

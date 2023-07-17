@@ -86,7 +86,7 @@ fn kekw(c: &mut Criterion) {
         format!("{root}endsong_9.json"),
     ];
 
-    let entries = black_box(SongEntries::new(&paths[..=9]).unwrap());
+    let entries = black_box(SongEntries::new(&paths[7..=7]).unwrap());
 
     let lth = Song::new(
         "Last Train Home",
@@ -95,7 +95,13 @@ fn kekw(c: &mut Criterion) {
     );
     c.bench_function("song_length", |c| {
         c.iter(|| {
-            entries.song_length(&lth);
+            black_box(entries.song_length(&lth));
+        })
+    });
+
+    c.bench_function("song_durations", |c| {
+        c.iter(|| {
+            black_box(entries.song_durations());
         })
     });
 }
