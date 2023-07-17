@@ -594,6 +594,11 @@ impl SongEntries {
     /// `threshold` is a value between 0 and 100 (%)
     #[allow(dead_code)]
     pub fn filter(&mut self, threshold: i32) {
+        assert!(
+            (0..=100).contains(&threshold),
+            "Threshold has to be between 0 and 100"
+        );
+
         let durations = self.song_durations();
 
         // discards every entry whose time_played is below the

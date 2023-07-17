@@ -56,7 +56,8 @@ fn main() {
         format!("{root}endsong_9.json"),
     ];
 
-    let entries = SongEntries::new(&paths[..=0]).unwrap();
+    let mut entries = SongEntries::new(&paths[..=0]).unwrap();
+    entries.filter(30);
 
     // test(&entries);
     // test_two(&mut entries);
