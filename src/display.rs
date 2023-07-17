@@ -1,6 +1,8 @@
 //! Module responsible for displaying the contents of endsong.json files
 //! in a human-readable format (e.g. as 100 most played songs)
 //! to the [`std::io::stdout`]
+use itertools::Itertools;
+
 use crate::types::Aspect;
 use crate::types::AspectFull;
 use crate::types::Mode;
@@ -541,6 +543,20 @@ pub fn find_song(
     }
 
     Err(NotFoundError::JustSong)
+}
+
+/// Returns a [`Vec<Song>`] with all the songs in the given album
+///
+/// # Panics
+///
+/// Panics if `album` is not in the dataset
+pub fn find_songs_from_album(entries: &[SongEntry], album: &Album) -> Vec<Song> {
+    entries
+        .iter()
+        .filter(|entry| album.is_entry(entry))
+        .unique()
+        .map(|entry| Song::new(&entry.track, &entry.album, &entry.artist))
+        .collect_vec()
 }
 
 /// Prints a specfic aspect within a date frame

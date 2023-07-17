@@ -256,6 +256,23 @@ pub struct SongEntry {
     /// Spotify URI
     pub id: String,
 }
+impl PartialEq for SongEntry {
+    fn eq(&self, other: &Self) -> bool {
+        // self.id.eq(&other.id)
+        // ^decided not to use that cause it lead to duplicate songs with songs_from_album()
+        // sometimes IDs change over time for some songs... thx Spotify :))))
+        // that's why equality for a SongEntry is when the artist, album, and track name is the same
+        // (also same capitalization!!) -> may change this in future
+        self.artist.eq(&other.artist) && self.album.eq(&other.album) && self.track.eq(&other.track)
+    }
+}
+impl Eq for SongEntry {}
+impl std::hash::Hash for SongEntry {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        let str_to_be_hashed = format!("{}{}{}", self.artist, self.album, self.track);
+        str_to_be_hashed.hash(state);
+    }
+}
 
 /// Struct containing a vector of [`SongEntry`]
 ///
@@ -576,6 +593,15 @@ impl<'a> Find<'a> {
     pub fn song(&self, song_name: &str, artist_name: &str) -> Result<Vec<Song>, NotFoundError> {
         display::find_song(self, song_name, artist_name)
     }
+
+    /// /// Returns a [`Vec<Song>`] with all the songs in the given album
+    ///
+    /// # Panics
+    ///
+    /// Panics if `album` is not in the dataset
+    pub fn songs_from_album(&self, album: &Album) -> Vec<Song> {
+        display::find_songs_from_album(self, album)
+    }
 }
 // https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
 // so that when you use &self it refers to &self.0 (SongEntries,
@@ -740,6 +766,26 @@ pub trait IsBetween {
 impl IsBetween for DateTime<Tz> {
     fn is_between(&self, start: &Self, end: &Self) -> bool {
         self >= start && self <= end
+    }
+}
+
+/// Trait for better display of [`Durations`][Duration]
+pub trait DurationUtils {
+    /// Returns a string with the duration in the format `HH:MM:SS`
+    /// or `MM:SS` (if the duration is less than an hour)
+    fn display(&self) -> String;
+}
+impl DurationUtils for Duration {
+    fn display(&self) -> String {
+        let hours = self.num_hours();
+        let seconds = self.num_seconds() % 60;
+        if hours > 0 {
+            let minutes = self.num_minutes() % hours;
+            format!("{hours:02}:{minutes:02}:{seconds:02}")
+        } else {
+            let minutes = self.num_minutes();
+            format!("{minutes:02}:{seconds:02}")
+        }
     }
 }
 

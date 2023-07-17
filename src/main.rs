@@ -23,10 +23,11 @@ mod plot;
 mod types;
 mod ui;
 
-use chrono::TimeZone;
+use chrono::{Duration, TimeZone};
 
 use types::Aspect;
 use types::AspectFull;
+use types::DurationUtils;
 use types::Mode;
 use types::SongEntries;
 
@@ -58,6 +59,7 @@ fn main() {
     let entries = SongEntries::new(&paths[..=0]).unwrap();
 
     // test(&entries);
+    // test_two(&entries);
     // test_plot(&entries);
 
     ui::start(&entries);
@@ -134,7 +136,11 @@ fn test(entries: &SongEntries) {
         "Built To Last",
         "HammerFall",
     )));
+}
 
+/// another test function
+#[allow(dead_code)]
+fn test_two(entries: &SongEntries) {
     let s = types::Song::new("STYX HELIX", "eYe's", "MYTH & ROID");
     assert!(entries
         .find()
@@ -142,6 +148,16 @@ fn test(entries: &SongEntries) {
         .is_ok());
     let a = entries.song_length(&s);
     dbg!(a.num_minutes(), a.num_seconds() - a.num_minutes() * 60);
+    dbg!(a.display());
+
+    let ct = types::Album::new("Waking The Fallen", "Avenged Sevenfold");
+    let mut alb_dur = Duration::seconds(0);
+    let ct_songs = entries.find().songs_from_album(&ct);
+    for song in &ct_songs {
+        println!("{} - {}", song.name, entries.song_length(song).display());
+        alb_dur = alb_dur + entries.song_length(song);
+    }
+    dbg!(alb_dur.display(), ct_songs.len());
 }
 
 /// tests various [`plot`] functions
