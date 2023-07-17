@@ -415,6 +415,10 @@ fn match_print_artist_date(
     let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
     let end_date = user_input_date_parser(&usr_input_end_date)?;
 
+    if start_date >= end_date {
+        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
+    }
+
     entries.print_aspect_date(&AspectFull::Artist(&art), &start_date, &end_date);
     Ok(())
 }
@@ -469,6 +473,10 @@ fn match_print_album_date(
     println!("End date? YYYY-MM-DD or 'now'");
     let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
     let end_date = user_input_date_parser(&usr_input_end_date)?;
+
+    if start_date >= end_date {
+        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
+    }
 
     entries.print_aspect_date(&AspectFull::Album(&alb), &start_date, &end_date);
     Ok(())
@@ -541,6 +549,10 @@ fn match_print_song_date(
     let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
     let end_date = user_input_date_parser(&usr_input_end_date)?;
 
+    if start_date >= end_date {
+        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
+    }
+
     entries.print_aspect_date(&AspectFull::Song(&son), &start_date, &end_date);
     Ok(())
 }
@@ -565,10 +577,11 @@ fn match_print_songs(
     // if there are multiple songs with that name found
     if songs.len() > 1 {
         println!(
-            "I've found {} songs named {} from {}!",
+            "I've found {} songs named {} from {} with a total of {} plays!",
             songs.len(),
             &songs[0].name,
-            &songs[0].album.artist.name
+            &songs[0].album.artist.name,
+            entries.songs_plays(&songs)
         );
     }
     for song in songs {
@@ -605,13 +618,18 @@ fn match_print_songs_date(
     let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
     let end_date = user_input_date_parser(&usr_input_end_date)?;
 
+    if start_date >= end_date {
+        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
+    }
+
     // if there are multiple songs with that name found
     if songs.len() > 1 {
         println!(
-            "I've found {} songs named {} from {}!",
+            "I've found {} songs named {} from {} with a total of {} plays!",
             songs.len(),
             &songs[0].name,
-            &songs[0].album.artist.name
+            &songs[0].album.artist.name,
+            entries.songs_plays_date(&songs, &start_date, &end_date)
         );
     }
     for song in songs {

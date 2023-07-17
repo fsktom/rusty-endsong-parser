@@ -505,6 +505,49 @@ impl SongEntries {
             .0
     }
 
+    /// Finds out the total number of plays for the given songs
+    pub fn songs_plays(&self, songs: &[Song]) -> usize {
+        self.iter()
+            .filter(|entry| songs.iter().any(|song| song.is_entry(entry)))
+            .count()
+    }
+
+    /// Finds out the total number of plays for the given songs in a date period
+    ///
+    /// # Panics
+    ///
+    /// Panics if `start` is after `end`
+    pub fn songs_plays_date(
+        &self,
+        songs: &[Song],
+        start: &DateTime<Tz>,
+        end: &DateTime<Tz>,
+    ) -> usize {
+        assert!(start <= end, "Start date is after end date!");
+
+        let begin = match self.binary_search_by(|entry| entry.timestamp.cmp(start)) {
+            // timestamp from entry
+            Ok(i) => i,
+            // user inputted date - i because you want it to begin at the closest entry
+            Err(i) if i != self.len() => i,
+            // user inputted date that's after the last entry
+            Err(_) => self.len() - 1,
+        };
+
+        let stop = match self.binary_search_by(|entry| entry.timestamp.cmp(end)) {
+            // timestamp from entry
+            Ok(i) => i,
+            // user inputted date - i-1 becuase i would include one entry too much
+            Err(i) if i != 0 => i - 1,
+            // user inputted date that's before the first entry
+            Err(_) => 0,
+        };
+        self[begin..=stop]
+            .iter()
+            .filter(|entry| songs.iter().any(|song| song.is_entry(entry)))
+            .count()
+    }
+
     /// Adds search capability
     ///
     /// Use with methods from [`Find`]: [`.artist()`][Find::artist()], [`.album()`][Find::album()],

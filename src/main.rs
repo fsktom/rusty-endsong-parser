@@ -1,4 +1,4 @@
-//! [![github]](https://github.com/Filip-Tomasko/rusty-endsong-parser/)
+//! [![github]](https://github.com/fsktom/rusty-endsong-parser/)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //!
@@ -56,7 +56,7 @@ fn main() {
         format!("{root}endsong_9.json"),
     ];
 
-    let entries = SongEntries::new(&paths[..=0]).unwrap();
+    let entries = SongEntries::new(&paths[..=8]).unwrap();
 
     // test(&entries);
     // test_two(&entries);
