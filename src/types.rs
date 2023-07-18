@@ -223,6 +223,11 @@ impl Ord for Song {
         }
     }
 }
+impl From<&SongEntry> for Song {
+    fn from(entry: &SongEntry) -> Self {
+        Song::new(&entry.track, &entry.album, &entry.artist)
+    }
+}
 impl Music for Song {
     fn is_entry(&self, entry: &SongEntry) -> bool {
         entry.artist.eq(&self.album.artist.name)
@@ -578,14 +583,38 @@ impl SongEntries {
     /// Returns a [`HashMap`] with the [`Songs`][Song] as keys and
     /// their [`Durations`][Duration] as values
     pub fn song_durations(&self) -> HashMap<Song, Duration> {
-        self.iter()
-            // unique fine because SongEntry is equal when artist/album/track
-            // names are equal (custom implementation)
-            .unique()
-            .map(|entry| {
-                let song = Song::new(&entry.track, &entry.album, &entry.artist);
-                let song_dur = self.song_length(&song);
-                (song, song_dur)
+        let mut big_boy = HashMap::<Song, HashMap<Duration, usize>>::with_capacity(10_000);
+
+        for entry in self.iter() {
+            let song = Song::from(entry);
+            let dur = entry.time_played;
+
+            // see .song_length() for explanation
+            if let Some(durations) = big_boy.get_mut(&song) {
+                durations
+                    .entry(dur)
+                    .and_modify(|count| *count += 1)
+                    .or_insert(1);
+            } else {
+                let mut durations = HashMap::<Duration, usize>::with_capacity(10);
+                durations.insert(dur, 1);
+                big_boy.insert(song, durations);
+            }
+        }
+
+        big_boy
+            .iter()
+            .map(|(song, durations)| {
+                let max_occurrence = durations.iter().max_by_key(|(_, count)| *count).unwrap().1;
+
+                let dur = durations
+                    .iter()
+                    .filter(|(_, count)| *count == max_occurrence)
+                    .max_by_key(|(dur, _)| *dur)
+                    .unwrap()
+                    .0;
+
+                (song.clone(), *dur)
             })
             .collect()
     }

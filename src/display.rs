@@ -214,7 +214,7 @@ fn gather_songs(
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
     for entry in entries {
-        let song = Song::new(&entry.track, &entry.album, &entry.artist);
+        let song = Song::from(entry);
 
         // either create new field with value 0 (and add 1 to it)
         // or if a field with that key already exists,
@@ -302,7 +302,7 @@ fn gather_songs_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Song
 
     for entry in entries {
         if art.is_entry(entry) {
-            let song = Song::new(&entry.track, &entry.album, &entry.artist);
+            let song = Song::from(entry);
 
             *songs.entry(song).or_insert(0) += 1;
         }
@@ -317,7 +317,7 @@ fn gather_songs_with_album(entries: &[SongEntry], alb: &Album) -> HashMap<Song, 
 
     for entry in entries {
         if alb.is_entry(entry) {
-            let song = Song::new(&entry.track, &entry.album, &entry.artist);
+            let song = Song::from(entry);
 
             *songs.entry(song).or_insert(0) += 1;
         }
@@ -504,7 +504,7 @@ pub fn find_song_from_album(
         {
             // but here so that the version with proper
             // capitalization is returned
-            return Ok(Song::new(&entry.track, &entry.album, &entry.artist));
+            return Ok(Song::from(entry));
         }
     }
     Err(NotFoundError::Song)
@@ -531,7 +531,7 @@ pub fn find_song(
                 .to_lowercase()
                 .eq(&usr_song.artist.name.to_lowercase())
         {
-            let song_v = Song::new(&entry.track, &entry.album, &entry.artist);
+            let song_v = Song::from(entry);
             if !song_versions.contains(&song_v) {
                 song_versions.push(song_v);
             }
@@ -555,7 +555,7 @@ pub fn find_songs_from_album(entries: &[SongEntry], album: &Album) -> Vec<Song> 
         .iter()
         .filter(|entry| album.is_entry(entry))
         .unique()
-        .map(|entry| Song::new(&entry.track, &entry.album, &entry.artist))
+        .map(Song::from)
         .collect_vec()
 }
 
