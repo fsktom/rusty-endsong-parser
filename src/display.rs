@@ -331,7 +331,7 @@ fn gather_albums(entries: &[SongEntry]) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
     for entry in entries {
-        let album = Album::new(&entry.album, &entry.artist);
+        let album = Album::from(entry);
 
         *albums.entry(album).or_insert(0) += 1;
     }
@@ -345,7 +345,7 @@ fn gather_albums_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Alb
 
     for entry in entries {
         if art.is_entry(entry) {
-            let album = Album::new(&entry.album, &entry.artist);
+            let album = Album::from(entry);
             *albums.entry(album).or_insert(0) += 1;
         }
     }
@@ -358,7 +358,7 @@ fn gather_artists(entries: &[SongEntry]) -> HashMap<Artist, u32> {
     let mut artists: HashMap<Artist, u32> = HashMap::new();
 
     for entry in entries {
-        let artist = Artist::new(&entry.artist);
+        let artist = Artist::from(entry);
 
         *artists.entry(artist).or_insert(0) += 1;
     }
@@ -429,8 +429,6 @@ fn print_album(songs: &HashMap<Song, u32>) {
 
 /// Searches the entries for if the given artist exists in the dataset
 ///
-/// Wrapped by [`crate::types::Find::artist()`]
-///
 /// # Errors
 ///
 /// This function will return an [`Err`] with [`NotFoundError::Artist`]
@@ -441,15 +439,13 @@ pub fn find_artist(entries: &[SongEntry], artist_name: &str) -> Result<Artist, N
     for entry in entries {
         // .to_lowercase() so that user input capitalization doesn't matter
         if entry.artist.to_lowercase().eq(&usr_artist.name) {
-            return Ok(Artist::new(&entry.artist));
+            return Ok(Artist::from(entry));
         }
     }
     Err(NotFoundError::Artist)
 }
 
 /// Searches the entries for if the given album exists in the dataset
-///
-/// Wrapped by [`crate::types::Find::album()`]
 ///
 /// # Errors
 ///
@@ -470,7 +466,7 @@ pub fn find_album(
         if Album::new(entry.album.to_lowercase(), entry.artist.to_lowercase()).eq(&usr_album) {
             // but here so that the version with proper
             // capitalization is returned
-            return Ok(Album::new(&entry.album, &entry.artist));
+            return Ok(Album::from(entry));
         }
     }
     Err(NotFoundError::Album)

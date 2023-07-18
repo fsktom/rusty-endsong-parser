@@ -102,6 +102,11 @@ impl Display for Artist {
         write!(f, "{}", self.name)
     }
 }
+impl From<&SongEntry> for Artist {
+    fn from(entry: &SongEntry) -> Self {
+        Artist::new(&entry.artist)
+    }
+}
 impl Music for Artist {
     fn is_entry(&self, entry: &SongEntry) -> bool {
         entry.artist.eq(&self.name)
@@ -150,6 +155,11 @@ impl Ord for Album {
             // otherwise, compare the artists
             _ => self.artist.cmp(&other.artist),
         }
+    }
+}
+impl From<&SongEntry> for Album {
+    fn from(entry: &SongEntry) -> Self {
+        Album::new(&entry.album, &entry.artist)
     }
 }
 impl Music for Album {
