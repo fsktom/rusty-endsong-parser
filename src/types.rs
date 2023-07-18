@@ -484,7 +484,7 @@ impl SongEntries {
     /// Panics if `song` is not a valid entry in the dataset
     pub fn song_length(&self, song: &Song) -> Duration {
         // map of durations with their amount of occurences
-        let mut durations = HashMap::<Duration, usize>::new();
+        let mut durations = HashMap::<Duration, usize>::with_capacity(10);
 
         for dur in self
             .iter()
@@ -495,6 +495,10 @@ impl SongEntries {
                 .entry(dur)
                 .and_modify(|count| *count += 1)
                 .or_insert(1);
+        }
+
+        if durations.len() == 1 {
+            return *durations.keys().next().unwrap();
         }
 
         // has to be done because possible that multiple durations
@@ -572,21 +576,18 @@ impl SongEntries {
     }
 
     /// Returns a [`HashMap`] with the [`Songs`][Song] as keys and
-    /// their durations as values
+    /// their [`Durations`][Duration] as values
     pub fn song_durations(&self) -> HashMap<Song, Duration> {
-        let mut durations = HashMap::<Song, Duration>::new();
-
-        for song in self
-            .iter()
-            .map(|entry| Song::new(&entry.track, &entry.album, &entry.artist))
-        {
-            let a = song.clone();
-            if durations.get(&a).is_none() {
-                durations.insert(a, self.song_length(&song));
-            }
-        }
-
-        durations
+        self.iter()
+            // unique fine because SongEntry is equal when artist/album/track
+            // names are equal (custom implementation)
+            .unique()
+            .map(|entry| {
+                let song = Song::new(&entry.track, &entry.album, &entry.artist);
+                let song_dur = self.song_length(&song);
+                (song, song_dur)
+            })
+            .collect()
     }
 
     /// Filters out song entries that have been played

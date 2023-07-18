@@ -86,7 +86,7 @@ fn kekw(c: &mut Criterion) {
         format!("{root}endsong_9.json"),
     ];
 
-    let entries = black_box(SongEntries::new(&paths[7..=7]).unwrap());
+    let entries = black_box(SongEntries::new(&paths[7..=9]).unwrap());
 
     let lth = Song::new(
         "Last Train Home",
