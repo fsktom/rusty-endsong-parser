@@ -180,7 +180,7 @@ impl Completer for ShellHelper {
 /// ANSI Colors
 ///
 /// See <https://bixense.com/clicolors>
-pub enum Color {
+enum Color {
     /// Resets the following text with `\x1b[0m`
     Reset,
     /// Makes the following text green with `\x1b[1;32m`
