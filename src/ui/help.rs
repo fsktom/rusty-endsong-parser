@@ -1,4 +1,4 @@
-use crate::types::Color;
+use super::Color;
 
 use unicode_width::UnicodeWidthStr;
 
