@@ -389,7 +389,7 @@ impl SongEntries {
     ///
     /// # Panics
     ///
-    /// Panics if `start` is after `end`
+    /// Panics if `start` is after or equal to `end`
     pub fn listening_time(&self, start: &DateTime<Tz>, end: &DateTime<Tz>) -> Duration {
         assert!(start <= end, "Start date is after end date!");
 
@@ -530,7 +530,7 @@ impl SongEntries {
     ///
     /// # Panics
     ///
-    /// Panics if `start` is after `end`
+    /// Panics if `start` is after or equal to `end`
     pub fn songs_plays_date(
         &self,
         songs: &[Song],

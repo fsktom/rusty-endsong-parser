@@ -104,7 +104,7 @@ fn print_artist(
 ///
 /// # Panics
 ///
-/// Panics if `start` is after `end`
+/// Panics if `start` is after or equal to `end`
 pub fn gather_plays<Asp: Music>(
     entries: &[SongEntry],
     aspect: &Asp,
@@ -134,6 +134,7 @@ fn gather_albums_with_artist(
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) -> HashMap<Album, u32> {
+    assert!(start <= end, "Start date is after end date!");
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
     let (begin, stop) = find_timestamp_indexes(entries, start, end);
@@ -182,7 +183,7 @@ fn gather_songs_with_album(
 ///
 /// # Panics
 ///
-/// Panics if `start` is after `end`
+/// Panics if `start` is after or equal to `end`
 pub fn sum_plays(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>) -> usize {
     assert!(start <= end, "Start date is after end date!");
 
