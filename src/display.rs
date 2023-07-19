@@ -438,7 +438,7 @@ pub fn find_artist(entries: &[SongEntry], artist_name: &str) -> Result<Artist, N
 
     for entry in entries {
         // .to_lowercase() so that user input capitalization doesn't matter
-        if entry.artist.to_lowercase().eq(&usr_artist.name) {
+        if entry.artist.to_lowercase() == usr_artist.name {
             return Ok(Artist::from(entry));
         }
     }
@@ -463,7 +463,7 @@ pub fn find_album(
     let usr_album = Album::new(album_name.to_lowercase(), artist_name.to_lowercase());
 
     for entry in entries {
-        if Album::new(entry.album.to_lowercase(), entry.artist.to_lowercase()).eq(&usr_album) {
+        if Album::new(entry.album.to_lowercase(), entry.artist.to_lowercase()) == usr_album {
             // but here so that the version with proper
             // capitalization is returned
             return Ok(Album::from(entry));
@@ -495,8 +495,7 @@ pub fn find_song_from_album(
             entry.track.to_lowercase(),
             entry.album.to_lowercase(),
             entry.artist.to_lowercase(),
-        )
-        .eq(&usr_song)
+        ) == usr_song
         {
             // but here so that the version with proper
             // capitalization is returned
@@ -521,11 +520,8 @@ pub fn find_song(
 
     for entry in entries {
         // .to_lowercase() so that user input capitalization doesn't matter
-        if entry.track.to_lowercase().eq(&usr_song.name.to_lowercase())
-            && entry
-                .artist
-                .to_lowercase()
-                .eq(&usr_song.artist.name.to_lowercase())
+        if entry.track.to_lowercase() == usr_song.name.to_lowercase()
+            && entry.artist.to_lowercase() == usr_song.artist.name.to_lowercase()
         {
             let song_v = Song::from(entry);
             if !song_versions.contains(&song_v) {

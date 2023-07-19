@@ -109,7 +109,7 @@ impl From<&SongEntry> for Artist {
 }
 impl Music for Artist {
     fn is_entry(&self, entry: &SongEntry) -> bool {
-        entry.artist.eq(&self.name)
+        entry.artist == self.name
     }
 }
 impl HasSongs for Artist {}
@@ -164,7 +164,7 @@ impl From<&SongEntry> for Album {
 }
 impl Music for Album {
     fn is_entry(&self, entry: &SongEntry) -> bool {
-        entry.artist.eq(&self.artist.name) && entry.album.eq(&self.name)
+        entry.artist == self.artist.name && entry.album == self.name
     }
 }
 impl HasSongs for Album {}
@@ -240,9 +240,9 @@ impl From<&SongEntry> for Song {
 }
 impl Music for Song {
     fn is_entry(&self, entry: &SongEntry) -> bool {
-        entry.artist.eq(&self.album.artist.name)
-            && entry.album.eq(&self.album.name)
-            && entry.track.eq(&self.name)
+        entry.artist == self.album.artist.name
+            && entry.album == self.album.name
+            && entry.track == self.name
     }
 }
 impl HasArtist for Song {
@@ -273,12 +273,12 @@ pub struct SongEntry {
 }
 impl PartialEq for SongEntry {
     fn eq(&self, other: &Self) -> bool {
-        // self.id.eq(&other.id)
+        // self.id.eq == other.id
         // ^decided not to use that cause it lead to duplicate songs with songs_from_album()
         // sometimes IDs change over time for some songs... thx Spotify :))))
         // that's why equality for a SongEntry is when the artist, album, and track name is the same
         // (also same capitalization!!) -> may change this in future
-        self.artist.eq(&other.artist) && self.album.eq(&other.album) && self.track.eq(&other.track)
+        self.artist == other.artist && self.album == other.album && self.track == other.track
     }
 }
 impl Eq for SongEntry {}
