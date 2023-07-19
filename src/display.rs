@@ -7,7 +7,6 @@ use crate::types::Aspect;
 use crate::types::AspectFull;
 use crate::types::Mode;
 use crate::types::Music;
-use crate::types::NotFoundError;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
 
@@ -186,15 +185,6 @@ struct SongJustArtist {
     name: String,
     /// Artist of the song
     artist: Artist,
-}
-impl SongJustArtist {
-    /// Creates an instance of [`SongJustArtist`]
-    fn new<S: Into<String>>(song_name: S, artist_name: S) -> SongJustArtist {
-        SongJustArtist {
-            name: song_name.into(),
-            artist: Artist::new(artist_name),
-        }
-    }
 }
 impl From<&Song> for SongJustArtist {
     fn from(song: &Song) -> SongJustArtist {
@@ -431,112 +421,82 @@ fn print_album(songs: &HashMap<Song, u32>) {
 
 /// Searches the entries for if the given artist exists in the dataset
 ///
-/// # Errors
+/// Case-insensitive and returns the [`Artist`] with proper capitalization
+/// (i.e. the capitalization of the first entry it finds)
 ///
-/// This function will return an [`Err`] with [`NotFoundError::Artist`]
-/// if it cannot find an artist with the given name
-pub fn find_artist(entries: &[SongEntry], artist_name: &str) -> Result<Artist, NotFoundError> {
+/// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
+pub fn find_artist(entries: &[SongEntry], artist_name: &str) -> Option<Artist> {
     let usr_artist = Artist::new(artist_name.to_lowercase());
 
-    for entry in entries {
-        // .to_lowercase() so that user input capitalization doesn't matter
-        if entry.artist.to_lowercase() == usr_artist.name {
-            return Ok(Artist::from(entry));
-        }
-    }
-    Err(NotFoundError::Artist)
+    entries
+        .iter()
+        .find(|entry| usr_artist.is_entry_lowercase(entry))
+        .map(Artist::from)
 }
 
 /// Searches the entries for if the given album exists in the dataset
 ///
-/// # Errors
+/// Case-insensitive and returns the [`Album`] with proper capitalization
+/// (i.e. the capitalization of the first entry it finds)
 ///
-/// This function will return an [`Err`] with [`NotFoundError::Album`]
-/// if it cannot find an album with the given name and artist
-pub fn find_album(
-    entries: &[SongEntry],
-    album_name: &str,
-    artist_name: &str,
-) -> Result<Album, NotFoundError> {
-    // .to_lowercase() so that user input capitalization doesn't matter
-    // -> problem with different versions of the same album having different
-    // capitalization
-    // see #2 https://github.com/fsktom/rusty-endsong-parser/issues/2
+/// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
+pub fn find_album(entries: &[SongEntry], album_name: &str, artist_name: &str) -> Option<Album> {
     let usr_album = Album::new(album_name.to_lowercase(), artist_name.to_lowercase());
 
-    for entry in entries {
-        if Album::new(entry.album.to_lowercase(), entry.artist.to_lowercase()) == usr_album {
-            // but here so that the version with proper
-            // capitalization is returned
-            return Ok(Album::from(entry));
-        }
-    }
-    Err(NotFoundError::Album)
+    entries
+        .iter()
+        .find(|entry| usr_album.is_entry_lowercase(entry))
+        .map(Album::from)
 }
 
 /// Searches the entries for if the given song (in that specific album)
 /// exists in the dataset
+///
+/// Case-insensitive and returns the [`Song`] with proper capitalization
+/// (i.e. the capitalization of the first entry it finds)
+///
+/// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
 pub fn find_song_from_album(
     entries: &[SongEntry],
     song_name: &str,
     album_name: &str,
     artist_name: &str,
-) -> Result<Song, NotFoundError> {
-    // .to_lowercase() so that user input capitalization doesn't matter
-    // -> problem with different versions of the same album having different
-    // capitalization
-    // see #2 https://github.com/fsktom/rusty-endsong-parser/issues/2
+) -> Option<Song> {
     let usr_song = Song::new(
         song_name.to_lowercase(),
         album_name.to_lowercase(),
         artist_name.to_lowercase(),
     );
 
-    for entry in entries {
-        if Song::new(
-            entry.track.to_lowercase(),
-            entry.album.to_lowercase(),
-            entry.artist.to_lowercase(),
-        ) == usr_song
-        {
-            // but here so that the version with proper
-            // capitalization is returned
-            return Ok(Song::from(entry));
-        }
-    }
-    Err(NotFoundError::Song)
+    entries
+        .iter()
+        .find(|entry| usr_song.is_entry_lowercase(entry))
+        .map(Song::from)
 }
 
 /// Searches the dataset for multiple versions of a song
 ///
-/// Returns a [`Vec<Song>`] containing an instance
-/// of [`Song`] for every album it's been found in
-pub fn find_song(
-    entries: &[SongEntry],
-    song_name: &str,
-    artist_name: &str,
-) -> Result<Vec<Song>, NotFoundError> {
-    let usr_song = SongJustArtist::new(song_name, artist_name);
+/// Case-insensitive and returns a [`Vec<Song>`] containing an instance
+/// of [`Song`] for every album it's been found in with proper capitalization
+///
+/// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
+pub fn find_song(entries: &[SongEntry], song_name: &str, artist_name: &str) -> Option<Vec<Song>> {
+    let (song_name, artist_name) = (song_name.to_lowercase(), artist_name.to_lowercase());
 
-    let mut song_versions: Vec<Song> = Vec::new();
+    let song_versions = entries
+        .iter()
+        .filter(|entry| {
+            entry.track.to_lowercase() == song_name && entry.artist.to_lowercase() == artist_name
+        })
+        .unique()
+        .map(Song::from)
+        .collect_vec();
 
-    for entry in entries {
-        // .to_lowercase() so that user input capitalization doesn't matter
-        if entry.track.to_lowercase() == usr_song.name.to_lowercase()
-            && entry.artist.to_lowercase() == usr_song.artist.name.to_lowercase()
-        {
-            let song_v = Song::from(entry);
-            if !song_versions.contains(&song_v) {
-                song_versions.push(song_v);
-            }
-        }
+    if song_versions.is_empty() {
+        return None;
     }
 
-    if !song_versions.is_empty() {
-        return Ok(song_versions);
-    }
-
-    Err(NotFoundError::JustSong)
+    Some(song_versions)
 }
 
 /// Returns a [`Vec<Song>`] with all the songs in the given album
@@ -620,6 +580,6 @@ mod tests {
             find_artist(&entries, "Theocracy").unwrap(),
             Artist::new("Theocracy")
         );
-        assert!(entries.find().artist("Powerwolf").is_err());
+        assert!(entries.find().artist("Powerwolf").is_none());
     }
 }

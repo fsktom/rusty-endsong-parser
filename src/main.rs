@@ -95,11 +95,11 @@ fn test(entries: &SongEntries) {
         .song_from_album("The FINAL SOLutiOn", "COAT OF ARMS", "sabaton",)
         .unwrap());
     match entries.find().artist("daduasdy712e qyw7") {
-        Ok(art) => {
+        Some(art) => {
             dbg!(art);
         }
-        Err(e) => {
-            dbg!(e);
+        None => {
+            dbg!("nope");
         }
     }
     // here to test whether it finds the multiple versions of this song (from many albums)
@@ -146,7 +146,7 @@ fn test_two(entries: &mut SongEntries) {
     assert!(entries
         .find()
         .song_from_album("STYX HELIX", "eYe's", "MYTH & ROID")
-        .is_ok());
+        .is_some());
     let a = entries.song_length(&s);
     dbg!(a.num_minutes(), a.num_seconds() - a.num_minutes() * 60);
     dbg!(a.display());

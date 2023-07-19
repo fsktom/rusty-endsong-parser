@@ -72,6 +72,12 @@ pub enum Mode {
 pub trait Music: Display + Clone + Eq + Ord {
     /// Checks if a [`SongEntry`] is a [`Music`]
     fn is_entry(&self, entry: &SongEntry) -> bool;
+
+    /// Checks if a [`SongEntry`] is a [`Music`] but case insensitive
+    ///
+    /// Performs `.to_lowercase()` ONLY on `entry`, NOT on [`self`].
+    /// Make sure in advance that [`self`] fields are lowercase.
+    fn is_entry_lowercase(&self, entry: &SongEntry) -> bool;
 }
 
 /// Trait used to accept only [`Artist`] and [`Album`]
@@ -111,6 +117,9 @@ impl From<&SongEntry> for Artist {
 impl Music for Artist {
     fn is_entry(&self, entry: &SongEntry) -> bool {
         entry.artist == self.name
+    }
+    fn is_entry_lowercase(&self, entry: &SongEntry) -> bool {
+        entry.artist.to_lowercase() == self.name
     }
 }
 impl HasSongs for Artist {}
@@ -166,6 +175,9 @@ impl From<&SongEntry> for Album {
 impl Music for Album {
     fn is_entry(&self, entry: &SongEntry) -> bool {
         entry.artist == self.artist.name && entry.album == self.name
+    }
+    fn is_entry_lowercase(&self, entry: &SongEntry) -> bool {
+        entry.artist.to_lowercase() == self.artist.name && entry.album.to_lowercase() == self.name
     }
 }
 impl HasSongs for Album {}
@@ -244,6 +256,11 @@ impl Music for Song {
         entry.artist == self.album.artist.name
             && entry.album == self.album.name
             && entry.track == self.name
+    }
+    fn is_entry_lowercase(&self, entry: &SongEntry) -> bool {
+        entry.artist.to_lowercase() == self.album.artist.name
+            && entry.album.to_lowercase() == self.album.name
+            && entry.track.to_lowercase() == self.name
     }
 }
 impl HasArtist for Song {
@@ -655,7 +672,7 @@ impl<'a> Find<'a> {
     ///
     /// This function will return an [`Err`] with [`NotFoundError::Artist`]
     /// if it cannot find an artist with the given name
-    pub fn artist(&self, artist_name: &str) -> Result<Artist, NotFoundError> {
+    pub fn artist(&self, artist_name: &str) -> Option<Artist> {
         display::find_artist(self.0, artist_name)
     }
 
@@ -667,7 +684,7 @@ impl<'a> Find<'a> {
     ///
     /// This function will return an [`Err`] with [`NotFoundError::Album`]
     /// if it cannot find an album with the given name and artist
-    pub fn album(&self, album_name: &str, artist_name: &str) -> Result<Album, NotFoundError> {
+    pub fn album(&self, album_name: &str, artist_name: &str) -> Option<Album> {
         display::find_album(self.0, album_name, artist_name)
     }
 
@@ -686,7 +703,7 @@ impl<'a> Find<'a> {
         song_name: &str,
         album_name: &str,
         artist_name: &str,
-    ) -> Result<Song, NotFoundError> {
+    ) -> Option<Song> {
         display::find_song_from_album(self.0, song_name, album_name, artist_name)
     }
 
@@ -696,7 +713,7 @@ impl<'a> Find<'a> {
     /// of [`Song`] for every album it's been found in
     ///
     /// Wrapper for [`display::find_song()`]
-    pub fn song(&self, song_name: &str, artist_name: &str) -> Result<Vec<Song>, NotFoundError> {
+    pub fn song(&self, song_name: &str, artist_name: &str) -> Option<Vec<Song>> {
         display::find_song(self.0, song_name, artist_name)
     }
 
@@ -745,63 +762,6 @@ impl<'a> Traces<'a> {
 
 pub use plot::compare as plot_compare;
 pub use plot::single as plot_single;
-
-/// Errors raised by `display::find_*` functions and [`Find`] methods
-/// when they don't find an [`Artist`], [`Album`] or [`Song`]
-///
-/// loosely based on [`std::io::ErrorKind`]
-#[derive(Debug)]
-pub enum NotFoundError {
-    /// Artist with that name was not found
-    ///
-    /// Error message: "Sorry, I couldn't find any artist with that name!"
-    Artist,
-    /// Album with that name from that artist was not found
-    ///
-    /// Error message: "Sorry, I couldn't find any album with that name
-    /// from that artist!"
-    Album,
-    /// Song with that name from that album and artist was not found
-    ///
-    /// Error message:
-    /// "Sorry, I couldn't find any song with
-    /// that name from that album and artist!"
-    Song,
-    /// Song with that name from that artist was not found
-    ///
-    /// Error message:
-    /// "Sorry, I couldn't find any song with
-    /// that name from that artist!"
-    JustSong,
-}
-impl Display for NotFoundError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            NotFoundError::Artist => {
-                write!(f, "Sorry, I couldn't find any artist with that name!")
-            }
-            NotFoundError::Album => {
-                write!(
-                    f,
-                    "Sorry, I couldn't find any album with that name from that artist!"
-                )
-            }
-            NotFoundError::Song => {
-                write!(
-                    f,
-                    "Sorry, I couldn't find any song with that name from that album and artist!"
-                )
-            }
-            NotFoundError::JustSong => {
-                write!(
-                    f,
-                    "Sorry, I couldn't find any song with that name from that artist!"
-                )
-            }
-        }
-    }
-}
-impl Error for NotFoundError {}
 
 /// A more specific version of [`parse::Entry`]
 /// for podcast entries.

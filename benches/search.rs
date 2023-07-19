@@ -104,6 +104,19 @@ fn kekw(c: &mut Criterion) {
             black_box(entries.song_durations());
         })
     });
+    c.bench_function("find song", |c| {
+        c.iter(|| {
+            black_box(
+                rusty_endsong_parser::display::find_song_from_album(
+                    &entries,
+                    "Last Train Home",
+                    "Still Life (Talking)",
+                    "Pat Metheny Group",
+                )
+                .unwrap(),
+            );
+        })
+    });
 }
 
 // criterion_group!(benches, lol);
