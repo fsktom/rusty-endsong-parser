@@ -181,7 +181,7 @@ pub fn sum_plays(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>
 ///
 /// Uses binary search to find the indexes of the timestamps closest to `start` and `end`
 /// if the exact ones are not in the dataset
-fn find_timestamp_indexes(
+pub fn find_timestamp_indexes(
     entries: &[SongEntry],
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,

@@ -11,6 +11,7 @@ use itertools::Itertools;
 pub use plotly::Trace;
 
 use crate::display;
+use crate::display::date::find_timestamp_indexes;
 use crate::parse;
 use crate::plot;
 
@@ -392,23 +393,7 @@ impl SongEntries {
     pub fn listening_time(&self, start: &DateTime<Tz>, end: &DateTime<Tz>) -> Duration {
         assert!(start <= end, "Start date is after end date!");
 
-        let begin = match self.binary_search_by(|entry| entry.timestamp.cmp(start)) {
-            // timestamp from entry
-            Ok(i) => i,
-            // user inputted date - i because you want it to begin at the closest entry
-            Err(i) if i != self.len() => i,
-            // user inputted date that's after the last entry
-            Err(_) => self.len() - 1,
-        };
-
-        let stop = match self.binary_search_by(|entry| entry.timestamp.cmp(end)) {
-            // timestamp from entry
-            Ok(i) => i,
-            // user inputted date - i-1 becuase i would include one entry too much
-            Err(i) if i != 0 => i - 1,
-            // user inputted date that's before the first entry
-            Err(_) => 0,
-        };
+        let (begin, stop) = find_timestamp_indexes(self, start, end);
 
         // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
         // self[begin..=stop].iter().map(|entry| entry.time_played).sum::<Duration>();
@@ -554,23 +539,8 @@ impl SongEntries {
     ) -> usize {
         assert!(start <= end, "Start date is after end date!");
 
-        let begin = match self.binary_search_by(|entry| entry.timestamp.cmp(start)) {
-            // timestamp from entry
-            Ok(i) => i,
-            // user inputted date - i because you want it to begin at the closest entry
-            Err(i) if i != self.len() => i,
-            // user inputted date that's after the last entry
-            Err(_) => self.len() - 1,
-        };
+        let (begin, stop) = find_timestamp_indexes(self, start, end);
 
-        let stop = match self.binary_search_by(|entry| entry.timestamp.cmp(end)) {
-            // timestamp from entry
-            Ok(i) => i,
-            // user inputted date - i-1 becuase i would include one entry too much
-            Err(i) if i != 0 => i - 1,
-            // user inputted date that's before the first entry
-            Err(_) => 0,
-        };
         self[begin..=stop]
             .iter()
             .filter(|entry| songs.iter().any(|song| song.is_entry(entry)))
