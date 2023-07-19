@@ -85,17 +85,17 @@ pub fn print_top_from_album(entries: &[SongEntry], album: &Album, num: usize) {
 }
 
 /// Used by [`print_top()`]
-fn print_top_helper<Asp: Music>(music_dict: HashMap<Asp, u32>, num: usize) {
+fn print_top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
-    let mut music_vec: Vec<(Asp, u32)> = music_dict.into_iter().collect();
+    let mut music_vec: Vec<(Asp, usize)> = music_dict.into_iter().collect();
     let length = music_vec.len();
 
     // primary sorting: sort by plays
     music_vec.sort_by(|a, b| b.1.cmp(&a.1));
 
     // secondary sorting: if plays are equal -> sort A->Z
-    let mut alphabetical: Vec<(Asp, u32)> = Vec::with_capacity(length);
-    let mut same_plays: Vec<(Asp, u32)> = vec![music_vec.first().unwrap().to_owned()];
+    let mut alphabetical: Vec<(Asp, usize)> = Vec::with_capacity(length);
+    let mut same_plays: Vec<(Asp, usize)> = vec![music_vec.first().unwrap().to_owned()];
     for el in music_vec {
         let first = same_plays.first().unwrap();
         // ignore first element of list (cause it's already in same_plays)
@@ -205,22 +205,13 @@ impl From<&Song> for SongJustArtist {
 fn gather_songs(
     entries: &[SongEntry],
     sum_songs_from_different_albums: bool,
-) -> HashMap<Song, u32> {
-    let mut songs: HashMap<Song, u32> = HashMap::new();
-
-    for entry in entries {
-        let song = Song::from(entry);
-
-        // either create new field with value 0 (and add 1 to it)
-        // or if a field with that key already exists,
-        // add one play to it
-        *songs.entry(song).or_insert(0) += 1;
-    }
+) -> HashMap<Song, usize> {
+    let mut songs = entries.iter().map(Song::from).counts();
 
     if sum_songs_from_different_albums {
         /// Tuple struct containing an Album with the amount of plays
         #[derive(PartialEq, Eq, Hash, Debug, Clone)]
-        struct AlbumPlays(Album, u32);
+        struct AlbumPlays(Album, usize);
 
         /// Contains the name of the song and
         /// a vector containg all the albums this song is in
@@ -233,7 +224,7 @@ fn gather_songs(
             albums: Vec<AlbumPlays>,
         }
 
-        let mut songs_artist: HashMap<SongJustArtist, u32> = HashMap::new();
+        let mut songs_artist: HashMap<SongJustArtist, usize> = HashMap::new();
 
         // to know which album the song had highest amount of plays from
         // that album will be then displayed in () after the song name
@@ -268,7 +259,7 @@ fn gather_songs(
 
             // the first album will be taken if both have
             // the same number of plays
-            let mut total: u32 = 0;
+            let mut total: usize = 0;
             let highest: &AlbumPlays = {
                 let mut plays = 0;
                 (0..albs.len()).for_each(|alb| {
@@ -292,70 +283,40 @@ fn gather_songs(
 }
 
 /// Returns a map with all [`Songs`][Song] corresponding to `art` with their playcount
-fn gather_songs_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Song, u32> {
-    let mut songs: HashMap<Song, u32> = HashMap::new();
-
-    for song in entries
+fn gather_songs_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Song, usize> {
+    entries
         .iter()
         .filter(|entry| art.is_entry(entry))
         .map(Song::from)
-    {
-        *songs.entry(song).or_insert(0) += 1;
-    }
-
-    songs
+        .counts()
 }
 
 /// Returns a map with all [`Songs`][Song] corresponding to `alb` with their playcount
-fn gather_songs_with_album(entries: &[SongEntry], alb: &Album) -> HashMap<Song, u32> {
-    let mut songs: HashMap<Song, u32> = HashMap::new();
-
-    for song in entries
+fn gather_songs_with_album(entries: &[SongEntry], alb: &Album) -> HashMap<Song, usize> {
+    entries
         .iter()
         .filter(|entry| alb.is_entry(entry))
         .map(Song::from)
-    {
-        *songs.entry(song).or_insert(0) += 1;
-    }
-
-    songs
+        .counts()
 }
 
 /// Returns a map with all [`Albums`][Album] and their playcount
-fn gather_albums(entries: &[SongEntry]) -> HashMap<Album, u32> {
-    let mut albums: HashMap<Album, u32> = HashMap::new();
-
-    for album in entries.iter().map(Album::from) {
-        *albums.entry(album).or_insert(0) += 1;
-    }
-
-    albums
+fn gather_albums(entries: &[SongEntry]) -> HashMap<Album, usize> {
+    entries.iter().map(Album::from).counts()
 }
 
 /// Returns a map with all [`Albums`][Album] corresponding to `art` with their playcount
-fn gather_albums_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album, u32> {
-    let mut albums: HashMap<Album, u32> = HashMap::new();
-
-    for album in entries
+pub fn gather_albums_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album, usize> {
+    entries
         .iter()
         .filter(|entry| art.is_entry(entry))
         .map(Album::from)
-    {
-        *albums.entry(album).or_insert(0) += 1;
-    }
-
-    albums
+        .counts()
 }
 
 /// Returns a map with all [`Artists`][Artist] and their playcount
-fn gather_artists(entries: &[SongEntry]) -> HashMap<Artist, u32> {
-    let mut artists: HashMap<Artist, u32> = HashMap::new();
-
-    for artist in entries.iter().map(Artist::from) {
-        *artists.entry(artist).or_insert(0) += 1;
-    }
-
-    artists
+fn gather_artists(entries: &[SongEntry]) -> HashMap<Artist, usize> {
+    entries.iter().map(Artist::from).counts()
 }
 
 /// Prints a specfic aspect
@@ -396,8 +357,8 @@ fn gather_plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
 }
 
 /// Prints each [`Album`] of `albums` with the playcount
-fn print_artist(entries: &[SongEntry], albums: &HashMap<Album, u32>) {
-    let mut albums_vec: Vec<(&Album, &u32)> = albums.iter().collect();
+fn print_artist(entries: &[SongEntry], albums: &HashMap<Album, usize>) {
+    let mut albums_vec: Vec<(&Album, &usize)> = albums.iter().collect();
     albums_vec.sort_by(|a, b| b.1.cmp(a.1));
 
     for (alb, plays) in albums_vec {
@@ -407,8 +368,8 @@ fn print_artist(entries: &[SongEntry], albums: &HashMap<Album, u32>) {
 }
 
 /// Prints each [`Song`] of `songs` with the playcount
-fn print_album(songs: &HashMap<Song, u32>) {
-    let mut songs_vec: Vec<(&Song, &u32)> = songs.iter().collect();
+fn print_album(songs: &HashMap<Song, usize>) {
+    let mut songs_vec: Vec<(&Song, &usize)> = songs.iter().collect();
     songs_vec.sort_by(|a, b| b.1.cmp(a.1));
 
     for (i, (song, plays)) in songs_vec.iter().enumerate() {

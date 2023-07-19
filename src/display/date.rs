@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use chrono::DateTime;
 use chrono_tz::Tz;
+use itertools::Itertools;
 
 use crate::types::AspectFull;
 use crate::types::Music;
@@ -99,12 +100,12 @@ pub fn print_aspect(
 /// Panics if `start` is after or equal to `end`
 fn print_artist(
     entries: &[SongEntry],
-    albums: &HashMap<Album, u32>,
+    albums: &HashMap<Album, usize>,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) {
     assert!(start <= end, "Start date is after end date!");
-    let mut albums_vec: Vec<(&Album, &u32)> = albums.iter().collect();
+    let mut albums_vec: Vec<(&Album, &usize)> = albums.iter().collect();
     albums_vec.sort_by(|a, b| b.1.cmp(a.1));
 
     for (alb, plays) in albums_vec {
@@ -148,21 +149,16 @@ fn gather_albums_with_artist(
     art: &Artist,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
-) -> HashMap<Album, u32> {
+) -> HashMap<Album, usize> {
     assert!(start <= end, "Start date is after end date!");
-    let mut albums: HashMap<Album, u32> = HashMap::new();
 
     let (begin, stop) = find_timestamp_indexes(entries, start, end);
 
-    for album in entries[begin..=stop]
+    entries[begin..=stop]
         .iter()
         .filter(|entry| art.is_entry(entry))
         .map(Album::from)
-    {
-        *albums.entry(album).or_insert(0) += 1;
-    }
-
-    albums
+        .counts()
 }
 
 /// Returns a map with all [`Songs`][Song] corresponding to `alb` with their playcount in a date range
@@ -177,21 +173,16 @@ fn gather_songs_with_album(
     alb: &Album,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
-) -> HashMap<Song, u32> {
+) -> HashMap<Song, usize> {
     assert!(start <= end, "Start date is after end date!");
-    let mut songs: HashMap<Song, u32> = HashMap::new();
 
     let (begin, stop) = find_timestamp_indexes(entries, start, end);
 
-    for song in entries[begin..=stop]
+    entries[begin..=stop]
         .iter()
         .filter(|entry| alb.is_entry(entry))
         .map(Song::from)
-    {
-        *songs.entry(song).or_insert(0) += 1;
-    }
-
-    songs
+        .counts()
 }
 
 /// Sums all plays in the given date frame
