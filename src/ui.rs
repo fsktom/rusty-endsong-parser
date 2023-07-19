@@ -355,19 +355,8 @@ fn match_print_time_date(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     rl.helper_mut().unwrap().reset();
-    // 1st prompt: start date
-    println!("Start date? YYYY-MM-DD or 'start'");
-    let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
-    let start_date = user_input_date_parser(&usr_input_start_date)?;
-
-    // 2nd prompt: end date
-    println!("End date? YYYY-MM-DD or 'now'");
-    let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
-    let end_date = user_input_date_parser(&usr_input_end_date)?;
-
-    if start_date >= end_date {
-        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
-    }
+    // 1st + 2nd prompt: start + end date
+    let (start_date, end_date) = read_dates(rl)?;
 
     crate::display::print_time_played_date(entries, &start_date, &end_date);
     Ok(())
@@ -435,19 +424,8 @@ fn match_print_artist_date(
     let art = entries.find().artist(&usr_input_art)?;
 
     rl.helper_mut().unwrap().reset();
-    // 2nd prompt: start date
-    println!("Start date? YYYY-MM-DD or 'start'");
-    let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
-    let start_date = user_input_date_parser(&usr_input_start_date)?;
-
-    // 3rd prompt: end date
-    println!("End date? YYYY-MM-DD or 'now'");
-    let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
-    let end_date = user_input_date_parser(&usr_input_end_date)?;
-
-    if start_date >= end_date {
-        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
-    }
+    // 2nd + 3rd prompt: start + end date
+    let (start_date, end_date) = read_dates(rl)?;
 
     entries.print_aspect_date(&AspectFull::Artist(&art), &start_date, &end_date);
     Ok(())
@@ -494,19 +472,8 @@ fn match_print_album_date(
     let alb = entries.find().album(&usr_input_alb, &art.name)?;
 
     rl.helper_mut().unwrap().reset();
-    // 3rd prompt: start date
-    println!("Start date? YYYY-MM-DD or 'start'");
-    let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
-    let start_date = user_input_date_parser(&usr_input_start_date)?;
-
-    // 4th prompt: end date
-    println!("End date? YYYY-MM-DD or 'now'");
-    let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
-    let end_date = user_input_date_parser(&usr_input_end_date)?;
-
-    if start_date >= end_date {
-        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
-    }
+    // 3rd + 4th prompt: start + end date
+    let (start_date, end_date) = read_dates(rl)?;
 
     entries.print_aspect_date(&AspectFull::Album(&alb), &start_date, &end_date);
     Ok(())
@@ -569,19 +536,8 @@ fn match_print_song_date(
         .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)?;
 
     rl.helper_mut().unwrap().reset();
-    // 4th prompt: start date
-    println!("Start date? YYYY-MM-DD or 'start'");
-    let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
-    let start_date = user_input_date_parser(&usr_input_start_date)?;
-
-    // 5th prompt: end date
-    println!("End date? YYYY-MM-DD or 'now'");
-    let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
-    let end_date = user_input_date_parser(&usr_input_end_date)?;
-
-    if start_date >= end_date {
-        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
-    }
+    // 4th + 5th prompt: start + end date
+    let (start_date, end_date) = read_dates(rl)?;
 
     entries.print_aspect_date(&AspectFull::Song(&son), &start_date, &end_date);
     Ok(())
@@ -638,19 +594,8 @@ fn match_print_songs_date(
     let songs = entries.find().song(&usr_input_son, &art.name)?;
 
     rl.helper_mut().unwrap().reset();
-    // 3rd prompt: start date
-    println!("Start date? YYYY-MM-DD or 'start'");
-    let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
-    let start_date = user_input_date_parser(&usr_input_start_date)?;
-
-    // 4th prompt: end date
-    println!("End date? YYYY-MM-DD or 'now'");
-    let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
-    let end_date = user_input_date_parser(&usr_input_end_date)?;
-
-    if start_date >= end_date {
-        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
-    }
+    // 3rd + 4th prompt: start + end date
+    let (start_date, end_date) = read_dates(rl)?;
 
     // if there are multiple songs with that name found
     if songs.len() > 1 {
@@ -971,6 +916,9 @@ pub fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Tz>, chrono::f
                 .unwrap())
         }
         // TODO! not hardcode this lol -> actual earlierst entry in endsong
+        // -> problem with that: would have to pass &entries to this function
+        // actually not big problem, I could even put LOCATION_TZ as a field of it
+        // and not a constant :O
         "start" => String::from("1980-01-01T00:00:00Z"),
         // usr_input should be in YYYY-MM-DD format
         _ => format!("{usr_input}T00:00:00Z"),
@@ -979,6 +927,31 @@ pub fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Tz>, chrono::f
     // "%FT%TZ" is equivalent to "%Y-%m-%dT%H:%M:%SZ"
     // see <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>
     LOCATION_TZ.datetime_from_str(&date_str, "%FT%TZ")
+}
+
+/// Used by `*_date()` functions for reading start and end dates from user
+///
+/// Returns `(start_date, end_date)`
+fn read_dates(
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(DateTime<Tz>, DateTime<Tz>), Box<dyn Error>> {
+    // make sure no wrong autocompletes appear
+    rl.helper_mut().unwrap().reset();
+
+    // 1st prompt: start date
+    println!("Start date? YYYY-MM-DD or 'start'");
+    let usr_input_start_date = rl.readline(PROMPT_SECONDARY)?;
+    let start_date = user_input_date_parser(&usr_input_start_date)?;
+
+    // 2nd prompt: end date
+    println!("End date? YYYY-MM-DD or 'now'");
+    let usr_input_end_date = rl.readline(PROMPT_SECONDARY)?;
+    let end_date = user_input_date_parser(&usr_input_end_date)?;
+
+    if start_date >= end_date {
+        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
+    }
+    Ok((start_date, end_date))
 }
 
 #[cfg(test)]
