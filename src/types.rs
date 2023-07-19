@@ -748,37 +748,28 @@ impl<'a> Traces<'a> {
     ///
     /// Wrapper for [`plot::absolute::aspect()`]
     pub fn absolute<Asp: Music>(&self, aspect: &Asp) -> (Box<dyn Trace>, String) {
-        plot::absolute::aspect(self, aspect)
+        plot::absolute::aspect(self.0, aspect)
     }
 
     /// Returns a trace of the plays relative to all plays
     ///
     /// Wrapper for [`plot::relative::to_all()`]
     pub fn relative<Asp: Music>(&self, aspect: &Asp) -> (Box<dyn Trace>, String) {
-        plot::relative::to_all(self, aspect)
+        plot::relative::to_all(self.0, aspect)
     }
 
     /// Returns a trace of the plays relative to the artist
     ///
     /// Wrapper for [`plot::relative::to_artist()`]
     pub fn relative_to_artist<Asp: HasArtist>(&self, aspect: &Asp) -> (Box<dyn Trace>, String) {
-        plot::relative::to_artist(self, aspect)
+        plot::relative::to_artist(self.0, aspect)
     }
 
     /// Returns a trace of the plays relative to the album
     ///
     /// Wrapper for [`plot::relative::to_album()`]
     pub fn relative_to_album(&self, song: &Song) -> (Box<dyn Trace>, String) {
-        plot::relative::to_album(self, song)
-    }
-}
-// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
-// so that when you use &self it refers to &self.0 (SongEntries,
-// which itself refers to Vec<SongEntry> xDD
-impl<'a> std::ops::Deref for Traces<'a> {
-    type Target = SongEntries;
-    fn deref(&self) -> &SongEntries {
-        self.0
+        plot::relative::to_album(self.0, song)
     }
 }
 
