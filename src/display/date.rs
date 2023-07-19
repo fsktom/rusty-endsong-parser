@@ -9,12 +9,17 @@ use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
 
 /// Prints the time played in a date range
+///
+/// # Panics
+///
+/// Panics if `start` is after or equal to `end`
 #[allow(clippy::cast_precision_loss)]
 pub fn print_time_played(
     entries: &crate::types::SongEntries,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) {
+    assert!(start <= end, "Start date is after end date!");
     let duration = entries.listening_time(start, end);
     let period = *end - *start;
 
@@ -38,12 +43,17 @@ pub fn print_time_played(
 ///
 /// * `asp` - the aspect you want informationa about containing the
 /// relevant struct
+///
+/// # Panics
+///
+/// Panics if `start` is after or equal to `end`
 pub fn print_aspect(
     entries: &[SongEntry],
     asp: &AspectFull,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) {
+    assert!(start <= end, "Start date is after end date!");
     match *asp {
         AspectFull::Artist(art) => {
             println!(
@@ -82,13 +92,18 @@ pub fn print_aspect(
     }
 }
 
-/// Used by [`print_aspect()`]
+/// Prints each [`Album`] of `albums` with the playcount in the date range
+///
+/// # Panics
+///
+/// Panics if `start` is after or equal to `end`
 fn print_artist(
     entries: &[SongEntry],
     albums: &HashMap<Album, u32>,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) {
+    assert!(start <= end, "Start date is after end date!");
     let mut albums_vec: Vec<(&Album, &u32)> = albums.iter().collect();
     albums_vec.sort_by(|a, b| b.1.cmp(a.1));
 
@@ -100,7 +115,7 @@ fn print_artist(
 
 /// Counts up the plays of a single [`Music`] within the date range
 ///
-/// Basically [`display::gather_plays()`][super::gather_plays()] but with date functionality
+/// Basically [`super::gather_plays()`] but with date functionality
 ///
 /// # Panics
 ///

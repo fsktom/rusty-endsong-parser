@@ -205,8 +205,13 @@ impl From<&Song> for SongJustArtist {
     }
 }
 
-/// Used by [`print_top_helper()`]
-#[allow(clippy::needless_range_loop)]
+/// Returns a map with all [`Songs`][Song] and their playcount
+///
+/// `sum_songs_from_different_albums` - with `true` it will summarize the plays
+/// of songs if their name and artist is the same;
+/// with `false` it will also take into account the album the song is in
+///
+/// It matters because oftentimes the same song will be in many albums (or singles)
 fn gather_songs(
     entries: &[SongEntry],
     sum_songs_from_different_albums: bool,
@@ -276,12 +281,12 @@ fn gather_songs(
             let mut total: u32 = 0;
             let highest: &AlbumPlays = {
                 let mut plays = 0;
-                for alb in 0..albs.len() {
+                (0..albs.len()).for_each(|alb| {
                     if albs[alb].1 > plays {
                         plays = albs[alb].1;
                     }
                     total += albs[alb].1;
-                }
+                });
                 &albs[0]
             };
 
@@ -296,70 +301,67 @@ fn gather_songs(
     songs
 }
 
-/// Used by [`print_top_helper()`]
+/// Returns a map with all [`Songs`][Song] corresponding to `art` with their playcount
 fn gather_songs_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
-    for entry in entries {
-        if art.is_entry(entry) {
-            let song = Song::from(entry);
-
-            *songs.entry(song).or_insert(0) += 1;
-        }
+    for song in entries
+        .iter()
+        .filter(|entry| art.is_entry(entry))
+        .map(Song::from)
+    {
+        *songs.entry(song).or_insert(0) += 1;
     }
 
     songs
 }
 
-/// Used by [`print_top_helper()`], [`print_aspect()`] and [`print_album()`]
+/// Returns a map with all [`Songs`][Song] corresponding to `alb` with their playcount
 fn gather_songs_with_album(entries: &[SongEntry], alb: &Album) -> HashMap<Song, u32> {
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
-    for entry in entries {
-        if alb.is_entry(entry) {
-            let song = Song::from(entry);
-
-            *songs.entry(song).or_insert(0) += 1;
-        }
+    for song in entries
+        .iter()
+        .filter(|entry| alb.is_entry(entry))
+        .map(Song::from)
+    {
+        *songs.entry(song).or_insert(0) += 1;
     }
 
     songs
 }
 
-/// Used by [`print_top_helper()`]
+/// Returns a map with all [`Albums`][Album] and their playcount
 fn gather_albums(entries: &[SongEntry]) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
-    for entry in entries {
-        let album = Album::from(entry);
-
+    for album in entries.iter().map(Album::from) {
         *albums.entry(album).or_insert(0) += 1;
     }
 
     albums
 }
 
-/// Used by [`print_top_helper()`] and [`print_aspect()`]
+/// Returns a map with all [`Albums`][Album] corresponding to `art` with their playcount
 fn gather_albums_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
-    for entry in entries {
-        if art.is_entry(entry) {
-            let album = Album::from(entry);
-            *albums.entry(album).or_insert(0) += 1;
-        }
+    for album in entries
+        .iter()
+        .filter(|entry| art.is_entry(entry))
+        .map(Album::from)
+    {
+        *albums.entry(album).or_insert(0) += 1;
     }
 
     albums
 }
 
-/// Used by [`print_top_helper()`]
+/// Returns a map with all [`Artists`][Artist] and their playcount
 fn gather_artists(entries: &[SongEntry]) -> HashMap<Artist, u32> {
     let mut artists: HashMap<Artist, u32> = HashMap::new();
 
-    for entry in entries {
-        let artist = Artist::from(entry);
-
+    for artist in entries.iter().map(Artist::from) {
         *artists.entry(artist).or_insert(0) += 1;
     }
 
@@ -395,7 +397,7 @@ pub fn print_aspect(entries: &[SongEntry], asp: &AspectFull) {
     }
 }
 
-/// Counts up the plays of a [`Music`] instance
+/// Counts up the plays of a single [`Music`]
 fn gather_plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
     entries
         .iter()
@@ -403,7 +405,7 @@ fn gather_plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
         .count()
 }
 
-/// Used by [`print_aspect()`]
+/// Prints each [`Album`] of `albums` with the playcount
 fn print_artist(entries: &[SongEntry], albums: &HashMap<Album, u32>) {
     let mut albums_vec: Vec<(&Album, &u32)> = albums.iter().collect();
     albums_vec.sort_by(|a, b| b.1.cmp(a.1));
@@ -414,7 +416,7 @@ fn print_artist(entries: &[SongEntry], albums: &HashMap<Album, u32>) {
     }
 }
 
-/// Used by [`print_aspect()`]
+/// Prints each [`Song`] of `songs` with the playcount
 fn print_album(songs: &HashMap<Song, u32>) {
     let mut songs_vec: Vec<(&Song, &u32)> = songs.iter().collect();
     songs_vec.sort_by(|a, b| b.1.cmp(a.1));
