@@ -686,7 +686,7 @@ impl<'a> Find<'a> {
     /// This function will return an [`Err`] with [`NotFoundError::Artist`]
     /// if it cannot find an artist with the given name
     pub fn artist(&self, artist_name: &str) -> Result<Artist, NotFoundError> {
-        display::find_artist(self, artist_name)
+        display::find_artist(self.0, artist_name)
     }
 
     /// Searches the entries for if the given album exists in the dataset
@@ -698,7 +698,7 @@ impl<'a> Find<'a> {
     /// This function will return an [`Err`] with [`NotFoundError::Album`]
     /// if it cannot find an album with the given name and artist
     pub fn album(&self, album_name: &str, artist_name: &str) -> Result<Album, NotFoundError> {
-        display::find_album(self, album_name, artist_name)
+        display::find_album(self.0, album_name, artist_name)
     }
 
     /// Searches the entries for if the given song (in that specific album)
@@ -717,7 +717,7 @@ impl<'a> Find<'a> {
         album_name: &str,
         artist_name: &str,
     ) -> Result<Song, NotFoundError> {
-        display::find_song_from_album(self, song_name, album_name, artist_name)
+        display::find_song_from_album(self.0, song_name, album_name, artist_name)
     }
 
     /// Searches the dataset for multiple versions of a song
@@ -727,7 +727,7 @@ impl<'a> Find<'a> {
     ///
     /// Wrapper for [`display::find_song()`]
     pub fn song(&self, song_name: &str, artist_name: &str) -> Result<Vec<Song>, NotFoundError> {
-        display::find_song(self, song_name, artist_name)
+        display::find_song(self.0, song_name, artist_name)
     }
 
     /// Returns a [`Vec<Song>`] with all the songs in the given album
@@ -736,16 +736,7 @@ impl<'a> Find<'a> {
     ///
     /// Panics if `album` is not in the dataset
     pub fn songs_from_album(&self, album: &Album) -> Vec<Song> {
-        display::find_songs_from_album(self, album)
-    }
-}
-// https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
-// so that when you use &self it refers to &self.0 (SongEntries,
-// which itself refers to Vec<SongEntry> xDD
-impl<'a> std::ops::Deref for Find<'a> {
-    type Target = SongEntries;
-    fn deref(&self) -> &SongEntries {
-        self.0
+        display::find_songs_from_album(self.0, album)
     }
 }
 
