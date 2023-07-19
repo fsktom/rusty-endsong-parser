@@ -4,7 +4,6 @@ use chrono::DateTime;
 use chrono_tz::Tz;
 
 use crate::types::AspectFull;
-use crate::types::IsBetween;
 use crate::types::Music;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
@@ -122,9 +121,13 @@ pub fn gather_plays<Asp: Music>(
         .count()
 }
 
-/// Used by [`print_aspect()`]
+/// Returns a map with all [`Albums`][Album] corresponding to `art` with their playcount in a date range
 ///
 /// Basically [`super::gather_albums_with_artist()`] but with date functionality
+///
+/// # Panics
+///
+/// Panics if `start` is after or equal to `end`
 fn gather_albums_with_artist(
     entries: &[SongEntry],
     art: &Artist,
@@ -133,32 +136,43 @@ fn gather_albums_with_artist(
 ) -> HashMap<Album, u32> {
     let mut albums: HashMap<Album, u32> = HashMap::new();
 
-    for entry in entries {
-        if art.is_entry(entry) && entry.timestamp.is_between(start, end) {
-            let alb = Album::new(&entry.album, &entry.artist);
-            *albums.entry(alb).or_insert(0) += 1;
-        }
+    let (begin, stop) = find_timestamp_indexes(entries, start, end);
+
+    for album in entries[begin..=stop]
+        .iter()
+        .filter(|entry| art.is_entry(entry))
+        .map(Album::from)
+    {
+        *albums.entry(album).or_insert(0) += 1;
     }
 
     albums
 }
 
-/// Used by [`print_aspect()`] and [`print_artist()`]
+/// Returns a map with all [`Songs`][Song] corresponding to `alb` with their playcount in a date range
 ///
 /// Basically [`super::gather_songs_with_album()`] but with date functionality
+///
+/// # Panics
+///
+/// Panics if `start` is after or equal to `end`
 fn gather_songs_with_album(
     entries: &[SongEntry],
     alb: &Album,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) -> HashMap<Song, u32> {
+    assert!(start <= end, "Start date is after end date!");
     let mut songs: HashMap<Song, u32> = HashMap::new();
 
-    for entry in entries {
-        if alb.is_entry(entry) && entry.timestamp.is_between(start, end) {
-            let song = Song::new(&entry.track, &entry.album, &entry.artist);
-            *songs.entry(song).or_insert(0) += 1;
-        }
+    let (begin, stop) = find_timestamp_indexes(entries, start, end);
+
+    for song in entries[begin..=stop]
+        .iter()
+        .filter(|entry| alb.is_entry(entry))
+        .map(Song::from)
+    {
+        *songs.entry(song).or_insert(0) += 1;
     }
 
     songs

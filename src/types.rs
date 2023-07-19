@@ -814,19 +814,6 @@ pub struct PodEntry {
     pub id: String,
 }
 
-/// Trait for comparing dates (for now)
-pub trait IsBetween {
-    /// Checks if the given date is between (or equal) to the other two dates
-    ///
-    /// Can possibly be later used for things other than dates too lol
-    fn is_between(&self, start: &Self, end: &Self) -> bool;
-}
-impl IsBetween for DateTime<Tz> {
-    fn is_between(&self, start: &Self, end: &Self) -> bool {
-        self >= start && self <= end
-    }
-}
-
 /// Trait for better display of [`Durations`][Duration]
 pub trait DurationUtils {
     /// Returns a string with the duration in the format `HH:MM:SS`
