@@ -666,24 +666,20 @@ pub struct Find<'a>(&'a SongEntries);
 impl<'a> Find<'a> {
     /// Searches the entries for if the given artist exists in the dataset
     ///
-    /// Wrapper for [`display::find_artist()`]
+    /// Case-insensitive and returns the [`Artist`] with proper capitalization
+    /// (i.e. the capitalization of the first entry it finds)
     ///
-    /// # Errors
-    ///
-    /// This function will return an [`Err`] with [`NotFoundError::Artist`]
-    /// if it cannot find an artist with the given name
+    /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     pub fn artist(&self, artist_name: &str) -> Option<Artist> {
         display::find_artist(self.0, artist_name)
     }
 
     /// Searches the entries for if the given album exists in the dataset
     ///
-    /// Wrapper for [`display::find_album()`]
+    /// Case-insensitive and returns the [`Album`] with proper capitalization
+    /// (i.e. the capitalization of the first entry it finds)
     ///
-    /// # Errors
-    ///
-    /// This function will return an [`Err`] with [`NotFoundError::Album`]
-    /// if it cannot find an album with the given name and artist
+    /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     pub fn album(&self, album_name: &str, artist_name: &str) -> Option<Album> {
         display::find_album(self.0, album_name, artist_name)
     }
@@ -691,13 +687,10 @@ impl<'a> Find<'a> {
     /// Searches the entries for if the given song (in that specific album)
     /// exists in the dataset
     ///
-    /// Wrapper for [`display::find_song_from_album()`]
+    /// Case-insensitive and returns the [`Song`] with proper capitalization
+    /// (i.e. the capitalization of the first entry it finds)
     ///
-    /// # Errors
-    ///
-    /// This function will return an [`Err`] with [`NotFoundError::Song`]
-    /// if it cannot find a song with the given name from the
-    /// given album and artist
+    /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     pub fn song_from_album(
         &self,
         song_name: &str,
@@ -709,10 +702,10 @@ impl<'a> Find<'a> {
 
     /// Searches the dataset for multiple versions of a song
     ///
-    /// Returns a [`Vec<Song>`] containing an instance
-    /// of [`Song`] for every album it's been found in
+    /// Case-insensitive and returns a [`Vec<Song>`] containing an instance
+    /// of [`Song`] for every album it's been found in with proper capitalization
     ///
-    /// Wrapper for [`display::find_song()`]
+    /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     pub fn song(&self, song_name: &str, artist_name: &str) -> Option<Vec<Song>> {
         display::find_song(self.0, song_name, artist_name)
     }
