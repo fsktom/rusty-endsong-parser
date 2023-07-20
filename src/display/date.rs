@@ -5,6 +5,7 @@ use chrono_tz::Tz;
 use itertools::Itertools;
 
 use crate::types::AspectFull;
+use crate::types::HasSongs;
 use crate::types::Music;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
@@ -79,7 +80,7 @@ pub fn print_aspect(
                 end.date_naive(),
                 gather_plays(entries, alb, start, end)
             );
-            super::print_album(&gather_songs_with_album(entries, alb, start, end));
+            super::print_album(&gather_songs_from(entries, alb, start, end));
         }
         AspectFull::Song(son) => {
             println!(
@@ -110,7 +111,7 @@ fn print_artist(
 
     for (alb, plays) in albums_vec {
         println!("--- {alb} | {plays} plays ---");
-        super::print_album(&gather_songs_with_album(entries, alb, start, end));
+        super::print_album(&gather_songs_from(entries, alb, start, end));
     }
 }
 
@@ -161,16 +162,16 @@ fn gather_albums_with_artist(
         .counts()
 }
 
-/// Returns a map with all [`Songs`][Song] corresponding to `alb` with their playcount in a date range
+/// Returns a map with all [`Songs`][Song] corresponding to `asp` with their playcount in a date range
 ///
-/// Basically [`super::gather_songs_with_album()`] but with date functionality
+/// Basically [`super::gather_songs_from()`] but with date functionality
 ///
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
-fn gather_songs_with_album(
+fn gather_songs_from<Asp: HasSongs>(
     entries: &[SongEntry],
-    alb: &Album,
+    asp: &Asp,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
 ) -> HashMap<Song, usize> {
@@ -180,7 +181,7 @@ fn gather_songs_with_album(
 
     entries[begin..=stop]
         .iter()
-        .filter(|entry| alb.is_entry(entry))
+        .filter(|entry| asp.is_entry(entry))
         .map(Song::from)
         .counts()
 }

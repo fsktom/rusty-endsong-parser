@@ -5,6 +5,7 @@ use itertools::Itertools;
 
 use crate::types::Aspect;
 use crate::types::AspectFull;
+use crate::types::HasSongs;
 use crate::types::Mode;
 use crate::types::Music;
 use crate::types::SongEntry;
@@ -62,12 +63,12 @@ pub fn print_top_from_artist(entries: &[SongEntry], mode: Mode, artist: &Artist,
     match mode {
         Mode::Songs => {
             println!("=== TOP {num} SONGS FROM {artist} ===");
-            print_top_helper(gather_songs_with_artist(entries, artist), num);
+            print_top_helper(gather_songs_from(entries, artist), num);
             println!();
         }
         Mode::Albums => {
             println!("=== TOP {num} ALBUMS FROM {artist} ===");
-            print_top_helper(gather_albums_with_artist(entries, artist), num);
+            print_top_helper(gather_albums_from_artist(entries, artist), num);
             println!();
         }
     }
@@ -80,7 +81,7 @@ pub fn print_top_from_artist(entries: &[SongEntry], mode: Mode, artist: &Artist,
 /// Will automatically change to total number of songs from that album if `num` is higher than that
 pub fn print_top_from_album(entries: &[SongEntry], album: &Album, num: usize) {
     println!("=== TOP {num} SONGS FROM {album} ===");
-    print_top_helper(gather_songs_with_album(entries, album), num);
+    print_top_helper(gather_songs_from(entries, album), num);
     println!();
 }
 
@@ -253,20 +254,11 @@ fn gather_songs(
     songs
 }
 
-/// Returns a map with all [`Songs`][Song] corresponding to `art` with their playcount
-fn gather_songs_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Song, usize> {
+/// Returns a map with all [`Songs`][Song] corresponding to `asp` with their playcount
+fn gather_songs_from<Asp: HasSongs>(entries: &[SongEntry], asp: &Asp) -> HashMap<Song, usize> {
     entries
         .iter()
-        .filter(|entry| art.is_entry(entry))
-        .map(Song::from)
-        .counts()
-}
-
-/// Returns a map with all [`Songs`][Song] corresponding to `alb` with their playcount
-fn gather_songs_with_album(entries: &[SongEntry], alb: &Album) -> HashMap<Song, usize> {
-    entries
-        .iter()
-        .filter(|entry| alb.is_entry(entry))
+        .filter(|entry| asp.is_entry(entry))
         .map(Song::from)
         .counts()
 }
@@ -277,7 +269,7 @@ fn gather_albums(entries: &[SongEntry]) -> HashMap<Album, usize> {
 }
 
 /// Returns a map with all [`Albums`][Album] corresponding to `art` with their playcount
-fn gather_albums_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album, usize> {
+fn gather_albums_from_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album, usize> {
     entries
         .iter()
         .filter(|entry| art.is_entry(entry))
@@ -306,12 +298,12 @@ pub fn print_aspect(entries: &[SongEntry], asp: &AspectFull) {
             // --- Alestorm - Sunset On The Golden Age | 3 plays ---
             // #1: Alestorm - Drink (Sunset On The Golden Age) | 3 plays
 
-            print_artist(entries, &gather_albums_with_artist(entries, art));
+            print_artist(entries, &gather_albums_from_artist(entries, art));
         }
         AspectFull::Album(alb) => {
             println!("=== {} | {} plays ===", alb, gather_plays(entries, alb));
             // TODO! currently print_album uses the whole time for num of plays!!!
-            print_album(&gather_songs_with_album(entries, alb));
+            print_album(&gather_songs_from(entries, alb));
         }
         AspectFull::Song(son) => {
             println!("{} | {} plays", son, gather_plays(entries, son));
@@ -334,7 +326,7 @@ fn print_artist(entries: &[SongEntry], albums: &HashMap<Album, usize>) {
 
     for (alb, plays) in albums_vec {
         println!("--- {alb} | {plays} plays ---");
-        print_album(&gather_songs_with_album(entries, alb));
+        print_album(&gather_songs_from(entries, alb));
     }
 }
 
