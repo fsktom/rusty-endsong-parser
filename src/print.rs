@@ -215,7 +215,7 @@ pub fn aspect_date(
             );
             artist_date(
                 entries,
-                &gather::albums_with_artist_date(entries, art, start, end),
+                &gather::albums_from_artist_date(entries, art, start, end),
                 start,
                 end,
             );

@@ -16,7 +16,7 @@ use crate::types::{PodEntry, SongEntry};
 ///
 /// see issue #4 <https://github.com/Filip-Tomasko/rusty-endsong-parser/issues/4>
 ///
-/// used by [`parse_date()`]
+/// used for parsing the timestamp in [`parse`][self]
 pub const LOCATION_TZ: chrono_tz::Tz = chrono_tz::Europe::Berlin;
 
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde

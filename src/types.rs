@@ -550,6 +550,7 @@ impl SongEntries {
         // discards every entry whose time_played is below the
         // threshhold percentage of its duration
         self.retain(|entry| {
+            // retain is supposed to preserve the order so I don't have to sort again?
             let (_, dur) = durations
                 .iter()
                 .find(|(son, _)| son.is_entry(entry))

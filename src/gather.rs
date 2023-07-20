@@ -95,12 +95,12 @@ pub fn artists(entries: &[SongEntry]) -> HashMap<Artist, usize> {
 
 /// Returns a map with all [`Albums`][Album] corresponding to `art` with their playcount in a date range
 ///
-/// Basically [`super::gather_albums_with_artist()`] but with date functionality
+/// Basically [`albums_from_artist()`] but with date functionality
 ///
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
-pub fn albums_with_artist_date(
+pub fn albums_from_artist_date(
     entries: &[SongEntry],
     art: &Artist,
     start: &DateTime<Tz>,
@@ -119,7 +119,7 @@ pub fn albums_with_artist_date(
 
 /// Returns a map with all [`Songs`][Song] corresponding to `asp` with their playcount in a date range
 ///
-/// Basically [`super::gather_songs_from()`] but with date functionality
+/// Basically [`songs_from()`] but with date functionality
 ///
 /// # Panics
 ///
