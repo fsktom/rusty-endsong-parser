@@ -150,6 +150,10 @@ fn print_top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
 /// * `max_num` - the highest position you want to display,
 /// must be >0 and should be >=`num`
 ///
+/// # Panics
+///
+/// Panics if `num` or `max_num` is 0
+///
 /// # Examples
 /// ```
 /// use rusty_endsong_parser::display::leading_whitespace;
@@ -157,6 +161,8 @@ fn print_top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
 /// assert_eq!(leading_whitespace(7usize, 1000usize), String::from("   #7"));
 /// ```
 pub fn leading_whitespace(num: usize, max_num: usize) -> String {
+    assert!(num > 0);
+    assert!(max_num > 0);
     // https://github.com/Filip-Tomasko/endsong-parser-python/blob/main/src/endsong_parser.py#L551-L578
     let mut order_format = String::new();
 
@@ -238,7 +244,7 @@ fn gather_songs(
             .iter()
             // sorts albums alphabetically so that this function is deterministic
             // if different albums have the same highest number of plays
-            .sorted_by(|(a, _), (b, _)| a.cmp(b))
+            .sorted_unstable_by(|(a, _), (b, _)| a.cmp(b))
             .max_by(|(_, a), (_, b)| a.cmp(b))
             .map(|(alb, _)| alb)
             .unwrap();
@@ -489,6 +495,13 @@ mod tests {
         assert_eq!(leading_whitespace(3usize, 100usize), String::from("  #3"));
         assert_eq!(leading_whitespace(3usize, 1000usize), String::from("   #3"));
         assert_eq!(leading_whitespace(3usize, 5692usize), String::from("   #3"));
+    }
+
+    #[test]
+    #[should_panic]
+    fn order_format_zero() {
+        leading_whitespace(0usize, 100usize);
+        leading_whitespace(1usize, 0usize);
     }
 
     #[test]
