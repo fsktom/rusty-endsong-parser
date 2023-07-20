@@ -10,10 +10,11 @@ use chrono_tz::Tz;
 use itertools::Itertools;
 pub use plotly::Trace;
 
-use crate::display;
-use crate::display::date::find_timestamp_indexes;
+use crate::find;
+use crate::gather::find_timestamp_indexes;
 use crate::parse;
 use crate::plot;
+use crate::print;
 
 /// Algebraic data type similar to [`Aspect`]
 /// but used by functions such as [`display::print_aspect()`]
@@ -345,7 +346,7 @@ impl SongEntries {
     /// The album displayed in the parantheses will be the one it has the
     /// highest amount of listens from.
     pub fn print_top(&self, asp: Aspect, num: usize, sum_songs_from_different_albums: bool) {
-        display::print_top(self, asp, num, sum_songs_from_different_albums);
+        print::top(self, asp, num, sum_songs_from_different_albums);
     }
 
     /// Prints top songs or albums from an artist
@@ -357,7 +358,7 @@ impl SongEntries {
     ///
     /// Wrapper for [`display::print_top_from_artist()`]
     pub fn print_top_from_artist(&self, mode: Mode, artist: &Artist, num: usize) {
-        display::print_top_from_artist(self, mode, artist, num);
+        print::top_from_artist(self, mode, artist, num);
     }
 
     /// Prints top songs from an album
@@ -368,7 +369,7 @@ impl SongEntries {
     ///
     /// Wrapper for [`display::print_top_from_album()`]
     pub fn print_top_from_album(&self, album: &Album, num: usize) {
-        display::print_top_from_album(self, album, num);
+        print::top_from_album(self, album, num);
     }
 
     /// Prints a specfic aspect
@@ -378,7 +379,7 @@ impl SongEntries {
     ///
     /// Wrapper for [`display::print_aspect()`]
     pub fn print_aspect(&self, asp: &AspectFull) {
-        display::print_aspect(self, asp);
+        print::aspect(self, asp);
     }
 
     /// Prints a specfic aspect
@@ -390,7 +391,7 @@ impl SongEntries {
     ///
     /// Wrapper for [`display::print_aspect_date()`]
     pub fn print_aspect_date(&self, asp: &AspectFull, start: &DateTime<Tz>, end: &DateTime<Tz>) {
-        display::print_aspect_date(self, asp, start, end);
+        print::aspect_date(self, asp, start, end);
     }
 
     /// Returns the total time listened
@@ -671,7 +672,7 @@ impl<'a> Find<'a> {
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     pub fn artist(&self, artist_name: &str) -> Option<Artist> {
-        display::find_artist(self.0, artist_name)
+        find::artist(self.0, artist_name)
     }
 
     /// Searches the entries for if the given album exists in the dataset
@@ -681,7 +682,7 @@ impl<'a> Find<'a> {
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     pub fn album(&self, album_name: &str, artist_name: &str) -> Option<Album> {
-        display::find_album(self.0, album_name, artist_name)
+        find::album(self.0, album_name, artist_name)
     }
 
     /// Searches the entries for if the given song (in that specific album)
@@ -697,7 +698,7 @@ impl<'a> Find<'a> {
         album_name: &str,
         artist_name: &str,
     ) -> Option<Song> {
-        display::find_song_from_album(self.0, song_name, album_name, artist_name)
+        find::song_from_album(self.0, song_name, album_name, artist_name)
     }
 
     /// Searches the dataset for multiple versions of a song
@@ -707,7 +708,7 @@ impl<'a> Find<'a> {
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     pub fn song(&self, song_name: &str, artist_name: &str) -> Option<Vec<Song>> {
-        display::find_song(self.0, song_name, artist_name)
+        find::song(self.0, song_name, artist_name)
     }
 
     /// Returns a [`Vec<Song>`] with all the songs in the given album
@@ -716,7 +717,7 @@ impl<'a> Find<'a> {
     ///
     /// Panics if `album` is not in the dataset
     pub fn songs_from_album(&self, album: &Album) -> Vec<Song> {
-        display::find_songs_from_album(self.0, album)
+        find::songs_from_album(self.0, album)
     }
 }
 

@@ -1,7 +1,7 @@
 use plotly::{Scatter, Trace};
 
 use super::find_dates;
-use crate::display::date;
+use crate::gather;
 use crate::types::{HasArtist, Music, Song, SongEntries};
 
 /// Creates a trace of the amount of plays of an [`Music`] relative to all plays
@@ -23,7 +23,7 @@ pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace
     #[allow(clippy::cast_precision_loss)]
     for date in &dates {
         times.push(date.timestamp());
-        let sum_of_all_plays = date::sum_plays(entries, sum_start, date) as f64;
+        let sum_of_all_plays = gather::all_plays_date(entries, sum_start, date) as f64;
         // *100 so that the percentage is easier to read...
         plays.push(100.0 * (amount_of_plays / sum_of_all_plays));
         amount_of_plays += 1.0;

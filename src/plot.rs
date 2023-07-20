@@ -1,8 +1,7 @@
 //! Module responsible for plotting/charts
 use crate::types::{Music, SongEntry};
-use crate::ui::user_input_date_parser;
 
-use chrono::DateTime;
+use chrono::{DateTime, TimeZone};
 use chrono_tz::Tz;
 use plotly::{Layout, Plot, Trace};
 
@@ -63,7 +62,11 @@ pub fn find_dates<Asp: Music>(
     }
 
     if add_now {
-        dates.push(user_input_date_parser("now").unwrap());
+        dates.push(
+            crate::LOCATION_TZ
+                .timestamp_millis_opt(chrono::offset::Local::now().timestamp_millis())
+                .unwrap(),
+        );
     }
 
     // should be sorted because &[SongEntries] should have been sorted at the beginning

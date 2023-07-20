@@ -17,10 +17,12 @@
 )]
 #![warn(clippy::pedantic)]
 
-mod display;
-mod parse;
-mod plot;
-mod types;
+use rusty_endsong_parser::gather;
+use rusty_endsong_parser::parse;
+use rusty_endsong_parser::plot;
+use rusty_endsong_parser::print;
+use rusty_endsong_parser::types;
+
 mod ui;
 
 use chrono::{Duration, TimeZone};
@@ -129,8 +131,8 @@ fn test(entries: &SongEntries) {
     let (time, start, end) = entries.max_listening_time(chrono::Duration::weeks(26 * 9));
     dbg!(time.num_minutes(), start.date_naive(), end.date_naive());
 
-    dbg!(display::date::sum_plays(entries, &start, &end));
-    display::date::print_time_played(entries, &start, &end);
+    dbg!(gather::all_plays_date(entries, &start, &end));
+    print::time_played_date(entries, &start, &end);
     dbg!(entries.listening_time(&start, &end).num_minutes());
 
     entries.print_aspect(&AspectFull::Album(&types::Album::new(

@@ -1,5 +1,6 @@
 //! Module responsible for handling the CLI
 
+use crate::print;
 use crate::types::{plot_compare, plot_single, Aspect, AspectFull, SongEntries, Trace};
 use crate::types::{Album, Artist, Song};
 use crate::LOCATION_TZ;
@@ -360,7 +361,7 @@ fn match_input(
         // every new command added has to have an entry in `help`!
         // and in Shellhelper.compete_commands()
         "help" | "h" => help::help(),
-        "print time" | "pt" => crate::display::print_time_played(entries),
+        "print time" | "pt" => print::time_played(entries),
         "print time date" | "ptd" => match_print_time_date(entries, rl)?,
         "print max time" | "pmt" => match_print_max_time(entries, rl)?,
         "print artist" | "part" => match_print_artist(entries, rl)?,
@@ -399,7 +400,7 @@ fn match_print_time_date(
     // 1st + 2nd prompt: start + end date
     let (start_date, end_date) = read_dates(rl)?;
 
-    crate::display::print_time_played_date(entries, &start_date, &end_date);
+    print::time_played_date(entries, &start_date, &end_date);
     Ok(())
 }
 
@@ -431,7 +432,7 @@ fn match_print_max_time(
     };
 
     // temporary, maybe later make a custom one
-    crate::display::date::print_time_played(entries, &start, &end);
+    print::time_played_date(entries, &start, &end);
 
     Ok(())
 }
