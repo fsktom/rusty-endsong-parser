@@ -59,29 +59,6 @@ fn main() {
     let mut entries = SongEntries::new(&paths[..=0]).unwrap();
     entries.filter(30);
 
-    let a = crate::display::gather_songs(&entries, true);
-    let b = crate::display::gather_songs_new(&entries, true);
-    assert_eq!(a, b);
-
-    // for (song, plays) in &a {
-    //     if b.get(song).unwrap() != plays {
-    //         dbg!(song, plays, b.get(song).unwrap());
-    //         println!("\n");
-    //     }
-    // }
-
-    // for (song, plays) in &b {
-    //     if a.get(song).is_none() {
-    //         dbg!(song, plays);
-    //         println!("\n");
-    //     }
-    // }
-
-    // let one = types::Song::new("レイン", "Rain", "SID");
-    // let two = types::Song::new("レイン", "SID Anime Best 2008-2017", "SID");
-    // dbg!(a.get(&one), b.get(&one));
-    // dbg!(a.get(&two), b.get(&two));
-
     // test(&entries);
     // test_two(&mut entries);
     // test_plot(&entries);
