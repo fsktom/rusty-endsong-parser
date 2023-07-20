@@ -320,7 +320,7 @@ pub fn time_played_date(
 ///
 /// # Examples
 /// ```
-/// use rusty_endsong_parser::display::leading_whitespace;
+/// use endsong::print::leading_whitespace;
 /// assert_eq!(leading_whitespace(7usize, 100usize), String::from("  #7"));
 /// assert_eq!(leading_whitespace(7usize, 1000usize), String::from("   #7"));
 /// ```
