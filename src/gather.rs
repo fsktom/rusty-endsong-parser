@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::types::{Album, Artist, HasSongs, Music, Song, SongEntry};
 
-use chrono::DateTime;
+use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
 use itertools::Itertools;
 
@@ -149,6 +149,14 @@ pub fn plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
         .count()
 }
 
+/// Counts up the plays of all [`Music`] in a collection
+pub fn plays_of_many<Asp: Music>(entries: &[SongEntry], aspects: &[Asp]) -> usize {
+    entries
+        .iter()
+        .filter(|entry| aspects.iter().any(|aspect| aspect.is_entry(entry)))
+        .count()
+}
+
 /// Counts up the plays of a single [`Music`] within the date range
 ///
 /// Basically [`plays()`] but with date functionality
@@ -172,6 +180,29 @@ pub fn plays_date<Asp: Music>(
         .count()
 }
 
+/// Counts up the plays of all [`Music`] in a collection within the date range
+///
+/// Basically [`plays_of_many()`] but with date functionality
+///
+/// # Panics
+///
+/// Panics if `start` is after or equal to `end`
+pub fn plays_of_many_date<Asp: Music>(
+    entries: &[SongEntry],
+    aspects: &[Asp],
+    start: &DateTime<Tz>,
+    end: &DateTime<Tz>,
+) -> usize {
+    assert!(start <= end, "Start date is after end date!");
+
+    let (begin, stop) = find_timestamp_indexes(entries, start, end);
+
+    entries[begin..=stop]
+        .iter()
+        .filter(|entry| aspects.iter().any(|aspect| aspect.is_entry(entry)))
+        .count()
+}
+
 /// Sums all plays in the given date frame
 ///
 /// # Panics
@@ -185,11 +216,43 @@ pub fn all_plays_date(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTim
     entries[begin..=stop].len()
 }
 
+/// Returns the total time listened
+pub fn listening_time(entries: &[SongEntry]) -> Duration {
+    // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
+    // self.iter().map(|entry| entry.time_played).sum::<Duration>()
+    entries
+        .iter()
+        .map(|entry| entry.time_played)
+        .fold(Duration::milliseconds(0), |sum, dur| sum + dur)
+}
+
+/// Returns the time listened in a given date period
+///
+/// # Panics
+///
+/// Panics if `start` is after or equal to `end`
+pub fn listening_time_date(
+    entries: &[SongEntry],
+    start: &DateTime<Tz>,
+    end: &DateTime<Tz>,
+) -> Duration {
+    assert!(start <= end, "Start date is after end date!");
+
+    let (begin, stop) = find_timestamp_indexes(entries, start, end);
+
+    // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
+    // entries[begin..=stop].iter().map(|entry| entry.time_played).sum::<Duration>();
+    entries[begin..=stop]
+        .iter()
+        .map(|entry| entry.time_played)
+        .fold(Duration::milliseconds(0), |sum, dur| sum + dur)
+}
+
 /// Finds the indexes of `start` and `end` in `entries`
 ///
 /// Uses binary search to find the indexes of the timestamps closest to `start` and `end`
 /// if the exact ones are not in the dataset
-pub fn find_timestamp_indexes(
+fn find_timestamp_indexes(
     entries: &[SongEntry],
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,

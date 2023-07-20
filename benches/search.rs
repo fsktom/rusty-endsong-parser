@@ -85,7 +85,7 @@ fn lol(c: &mut Criterion) {
     let end = user_input_date_parser("2021-01-01").unwrap();
     c.bench_function("listening_time", |c| {
         c.iter(|| {
-            entries.listening_time(&start, &end);
+            entries.listening_time_date(&start, &end);
         })
     });
 }

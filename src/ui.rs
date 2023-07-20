@@ -445,7 +445,7 @@ fn match_print_artist(
     // prompt: artist name
     let art = read_artist(rl, entries)?;
 
-    entries.print_aspect(&AspectFull::Artist(&art));
+    print::aspect(entries, &AspectFull::Artist(&art));
     Ok(())
 }
 
@@ -462,7 +462,7 @@ fn match_print_artist_date(
     // 2nd + 3rd prompt: start + end date
     let (start_date, end_date) = read_dates(rl)?;
 
-    entries.print_aspect_date(&AspectFull::Artist(&art), &start_date, &end_date);
+    print::aspect_date(entries, &AspectFull::Artist(&art), &start_date, &end_date);
     Ok(())
 }
 
@@ -477,7 +477,7 @@ fn match_print_album(
     // 2nd prompt: album name
     let alb = read_album(rl, entries, &art)?;
 
-    entries.print_aspect(&AspectFull::Album(&alb));
+    print::aspect(entries, &AspectFull::Album(&alb));
     Ok(())
 }
 
@@ -497,7 +497,7 @@ fn match_print_album_date(
     // 3rd + 4th prompt: start + end date
     let (start_date, end_date) = read_dates(rl)?;
 
-    entries.print_aspect_date(&AspectFull::Album(&alb), &start_date, &end_date);
+    print::aspect_date(entries, &AspectFull::Album(&alb), &start_date, &end_date);
     Ok(())
 }
 
@@ -515,7 +515,7 @@ fn match_print_song(
     // 3rd prompt: song name
     let son = read_song(rl, entries, &alb)?;
 
-    entries.print_aspect(&AspectFull::Song(&son));
+    print::aspect(entries, &AspectFull::Song(&son));
     Ok(())
 }
 
@@ -538,7 +538,7 @@ fn match_print_song_date(
     // 4th + 5th prompt: start + end date
     let (start_date, end_date) = read_dates(rl)?;
 
-    entries.print_aspect_date(&AspectFull::Song(&son), &start_date, &end_date);
+    print::aspect_date(entries, &AspectFull::Song(&son), &start_date, &end_date);
     Ok(())
 }
 
@@ -560,11 +560,11 @@ fn match_print_songs(
             songs.len(),
             &songs[0].name,
             &songs[0].album.artist.name,
-            entries.songs_plays(&songs)
+            entries.gather_plays_of_many(&songs)
         );
     }
     for song in songs {
-        entries.print_aspect(&AspectFull::Song(&song));
+        print::aspect(entries, &AspectFull::Song(&song));
     }
     Ok(())
 }
@@ -590,11 +590,11 @@ fn match_print_songs_date(
             songs.len(),
             &songs[0].name,
             &songs[0].album.artist.name,
-            entries.songs_plays_date(&songs, &start_date, &end_date)
+            entries.gather_plays_of_many_date(&songs, &start_date, &end_date)
         );
     }
     for song in songs {
-        entries.print_aspect_date(&AspectFull::Song(&song), &start_date, &end_date);
+        print::aspect_date(entries, &AspectFull::Song(&song), &start_date, &end_date);
     }
 
     Ok(())
@@ -631,7 +631,7 @@ fn match_print_top(
         }
     }
 
-    entries.print_top(asp, num, sum_songs_from_different_albums);
+    print::top(entries, asp, num, sum_songs_from_different_albums);
     Ok(())
 }
 

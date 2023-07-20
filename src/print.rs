@@ -265,7 +265,7 @@ fn artist_date(
 
 /// Prints the total time played
 pub fn time_played(entries: &crate::types::SongEntries) {
-    let duration = entries.total_listening_time();
+    let duration = entries.listening_time();
 
     println!(
         "You've spent {} days - or {} hours - or {} minutes listening to music!",
@@ -289,7 +289,7 @@ pub fn time_played_date(
     end: &DateTime<Tz>,
 ) {
     assert!(start <= end, "Start date is after end date!");
-    let duration = entries.listening_time(start, end);
+    let duration = entries.listening_time_date(start, end);
     let period = *end - *start;
 
     println!(
