@@ -117,15 +117,6 @@ fn kekw(c: &mut Criterion) {
             );
         })
     });
-
-    let sab = black_box(Artist::new("Sabaton"));
-    c.bench_function("gather_albums", |c| {
-        c.iter(|| {
-            black_box(rusty_endsong_parser::display::gather_albums_with_artist(
-                &entries, &sab,
-            ));
-        })
-    });
 }
 
 // criterion_group!(benches, lol);

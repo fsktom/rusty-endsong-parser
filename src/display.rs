@@ -201,84 +201,55 @@ impl From<&Song> for SongJustArtist {
 /// of songs if their name and artist is the same;
 /// with `false` it will also take into account the album the song is in
 ///
-/// It matters because oftentimes the same song will be in many albums (or singles)
+/// It matters because oftentimes the same song will be in many albums (or singles).
+/// But it's still case-sensitive!
 fn gather_songs(
     entries: &[SongEntry],
     sum_songs_from_different_albums: bool,
 ) -> HashMap<Song, usize> {
     let mut songs = entries.iter().map(Song::from).counts();
-
-    if sum_songs_from_different_albums {
-        /// Tuple struct containing an Album with the amount of plays
-        #[derive(PartialEq, Eq, Hash, Debug, Clone)]
-        struct AlbumPlays(Album, usize);
-
-        /// Contains the name of the song and
-        /// a vector containg all the albums this song is in
-        #[derive(PartialEq, Eq, Hash, Debug, Clone)]
-        struct SongAlbums {
-            /// Name of the song
-            name: String,
-            /// Vector with the albums the song is in with
-            /// the amount of plays in each album
-            albums: Vec<AlbumPlays>,
-        }
-
-        let mut songs_artist: HashMap<SongJustArtist, usize> = HashMap::new();
-
-        // to know which album the song had highest amount of plays from
-        // that album will be then displayed in () after the song name
-        // but the number of plays that will be displayed will be a sum of
-        // the plays from all albums
-        let mut changed: HashMap<SongJustArtist, SongAlbums> = HashMap::new();
-
-        for (k, v) in &songs {
-            let song_just_artist = SongJustArtist::from(k);
-
-            if let Some(plays) = songs_artist.get(&song_just_artist) {
-                // if it finds something it means that the song
-                // only from a different album already exists
-
-                *songs_artist.entry(song_just_artist.clone()).or_insert(0) += *plays;
-
-                let temp = changed.get_mut(&song_just_artist).unwrap();
-                temp.albums.push(AlbumPlays(k.album.clone(), *v));
-            } else {
-                // if it doesn't find anything, it's the first appearance of that song
-                songs_artist.insert(song_just_artist.clone(), *v);
-                let salb = SongAlbums {
-                    name: k.name.clone(),
-                    albums: vec![AlbumPlays(k.album.clone(), *v)],
-                };
-                changed.insert(song_just_artist.clone(), salb);
-            }
-        }
-
-        for (k, v) in &changed {
-            let albs = &v.albums;
-
-            // the first album will be taken if both have
-            // the same number of plays
-            let mut total: usize = 0;
-            let highest: &AlbumPlays = {
-                let mut plays = 0;
-                (0..albs.len()).for_each(|alb| {
-                    if albs[alb].1 > plays {
-                        plays = albs[alb].1;
-                    }
-                    total += albs[alb].1;
-                });
-                &albs[0]
-            };
-
-            let son = Song {
-                name: k.name.clone(),
-                album: highest.0.clone(),
-            };
-
-            songs.insert(son, total);
-        }
+    if !sum_songs_from_different_albums {
+        return songs;
     }
+
+    // to know which album the song had highest amount of plays from
+    // that album will be then displayed in () after the song name
+    // but the number of plays that will be displayed will be a sum of
+    // the plays from all albums
+    let mut changed: HashMap<SongJustArtist, HashMap<Album, usize>> = HashMap::new();
+    for (song, plays_song) in &songs {
+        let song_just_artist = SongJustArtist::from(song);
+
+        changed
+            .entry(song_just_artist)
+            .or_insert_with(HashMap::new)
+            .insert(song.album.clone(), *plays_song);
+    }
+
+    // required because only one version (i.e. album) of the song should be saved
+    songs.clear();
+
+    for (song_just_artist, albs) in &changed {
+        // number of plays of the song across all albums
+        let total = albs.iter().map(|(_, plays)| plays).sum();
+        // album with the highest number of plays
+        let highest = albs
+            .iter()
+            // sorts albums alphabetically so that this function is deterministic
+            // if different albums have the same highest number of plays
+            .sorted_by(|(a, _), (b, _)| a.cmp(b))
+            .max_by(|(_, a), (_, b)| a.cmp(b))
+            .map(|(alb, _)| alb)
+            .unwrap();
+
+        let son = Song {
+            name: song_just_artist.name.clone(),
+            album: highest.clone(),
+        };
+
+        songs.insert(son, total);
+    }
+
     songs
 }
 
@@ -306,7 +277,7 @@ fn gather_albums(entries: &[SongEntry]) -> HashMap<Album, usize> {
 }
 
 /// Returns a map with all [`Albums`][Album] corresponding to `art` with their playcount
-pub fn gather_albums_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album, usize> {
+fn gather_albums_with_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album, usize> {
     entries
         .iter()
         .filter(|entry| art.is_entry(entry))
