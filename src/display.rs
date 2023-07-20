@@ -182,26 +182,6 @@ pub fn leading_whitespace(num: usize, max_num: usize) -> String {
     format!("{order_format}#{num}")
 }
 
-/// Basically [`Song`] but without the [`album`][Song] field
-///
-/// used in [`print_top()`] if `sum_songs_from_different_albums` is set to true
-/// and in [`find_song()`]
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
-struct SongJustArtist {
-    /// Name of the song
-    name: String,
-    /// Artist of the song
-    artist: Artist,
-}
-impl From<&Song> for SongJustArtist {
-    fn from(song: &Song) -> SongJustArtist {
-        SongJustArtist {
-            name: song.name.to_string(),
-            artist: song.album.artist.clone(),
-        }
-    }
-}
-
 /// Returns a map with all [`Songs`][Song] and their playcount
 ///
 /// `sum_songs_from_different_albums` - with `true` it will summarize the plays
@@ -223,9 +203,11 @@ fn gather_songs(
     // that album will be then displayed in () after the song name
     // but the number of plays that will be displayed will be a sum of
     // the plays from all albums
-    let mut changed: HashMap<SongJustArtist, HashMap<Album, usize>> = HashMap::new();
+    // key: (song name, artist)
+    // value: HashMap of albums with number of plays of the song in that album
+    let mut changed: HashMap<(String, Artist), HashMap<Album, usize>> = HashMap::new();
     for (song, plays_song) in &songs {
-        let song_just_artist = SongJustArtist::from(song);
+        let song_just_artist = (song.name.clone(), song.album.artist.clone());
 
         changed
             .entry(song_just_artist)
@@ -236,7 +218,7 @@ fn gather_songs(
     // required because only one version (i.e. album) of the song should be saved
     songs.clear();
 
-    for (song_just_artist, albs) in &changed {
+    for ((song_name, _), albs) in &changed {
         // number of plays of the song across all albums
         let total = albs.iter().map(|(_, plays)| plays).sum();
         // album with the highest number of plays
@@ -250,7 +232,7 @@ fn gather_songs(
             .unwrap();
 
         let son = Song {
-            name: song_just_artist.name.clone(),
+            name: song_name.clone(),
             album: highest.clone(),
         };
 
