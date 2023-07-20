@@ -1,9 +1,32 @@
-use rusty_endsong_parser::{
-    types::{Album, Artist, Song, SongEntries},
-    ui::user_input_date_parser,
-};
+use endsong::types::{Album, Artist, Song, SongEntries};
+use endsong::LOCATION_TZ;
 
+use chrono::{DateTime, TimeZone};
+use chrono_tz::Tz;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+
+/// # Arguments
+/// * `usr_input` - in YYYY-MM-DD format or 'now' or 'start'
+fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Tz>, chrono::format::ParseError> {
+    let date_str = match usr_input {
+        "now" => {
+            return Ok(LOCATION_TZ
+                .timestamp_millis_opt(chrono::offset::Local::now().timestamp_millis())
+                .unwrap())
+        }
+        // TODO! not hardcode this lol -> actual earlierst entry in endsong
+        // -> problem with that: would have to pass &entries to this function
+        // actually not big problem, I could even put LOCATION_TZ as a field of it
+        // and not a constant :O
+        "start" => String::from("1980-01-01T00:00:00Z"),
+        // usr_input should be in YYYY-MM-DD format
+        _ => format!("{usr_input}T00:00:00Z"),
+    };
+
+    // "%FT%TZ" is equivalent to "%Y-%m-%dT%H:%M:%SZ"
+    // see <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>
+    LOCATION_TZ.datetime_from_str(&date_str, "%FT%TZ")
+}
 
 #[allow(dead_code)]
 fn lol(c: &mut Criterion) {
@@ -107,7 +130,7 @@ fn kekw(c: &mut Criterion) {
     c.bench_function("find song", |c| {
         c.iter(|| {
             black_box(
-                rusty_endsong_parser::display::find_song_from_album(
+                endsong::find::song_from_album(
                     &entries,
                     "Last Train Home",
                     "Still Life (Talking)",

@@ -17,11 +17,11 @@
 )]
 #![warn(clippy::pedantic)]
 
-use rusty_endsong_parser::gather;
-use rusty_endsong_parser::parse;
-use rusty_endsong_parser::plot;
-use rusty_endsong_parser::print;
-use rusty_endsong_parser::types;
+use endsong::gather;
+use endsong::parse;
+use endsong::plot;
+use endsong::print;
+use endsong::types;
 
 mod ui;
 

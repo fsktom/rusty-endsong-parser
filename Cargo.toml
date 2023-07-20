@@ -1,5 +1,5 @@
 [package]
-name = "rusty-endsong-parser"
+name = "endsong"
 version = "0.1.0"
 authors = ["Filip Tomaśko <shader301270@gmail.com>"]
 edition = "2021"
