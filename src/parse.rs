@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-use chrono::{DateTime, TimeZone};
+use chrono::{DateTime, Duration, TimeZone};
 use chrono_tz::Tz;
 use serde::{Deserialize, Serialize};
 
@@ -124,6 +124,7 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Erro
         song_entries.append(&mut one);
     }
 
+    // sort by timestamp (oldest streams are first, newest are last)
     song_entries.sort_unstable_by(|a, b| a.timestamp.cmp(&b.timestamp));
 
     Ok(song_entries)
@@ -145,7 +146,7 @@ fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn
 fn entry_to_songentry(entry: Entry) -> Result<SongEntry, PodEntry> {
     // to remove podcast entries
     // if the track is null, so are album and artist
-    if parse_option(entry.master_metadata_track_name.clone()) == "n/a" {
+    if entry.master_metadata_track_name.is_none() {
         // TODO! properly... not just a placeholder
         // bc clippy::pednatic complained about returning
         // big Result<SongEntry, Entry> with Entry being biiig
@@ -156,20 +157,14 @@ fn entry_to_songentry(entry: Entry) -> Result<SongEntry, PodEntry> {
     }
     Ok(SongEntry {
         timestamp: parse_date(&entry.ts),
-        time_played: chrono::Duration::milliseconds(entry.ms_played),
-        track: parse_option(entry.master_metadata_track_name),
-        album: parse_option(entry.master_metadata_album_album_name),
-        artist: parse_option(entry.master_metadata_album_artist_name),
-        id: parse_option(entry.spotify_track_uri),
+        time_played: Duration::milliseconds(entry.ms_played),
+        // unwrap() ok because we already checked for track_name above
+        // if trackname isn't null then these fields aren't either
+        track: entry.master_metadata_track_name.unwrap(),
+        album: entry.master_metadata_album_album_name.unwrap(),
+        artist: entry.master_metadata_album_artist_name.unwrap(),
+        id: entry.spotify_track_uri.unwrap(),
     })
-}
-
-/// Used by [`entry_to_songentry()`]
-fn parse_option(opt: Option<String>) -> String {
-    match opt {
-        Some(data) => data,
-        None => String::from("n/a"),
-    }
 }
 
 /// Used by [`entry_to_songentry()`]
