@@ -137,8 +137,8 @@ fn top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
 
 /// Prints a specfic aspect
 ///
-/// * `asp` - the aspect you want informationa about containing the
-/// relevant struct
+/// * `asp` - the [`AspectFull`] you want information about containing the
+/// relevant struct ([`Artist`], [`Album`] or [`Song`])
 pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
     match *asp {
         AspectFull::Artist(art) => {
@@ -192,8 +192,8 @@ fn album(songs: &HashMap<Song, usize>) {
 ///
 /// Basically [`aspect()`] but with date limitations
 ///
-/// * `asp` - the aspect you want informationa about containing the
-/// relevant struct
+/// * `asp` - the [`AspectFull`] you want information about containing the
+/// relevant struct ([`Artist`], [`Album`] or [`Song`])
 ///
 /// # Panics
 ///
@@ -265,8 +265,8 @@ fn artist_date(
 }
 
 /// Prints the total time played
-pub fn time_played(entries: &crate::types::SongEntries) {
-    let duration = entries.listening_time();
+pub fn time_played(entries: &[SongEntry]) {
+    let duration = gather::listening_time(entries);
 
     println!(
         "You've spent {} days - or {} hours - or {} minutes listening to music!",
@@ -284,13 +284,9 @@ pub fn time_played(entries: &crate::types::SongEntries) {
 ///
 /// Panics if `start` is after or equal to `end`
 #[allow(clippy::cast_precision_loss)]
-pub fn time_played_date(
-    entries: &crate::types::SongEntries,
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) {
+pub fn time_played_date(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>) {
     assert!(start <= end, "Start date is after end date!");
-    let duration = entries.listening_time_date(start, end);
+    let duration = gather::listening_time_date(entries, start, end);
     let period = *end - *start;
 
     println!(

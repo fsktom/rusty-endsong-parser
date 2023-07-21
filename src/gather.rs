@@ -66,10 +66,34 @@ pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> Ha
 }
 
 /// Returns a map with all [`Songs`][Song] corresponding to `asp` with their playcount
-pub fn songs_from<Asp: HasSongs>(entries: &[SongEntry], asp: &Asp) -> HashMap<Song, usize> {
+pub fn songs_from<Asp: HasSongs>(entries: &[SongEntry], aspect: &Asp) -> HashMap<Song, usize> {
     entries
         .iter()
-        .filter(|entry| asp.is_entry(entry))
+        .filter(|entry| aspect.is_entry(entry))
+        .map(Song::from)
+        .counts()
+}
+
+/// Returns a map with all [`Songs`][Song] corresponding to `asp` with their playcount in a date range
+///
+/// Basically [`songs_from()`] but with date functionality
+///
+/// # Panics
+///
+/// Panics if `start` is after or equal to `end`
+pub fn songs_from_date<Asp: HasSongs>(
+    entries: &[SongEntry],
+    aspect: &Asp,
+    start: &DateTime<Tz>,
+    end: &DateTime<Tz>,
+) -> HashMap<Song, usize> {
+    assert!(start <= end, "Start date is after end date!");
+
+    let (begin, stop) = find_timestamp_indexes(entries, start, end);
+
+    entries[begin..=stop]
+        .iter()
+        .filter(|entry| aspect.is_entry(entry))
         .map(Song::from)
         .counts()
 }
@@ -86,11 +110,6 @@ pub fn albums_from_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album,
         .filter(|entry| art.is_entry(entry))
         .map(Album::from)
         .counts()
-}
-
-/// Returns a map with all [`Artists`][Artist] and their playcount
-pub fn artists(entries: &[SongEntry]) -> HashMap<Artist, usize> {
-    entries.iter().map(Artist::from).counts()
 }
 
 /// Returns a map with all [`Albums`][Album] corresponding to `art` with their playcount in a date range
@@ -117,28 +136,9 @@ pub fn albums_from_artist_date(
         .counts()
 }
 
-/// Returns a map with all [`Songs`][Song] corresponding to `asp` with their playcount in a date range
-///
-/// Basically [`songs_from()`] but with date functionality
-///
-/// # Panics
-///
-/// Panics if `start` is after or equal to `end`
-pub fn songs_from_date<Asp: HasSongs>(
-    entries: &[SongEntry],
-    asp: &Asp,
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) -> HashMap<Song, usize> {
-    assert!(start <= end, "Start date is after end date!");
-
-    let (begin, stop) = find_timestamp_indexes(entries, start, end);
-
-    entries[begin..=stop]
-        .iter()
-        .filter(|entry| asp.is_entry(entry))
-        .map(Song::from)
-        .counts()
+/// Returns a map with all [`Artists`][Artist] and their playcount
+pub fn artists(entries: &[SongEntry]) -> HashMap<Artist, usize> {
+    entries.iter().map(Artist::from).counts()
 }
 
 /// Counts up the plays of a single [`Music`]
