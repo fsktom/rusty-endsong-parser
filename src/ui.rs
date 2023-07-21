@@ -1,9 +1,6 @@
 //! Module responsible for handling the CLI
 
-use crate::print;
-use crate::types::{plot_compare, plot_single, Aspect, AspectFull, SongEntries, Trace};
-use crate::types::{Album, Artist, Song};
-use crate::LOCATION_TZ;
+mod help;
 
 use std::borrow::Cow;
 use std::error::Error;
@@ -16,8 +13,10 @@ use rustyline::{
     error::ReadlineError, highlight::Highlighter, history::FileHistory, ColorMode, Config, Editor,
 };
 
-/// Module containing stuff for the `help` command
-mod help;
+use crate::print;
+use crate::types::{plot_compare, plot_single, Aspect, AspectFull, SongEntries, Trace};
+use crate::types::{Album, Artist, Song};
+use crate::LOCATION_TZ;
 
 /// Prompt used for top-level shell commands
 ///

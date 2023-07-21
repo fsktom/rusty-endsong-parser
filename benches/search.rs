@@ -1,9 +1,9 @@
-use endsong::types::{Album, Artist, Song, SongEntries};
-use endsong::LOCATION_TZ;
-
 use chrono::{DateTime, TimeZone};
 use chrono_tz::Tz;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+
+use endsong::types::{Album, Artist, Song, SongEntries};
+use endsong::LOCATION_TZ;
 
 /// # Arguments
 /// * `usr_input` - in YYYY-MM-DD format or 'now' or 'start'

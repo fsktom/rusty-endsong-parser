@@ -1,9 +1,9 @@
 //! Module responsible for finding artists, albums and songs in the dataset
 
+use itertools::Itertools;
+
 use crate::types::Music;
 use crate::types::{Album, Artist, Song, SongEntry};
-
-use itertools::Itertools;
 
 /// Searches the entries for if the given artist exists in the dataset
 ///

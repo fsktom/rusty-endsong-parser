@@ -1,5 +1,7 @@
 //! Module containg many types used throughout the program
 // https://doc.rust-lang.org/stable/book/ch06-01-defining-an-enum.html
+pub use plotly::Trace;
+
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::error::Error;
@@ -8,7 +10,6 @@ use std::fmt::Display;
 use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
 use itertools::Itertools;
-pub use plotly::Trace;
 
 use crate::find;
 use crate::gather;
@@ -668,11 +669,6 @@ impl<'a> Traces<'a> {
 
 pub use plot::compare as plot_compare;
 pub use plot::single as plot_single;
-
-/// A more specific version of [`parse::Entry`]
-/// for podcast entries.
-#[derive(Clone, Debug)]
-pub struct PodcastEntry {}
 
 /// [`SongEntry`] but for podcasts
 pub struct PodEntry {

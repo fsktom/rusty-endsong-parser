@@ -2,6 +2,11 @@
 //! in a human-readable format (e.g. as 100 most played songs)
 //! to the [`std::io::stdout`]
 
+use std::collections::HashMap;
+
+use chrono::DateTime;
+use chrono_tz::Tz;
+
 use crate::gather;
 use crate::types::Aspect;
 use crate::types::AspectFull;
@@ -9,10 +14,6 @@ use crate::types::Mode;
 use crate::types::Music;
 use crate::types::SongEntry;
 use crate::types::{Album, Artist, Song};
-
-use chrono::DateTime;
-use chrono_tz::Tz;
-use std::collections::HashMap;
 
 /// Prints the top `num` of an `asp`
 ///

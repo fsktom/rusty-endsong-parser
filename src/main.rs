@@ -17,15 +17,15 @@
 )]
 #![warn(clippy::pedantic)]
 
+mod ui;
+
+use chrono::{Duration, TimeZone};
+
 use endsong::gather;
 use endsong::parse;
 use endsong::plot;
 use endsong::print;
 use endsong::types;
-
-mod ui;
-
-use chrono::{Duration, TimeZone};
 
 use types::Aspect;
 use types::AspectFull;

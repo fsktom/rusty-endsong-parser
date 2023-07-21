@@ -1,12 +1,12 @@
 //! Module responsible for deserializing the endsong.json files
 //! into usable Rust data types
+
 use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
 use chrono::{DateTime, TimeZone};
-
 use chrono_tz::Tz;
 use serde::{Deserialize, Serialize};
 
@@ -17,7 +17,7 @@ use crate::types::{PodEntry, SongEntry};
 /// see issue #4 <https://github.com/Filip-Tomasko/rusty-endsong-parser/issues/4>
 ///
 /// used for parsing the timestamp in [`parse`][self]
-pub const LOCATION_TZ: chrono_tz::Tz = chrono_tz::Europe::Berlin;
+pub const LOCATION_TZ: Tz = chrono_tz::Europe::Berlin;
 
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
 // null values are either skipped (defaulted to unit tuple or are an Option)
@@ -27,8 +27,8 @@ pub const LOCATION_TZ: chrono_tz::Tz = chrono_tz::Europe::Berlin;
 /// Raw because it's directly the deserialization from endsong.json
 ///
 /// These are later "converted" to
-/// [`crate::types::SongEntry`] if they represent a song or to
-/// [`crate::types::PodcastEntry`] if they represent a podcast (TBD)
+/// [`SongEntry`] if they represent a song or to
+/// [`PodEntry`] if they represent a podcast (TBD)
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Entry {
     /// timestamp in `"YYY-MM-DD 13:30:30"` format

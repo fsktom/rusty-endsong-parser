@@ -2,11 +2,11 @@
 
 use std::collections::HashMap;
 
-use crate::types::{Album, Artist, HasSongs, Music, Song, SongEntry};
-
 use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
 use itertools::Itertools;
+
+use crate::types::{Album, Artist, HasSongs, Music, Song, SongEntry};
 
 /// Returns a map with all [`Songs`][Song] and their playcount
 ///

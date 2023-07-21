@@ -1,17 +1,13 @@
 //! Module responsible for plotting/charts
-use crate::types::{Music, SongEntry};
+
+pub mod absolute;
+pub mod relative;
 
 use chrono::{DateTime, TimeZone};
 use chrono_tz::Tz;
 use plotly::{Layout, Plot, Trace};
 
-/// Responsible for plotting absolute plots
-pub mod absolute;
-
-/// Responsible for plotting relative plots
-///
-/// Either to all plays, the artist or the album
-pub mod relative;
+use crate::types::{Music, SongEntry};
 
 /// Creates a plot in the `plots/` folder
 ///

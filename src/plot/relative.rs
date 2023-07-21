@@ -1,3 +1,7 @@
+//! Responsible for plotting relative plots
+//!
+//! Either to all plays, the artist or the album
+
 use plotly::{Scatter, Trace};
 
 use super::find_dates;
