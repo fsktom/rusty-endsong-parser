@@ -309,7 +309,7 @@ pub fn time_played_date(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateT
 /// # Arguments
 /// * `num` - position of the [`AspectFull`], must be >0
 /// * `max_num` - the highest position you want to display,
-/// must be >0 and should be >=`num`
+/// must be >0 and >=`num`
 ///
 /// # Panics
 ///
@@ -317,30 +317,21 @@ pub fn time_played_date(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateT
 ///
 /// # Examples
 /// ```
-/// use endsong::print::leading_whitespace;
-/// assert_eq!(leading_whitespace(7usize, 100usize), String::from("  #7"));
-/// assert_eq!(leading_whitespace(7usize, 1000usize), String::from("   #7"));
+/// assert_eq!(leading_whitespace(7usize, 100usize), "  #7");
+/// assert_eq!(leading_whitespace(7usize, 1000usize), "   #7");
 /// ```
-pub fn leading_whitespace(num: usize, max_num: usize) -> String {
+fn leading_whitespace(num: usize, max_num: usize) -> String {
     assert!(num > 0);
     assert!(max_num > 0);
+    assert!(max_num >= num);
     // https://github.com/Filip-Tomasko/endsong-parser-python/blob/main/src/endsong_parser.py#L551-L578
-    let mut order_format = String::new();
 
-    let mut num_of_zero = max_num.ilog10();
-    let digits = num.ilog10() + 1;
+    let total_width = max_num.ilog10();
+    let num_width = num.ilog10();
 
-    loop {
-        if num_of_zero == 0 {
-            break;
-        }
-        if digits <= num_of_zero {
-            order_format += " ";
-        }
-        num_of_zero -= 1;
-    }
+    let missing_whitespace = total_width - num_width;
 
-    format!("{order_format}#{num}")
+    format!("{}#{num}", " ".repeat(missing_whitespace as usize))
 }
 
 // https://doc.rust-lang.org/book/ch11-03-test-organization.html#unit-tests
@@ -350,15 +341,18 @@ mod tests {
 
     #[test]
     fn order_format() {
-        assert_eq!(leading_whitespace(3usize, 100usize), String::from("  #3"));
-        assert_eq!(leading_whitespace(3usize, 1000usize), String::from("   #3"));
-        assert_eq!(leading_whitespace(3usize, 5692usize), String::from("   #3"));
+        assert_eq!(leading_whitespace(3usize, 9usize), "#3");
+        assert_eq!(leading_whitespace(3usize, 10usize), " #3");
+        assert_eq!(leading_whitespace(3usize, 100usize), "  #3");
+        assert_eq!(leading_whitespace(3usize, 1000usize), "   #3");
+        assert_eq!(leading_whitespace(3usize, 5692usize), "   #3");
     }
 
     #[test]
     #[should_panic]
-    fn order_format_zero() {
+    fn order_format_panics() {
         leading_whitespace(0usize, 100usize);
         leading_whitespace(1usize, 0usize);
+        leading_whitespace(101usize, 50usize);
     }
 }
