@@ -2,6 +2,8 @@ use chrono::{DateTime, TimeZone};
 use chrono_tz::Tz;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
+// use endsong::plot;
+#[allow(unused_imports)]
 use endsong::types::{Album, Artist, Song, SongEntries};
 use endsong::LOCATION_TZ;
 
@@ -63,23 +65,23 @@ fn lol(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("absolute", |c| {
-        c.iter(|| {
-            entries.traces().absolute(&powerwolf);
-        })
-    });
-    c.bench_function("relative", |c| {
-        c.iter(|| {
-            entries.traces().relative(&powerwolf);
-        })
-    });
+    // c.bench_function("absolute", |c| {
+    //     c.iter(|| {
+    //         plot::absolute::aspect(&entries, &powerwolf);
+    //     })
+    // });
+    // c.bench_function("relative", |c| {
+    //     c.iter(|| {
+    //         plot::relative::to_all(&entries, &powerwolf);
+    //     })
+    // });
 
-    let coat = black_box(Album::new("Coat of Arms", "Sabaton"));
-    c.bench_function("relative_to_artist", |c| {
-        c.iter(|| {
-            entries.traces().relative_to_artist(&coat);
-        })
-    });
+    // let coat = black_box(Album::new("Coat of Arms", "Sabaton"));
+    // c.bench_function("relative_to_artist", |c| {
+    //     c.iter(|| {
+    //         plot::relative::to_artist(&entries, &coat);
+    //     })
+    // });
 
     let start = user_input_date_parser("2020-01-01").unwrap();
     let end = user_input_date_parser("2021-01-01").unwrap();

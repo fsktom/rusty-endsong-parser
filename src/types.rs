@@ -15,7 +15,6 @@ use itertools::Itertools;
 use crate::find;
 use crate::gather;
 use crate::parse;
-use crate::plot;
 
 /// Used for functions that accept either
 /// a [`Song`], [`Album`] or [`Artist`] struct
@@ -440,11 +439,6 @@ impl SongEntries {
         Find(self)
     }
 
-    /// Used to get traces for [`plot_single()`] and [`plot_compare()`]
-    pub fn traces(&self) -> Traces {
-        Traces(self)
-    }
-
     /// Returns a [`HashMap`] with the [`Songs`][Song] as keys and
     /// their [`Durations`][Duration] as values
     pub fn song_durations(&self) -> HashMap<Song, Duration> {
@@ -594,42 +588,6 @@ impl<'a> Find<'a> {
         find::songs_from_album(self.0, album)
     }
 }
-
-/// Used by [`SongEntries`] to get traces for plots in
-/// [`plot_single()`] and [`plot_compare()`]
-pub struct Traces<'a>(&'a SongEntries);
-impl<'a> Traces<'a> {
-    /// Returns a trace of the absolute plays of an `aspect`
-    ///
-    /// Wrapper for [`plot::absolute::aspect()`]
-    pub fn absolute<Asp: Music>(&self, aspect: &Asp) -> (Box<dyn Trace>, String) {
-        plot::absolute::aspect(self.0, aspect)
-    }
-
-    /// Returns a trace of the plays relative to all plays
-    ///
-    /// Wrapper for [`plot::relative::to_all()`]
-    pub fn relative<Asp: Music>(&self, aspect: &Asp) -> (Box<dyn Trace>, String) {
-        plot::relative::to_all(self.0, aspect)
-    }
-
-    /// Returns a trace of the plays relative to the artist
-    ///
-    /// Wrapper for [`plot::relative::to_artist()`]
-    pub fn relative_to_artist<Asp: HasArtist>(&self, aspect: &Asp) -> (Box<dyn Trace>, String) {
-        plot::relative::to_artist(self.0, aspect)
-    }
-
-    /// Returns a trace of the plays relative to the album
-    ///
-    /// Wrapper for [`plot::relative::to_album()`]
-    pub fn relative_to_album(&self, song: &Song) -> (Box<dyn Trace>, String) {
-        plot::relative::to_album(self.0, song)
-    }
-}
-
-pub use plot::compare as plot_compare;
-pub use plot::single as plot_single;
 
 /// Trait for better display of [`Durations`][Duration]
 pub trait DurationUtils {

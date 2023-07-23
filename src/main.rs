@@ -17,6 +17,7 @@
 )]
 #![warn(clippy::pedantic)]
 
+mod plot;
 mod print;
 mod ui;
 
@@ -24,7 +25,6 @@ use chrono::{Duration, TimeZone};
 
 use endsong::gather;
 use endsong::parse;
-use endsong::plot;
 use endsong::types;
 
 use print::Aspect;

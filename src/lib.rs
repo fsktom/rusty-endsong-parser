@@ -7,7 +7,6 @@
 pub mod find;
 pub mod gather;
 pub mod parse;
-pub mod plot;
 pub mod types;
 
 pub use parse::LOCATION_TZ;

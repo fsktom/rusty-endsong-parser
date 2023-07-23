@@ -13,9 +13,10 @@ use rustyline::{
     error::ReadlineError, highlight::Highlighter, history::FileHistory, ColorMode, Config, Editor,
 };
 
+use crate::plot;
 use crate::print;
-use crate::types::{plot_compare, plot_single, SongEntries, Trace};
 use crate::types::{Album, Artist, Song};
+use crate::types::{SongEntries, Trace};
 use crate::LOCATION_TZ;
 use print::{Aspect, AspectFull};
 
@@ -648,7 +649,7 @@ fn match_plot(
     // other prompts
     let trace = get_absolute_trace(entries, rl, usr_input_asp.as_str())?;
 
-    plot_single(trace);
+    plot::single(trace);
 
     Ok(())
 }
@@ -666,7 +667,7 @@ fn match_plot_relative(
     // other prompts
     let trace = get_relative_trace(entries, rl, usr_input_asp.as_str())?;
 
-    plot_single(trace);
+    plot::single(trace);
 
     Ok(())
 }
@@ -688,7 +689,7 @@ fn match_plot_compare(
     let usr_input_asp_two = rl.readline(PROMPT_SECONDARY)?;
     let trace_two = get_absolute_trace(entries, rl, usr_input_asp_two.as_str())?;
 
-    plot_compare(trace_one, trace_two);
+    plot::compare(trace_one, trace_two);
 
     Ok(())
 }
@@ -710,7 +711,7 @@ fn match_plot_compare_relative(
     let usr_input_asp_two = rl.readline(PROMPT_SECONDARY)?;
     let trace_two = get_relative_trace(entries, rl, usr_input_asp_two.as_str())?;
 
-    plot_compare(trace_one, trace_two);
+    plot::compare(trace_one, trace_two);
 
     Ok(())
 }
@@ -751,7 +752,7 @@ fn match_plot_artist(
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
-    Ok(entries.traces().absolute(&art))
+    Ok(plot::absolute::aspect(entries, &art))
 }
 
 /// Used by [`match_plot()`] for plotting absolute plays of album
@@ -765,7 +766,7 @@ fn match_plot_album(
     // 2nd prompt: album name
     let alb = read_album(rl, entries, &art)?;
 
-    Ok(entries.traces().absolute(&alb))
+    Ok(plot::absolute::aspect(entries, &alb))
 }
 
 /// Used by [`match_plot()`] for plotting absolute plays of song
@@ -782,7 +783,7 @@ fn match_plot_song(
     // 3rd prompt: song name
     let son = read_song(rl, entries, &alb)?;
 
-    Ok(entries.traces().absolute(&son))
+    Ok(plot::absolute::aspect(entries, &son))
 }
 
 /// Used by [`match_plot_relative()`] for plotting relative plots of artist
@@ -793,7 +794,7 @@ fn match_plot_artist_relative(
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
-    Ok(entries.traces().relative(&art))
+    Ok(plot::relative::to_all(entries, &art))
 }
 
 /// Used by [`match_plot_relative()`] for plotting relative plots of album
@@ -815,8 +816,8 @@ fn match_plot_album_relative(
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
     match usr_input_rel.as_str() {
-        "all" => Ok(entries.traces().relative(&alb)),
-        "artist" => Ok(entries.traces().relative_to_artist(&alb)),
+        "all" => Ok(plot::relative::to_all(entries, &alb)),
+        "artist" => Ok(plot::relative::to_artist(entries, &alb)),
         _ => Err(Box::new(InvalidArgumentError::Artist)),
     }
 }
@@ -844,9 +845,9 @@ fn match_plot_song_relative(
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
     match usr_input_rel.as_str() {
-        "all" => Ok(entries.traces().relative(&son)),
-        "artist" => Ok(entries.traces().relative_to_artist(&son)),
-        "album" => Ok(entries.traces().relative_to_album(&son)),
+        "all" => Ok(plot::relative::to_all(entries, &son)),
+        "artist" => Ok(plot::relative::to_artist(entries, &son)),
+        "album" => Ok(plot::relative::to_album(entries, &son)),
         _ => Err(Box::new(InvalidArgumentError::Album)),
     }
 }
