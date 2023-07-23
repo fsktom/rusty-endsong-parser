@@ -8,6 +8,7 @@ use std::fmt::Display;
 
 use chrono::{DateTime, Duration, TimeZone};
 use chrono_tz::Tz;
+use plotly::Trace;
 use rustyline::{completion::Completer, Helper, Hinter, Validator};
 use rustyline::{
     error::ReadlineError, highlight::Highlighter, history::FileHistory, ColorMode, Config, Editor,
@@ -15,8 +16,8 @@ use rustyline::{
 
 use crate::plot;
 use crate::print;
+use crate::types::SongEntries;
 use crate::types::{Album, Artist, Song};
-use crate::types::{SongEntries, Trace};
 use crate::LOCATION_TZ;
 use print::{Aspect, AspectFull};
 
