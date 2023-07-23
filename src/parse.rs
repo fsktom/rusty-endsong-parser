@@ -8,9 +8,10 @@ use std::path::Path;
 
 use chrono::{DateTime, Duration, TimeZone};
 use chrono_tz::Tz;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::types::{PodEntry, SongEntry};
+use crate::types::SongEntry;
 
 /// responsible for time zone handling
 ///
@@ -26,9 +27,8 @@ pub const LOCATION_TZ: Tz = chrono_tz::Europe::Berlin;
 ///
 /// Raw because it's directly the deserialization from endsong.json
 ///
-/// These are later "converted" to
-/// [`SongEntry`] if they represent a song or to
-/// [`PodEntry`] if they represent a podcast (TBD)
+/// These are later "converted" to [`SongEntry`] if they represent a song stream.
+/// Podcast streams are ignored.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Entry {
     /// timestamp in `"YYY-MM-DD 13:30:30"` format
@@ -97,23 +97,6 @@ pub struct Entry {
     incognito_mode: (),
 }
 
-/// Parses a single `endsong.json` file into a usable format
-fn parse_single<P: AsRef<Path>>(path: P) -> Result<Vec<SongEntry>, Box<dyn Error>> {
-    let u = read_entries_from_file(path)?;
-    // at least for me: about 15.8k-15.95k entries per file
-    // to prevent reallocations?
-    let mut songs: Vec<SongEntry> = Vec::with_capacity(16_000);
-    let mut podcasts: Vec<PodEntry> = Vec::with_capacity(1_000);
-    for entry in u {
-        match entry_to_songentry(entry) {
-            Ok(song) => songs.push(song),
-            Err(pod) => podcasts.push(pod),
-        }
-    }
-
-    Ok(songs)
-}
-
 /// Main parsing function that parses many `endsong.json` files
 pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     // at least for me: about 15.8k-15.95k entries per file
@@ -130,32 +113,29 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Erro
     Ok(song_entries)
 }
 
-// https://docs.serde.rs/serde_json/fn.from_reader.html
-/// Responsible for parsing the json into a vector of the general [Entry]
-fn read_entries_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Entry>, Box<dyn Error>> {
+/// Responsible for parsing the json into a vector of the general [`Entry`]
+fn parse_single<P: AsRef<Path>>(path: P) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     // https://github.com/serde-rs/json/issues/160#issuecomment-253446892
     let mut file_contents = String::new();
     File::open(path)?.read_to_string(&mut file_contents)?;
     let full_entries: Vec<Entry> = serde_json::from_str(&file_contents)?;
 
-    // Return entries
-    Ok(full_entries)
+    // convert each Entry to a SongEntry (ignoring podcast streams)
+    let song_entries = full_entries
+        .into_iter()
+        .filter_map(entry_to_songentry)
+        .collect_vec();
+
+    Ok(song_entries)
 }
 
-/// Converts the genral [Entry] to a more specific [`SongEntry`]
-fn entry_to_songentry(entry: Entry) -> Result<SongEntry, PodEntry> {
+/// Converts the genral [`Entry`] to a more specific [`SongEntry`]
+fn entry_to_songentry(entry: Entry) -> Option<SongEntry> {
     // to remove podcast entries
-    // if the track is null, so are album and artist
-    if entry.master_metadata_track_name.is_none() {
-        // TODO! properly... not just a placeholder
-        // bc clippy::pednatic complained about returning
-        // big Result<SongEntry, Entry> with Entry being biiig
-        let pod = PodEntry {
-            id: "666".to_string(),
-        };
-        return Err(pod);
-    }
-    Ok(SongEntry {
+    // if the track is None, so are album and artist
+    entry.master_metadata_track_name.as_ref()?;
+
+    Some(SongEntry {
         timestamp: parse_date(&entry.ts),
         time_played: Duration::milliseconds(entry.ms_played),
         // unwrap() ok because we already checked for track_name above

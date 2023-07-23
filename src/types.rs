@@ -631,12 +631,6 @@ impl<'a> Traces<'a> {
 pub use plot::compare as plot_compare;
 pub use plot::single as plot_single;
 
-/// [`SongEntry`] but for podcasts
-pub struct PodEntry {
-    /// Spotify URI
-    pub id: String,
-}
-
 /// Trait for better display of [`Durations`][Duration]
 pub trait DurationUtils {
     /// Returns a string with the duration in the format `HH:MM:SS`

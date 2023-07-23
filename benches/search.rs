@@ -90,6 +90,7 @@ fn lol(c: &mut Criterion) {
     });
 }
 
+#[allow(dead_code)]
 fn kekw(c: &mut Criterion) {
     let root = match std::env::consts::OS {
         "windows" => r"C:\\Temp\\Endsong\\",
@@ -142,6 +143,33 @@ fn kekw(c: &mut Criterion) {
     });
 }
 
+fn parse(c: &mut Criterion) {
+    let root = match std::env::consts::OS {
+        "windows" => r"C:\\Temp\\Endsong\\",
+        "macos" => "/Users/filip/Other/Endsong/",
+        _ => "/mnt/c/temp/Endsong/",
+    };
+    let paths = [
+        format!("{root}endsong_0.json"),
+        format!("{root}endsong_1.json"),
+        format!("{root}endsong_2.json"),
+        format!("{root}endsong_3.json"),
+        format!("{root}endsong_4.json"),
+        format!("{root}endsong_5.json"),
+        format!("{root}endsong_6.json"),
+        format!("{root}endsong_7.json"),
+        format!("{root}endsong_8.json"),
+        format!("{root}endsong_9.json"),
+    ];
+
+    c.bench_function("parse", |c| {
+        c.iter(|| {
+            black_box(endsong::types::SongEntries::new(&paths[..=1]).unwrap());
+        })
+    });
+}
+
 // criterion_group!(benches, lol);
-criterion_group!(benches, kekw);
+// criterion_group!(benches, kekw);
+criterion_group!(benches, parse);
 criterion_main!(benches);
