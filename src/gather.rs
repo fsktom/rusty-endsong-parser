@@ -16,6 +16,11 @@ use crate::types::{Album, Artist, HasSongs, Music, Song, SongEntry};
 ///
 /// It matters because oftentimes the same song will be in many albums (or singles).
 /// But it's still case-sensitive!
+///
+/// # Panics
+///
+/// Uses .unwrap() but it should never panic
+#[must_use]
 pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> HashMap<Song, usize> {
     let mut songs = entries.iter().map(Song::from).counts();
     if !sum_songs_from_different_albums {
@@ -52,6 +57,7 @@ pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> Ha
             .sorted_unstable_by(|(a, _), (b, _)| a.cmp(b))
             .max_by(|(_, a), (_, b)| a.cmp(b))
             .map(|(alb, _)| alb)
+            // unwrap ok because there's at least one album?
             .unwrap();
 
         let son = Song {
@@ -66,6 +72,7 @@ pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> Ha
 }
 
 /// Returns a map with all [`Songs`][Song] corresponding to `asp` with their playcount
+#[must_use]
 pub fn songs_from<Asp: HasSongs>(entries: &[SongEntry], aspect: &Asp) -> HashMap<Song, usize> {
     entries
         .iter()
@@ -81,6 +88,7 @@ pub fn songs_from<Asp: HasSongs>(entries: &[SongEntry], aspect: &Asp) -> HashMap
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
+#[must_use]
 pub fn songs_from_date<Asp: HasSongs>(
     entries: &[SongEntry],
     aspect: &Asp,
@@ -99,11 +107,13 @@ pub fn songs_from_date<Asp: HasSongs>(
 }
 
 /// Returns a map with all [`Albums`][Album] and their playcount
+#[must_use]
 pub fn albums(entries: &[SongEntry]) -> HashMap<Album, usize> {
     entries.iter().map(Album::from).counts()
 }
 
 /// Returns a map with all [`Albums`][Album] corresponding to `art` with their playcount
+#[must_use]
 pub fn albums_from_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album, usize> {
     entries
         .iter()
@@ -119,6 +129,7 @@ pub fn albums_from_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album,
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
+#[must_use]
 pub fn albums_from_artist_date(
     entries: &[SongEntry],
     art: &Artist,
@@ -137,11 +148,13 @@ pub fn albums_from_artist_date(
 }
 
 /// Returns a map with all [`Artists`][Artist] and their playcount
+#[must_use]
 pub fn artists(entries: &[SongEntry]) -> HashMap<Artist, usize> {
     entries.iter().map(Artist::from).counts()
 }
 
 /// Counts up the plays of a single [`Music`]
+#[must_use]
 pub fn plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
     entries
         .iter()
@@ -150,6 +163,7 @@ pub fn plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
 }
 
 /// Counts up the plays of all [`Music`] in a collection
+#[must_use]
 pub fn plays_of_many<Asp: Music>(entries: &[SongEntry], aspects: &[Asp]) -> usize {
     entries
         .iter()
@@ -164,6 +178,7 @@ pub fn plays_of_many<Asp: Music>(entries: &[SongEntry], aspects: &[Asp]) -> usiz
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
+#[must_use]
 pub fn plays_date<Asp: Music>(
     entries: &[SongEntry],
     aspect: &Asp,
@@ -187,6 +202,7 @@ pub fn plays_date<Asp: Music>(
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
+#[must_use]
 pub fn plays_of_many_date<Asp: Music>(
     entries: &[SongEntry],
     aspects: &[Asp],
@@ -208,6 +224,7 @@ pub fn plays_of_many_date<Asp: Music>(
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
+#[must_use]
 pub fn all_plays_date(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>) -> usize {
     assert!(start <= end, "Start date is after end date!");
 
@@ -217,6 +234,7 @@ pub fn all_plays_date(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTim
 }
 
 /// Returns the total time listened
+#[must_use]
 pub fn listening_time(entries: &[SongEntry]) -> Duration {
     // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
     // self.iter().map(|entry| entry.time_played).sum::<Duration>()
@@ -231,6 +249,7 @@ pub fn listening_time(entries: &[SongEntry]) -> Duration {
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
+#[must_use]
 pub fn listening_time_date(
     entries: &[SongEntry],
     start: &DateTime<Tz>,

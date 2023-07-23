@@ -54,14 +54,14 @@ fn lol(c: &mut Criterion) {
 
     c.bench_function("artists_vec", |c| {
         c.iter(|| {
-            entries.artists();
+            black_box(entries.artists());
         })
     });
 
     let powerwolf = black_box(Artist::new("Powerwolf"));
     c.bench_function("albums_vec", |c| {
         c.iter(|| {
-            entries.albums(&powerwolf);
+            black_box(entries.albums(&powerwolf));
         })
     });
 
@@ -87,7 +87,7 @@ fn lol(c: &mut Criterion) {
     let end = user_input_date_parser("2021-01-01").unwrap();
     c.bench_function("listening_time", |c| {
         c.iter(|| {
-            entries.listening_time_date(&start, &end);
+            black_box(entries.listening_time_date(&start, &end));
         })
     });
 }

@@ -266,23 +266,38 @@ impl SongEntries {
     /// Returns an [`Error`] if it encounters problems while parsing
     ///
     /// * `paths` - a slice of [`Path`][`Path`]s to each `endsong.json` file
+    ///
+    ///  # Errors
+    ///
+    /// Will return an error if any of the files can't be opened or read
     pub fn new<P: AsRef<Path>>(paths: &[P]) -> Result<SongEntries, Box<dyn Error>> {
         Ok(SongEntries(parse::parse(paths)?))
     }
 
     /// Returns the date of the first (time-wise) occurrence of any [`SongEntry`]
+    ///
+    /// # Panics
+    ///
+    /// Panics if the dataset is empty (but that should never happen)
+    #[must_use]
     pub fn first_date(&self) -> DateTime<Tz> {
         // bc it's sorted (see parse.rs) -> first entry is the earliest
         self.iter().next().unwrap().timestamp
     }
 
     /// Returns the date of the last (time-wise) occurrence of any [`SongEntry`]
+    ///
+    /// # Panics
+    ///
+    /// Panics if the dataset is empty (but that should never happen)
+    #[must_use]
     pub fn last_date(&self) -> DateTime<Tz> {
         // bc it's sorted (see parse.rs) -> last entry is the latest
         self.iter().next_back().unwrap().timestamp
     }
 
     /// Returns the total time listened
+    #[must_use]
     pub fn listening_time(&self) -> Duration {
         gather::listening_time(self)
     }
@@ -292,11 +307,13 @@ impl SongEntries {
     /// # Panics
     ///
     /// Panics if `start` is after or equal to `end`
+    #[must_use]
     pub fn listening_time_date(&self, start: &DateTime<Tz>, end: &DateTime<Tz>) -> Duration {
         gather::listening_time_date(self, start, end)
     }
 
     /// Finds the date period with the most listening time for the given `time_span`
+    #[must_use]
     pub fn max_listening_time(
         &self,
         time_span: Duration,
@@ -336,6 +353,7 @@ impl SongEntries {
     }
 
     /// Returns a [`Vec<String>`] with the names of all [`Artists`][Artist] in the dataset
+    #[must_use]
     pub fn artists(&self) -> Vec<String> {
         self.iter()
             .map(|entry| entry.artist.clone())
@@ -345,6 +363,7 @@ impl SongEntries {
 
     /// Returns a [`Vec<String>`] with the names of the [`Albums`][Album]
     /// corresponding to the `artist`
+    #[must_use]
     pub fn albums(&self, artist: &Artist) -> Vec<String> {
         self.iter()
             .filter(|entry| artist.is_entry(entry))
@@ -355,6 +374,7 @@ impl SongEntries {
 
     /// Returns a [`Vec<String>`] with the names of the [`Songs`][Song]
     /// corresponding to the `aspect`
+    #[must_use]
     pub fn songs<Asp: HasSongs>(&self, aspect: &Asp) -> Vec<String> {
         self.iter()
             .filter(|entry| aspect.is_entry(entry))
@@ -375,6 +395,7 @@ impl SongEntries {
     /// # Panics
     ///
     /// Panics if `song` is not a valid entry in the dataset
+    #[must_use]
     pub fn song_length(&self, song: &Song) -> Duration {
         // map of durations with their amount of occurences
         let mut durations = HashMap::<Duration, usize>::with_capacity(10);
@@ -413,6 +434,7 @@ impl SongEntries {
     }
 
     /// Counts up the plays of all [`Music`] in a collection
+    #[must_use]
     pub fn gather_plays_of_many<Asp: Music>(&self, aspects: &[Asp]) -> usize {
         gather::plays_of_many(self, aspects)
     }
@@ -422,6 +444,7 @@ impl SongEntries {
     /// # Panics
     ///
     /// Panics if `start` is after or equal to `end`
+    #[must_use]
     pub fn gather_plays_of_many_date<Asp: Music>(
         &self,
         aspects: &[Asp],
@@ -435,12 +458,18 @@ impl SongEntries {
     ///
     /// Use with methods from [`Find`]: [`.artist()`][Find::artist()], [`.album()`][Find::album()],
     /// [`.song_from_album()`][Find::song_from_album()] and [`.song()`][Find::song()]
+    #[must_use]
     pub fn find(&self) -> Find {
         Find(self)
     }
 
     /// Returns a [`HashMap`] with the [`Songs`][Song] as keys and
     /// their [`Durations`][Duration] as values
+    ///
+    /// # Panics
+    ///
+    /// Panics if the dataset is empty? (but that should never happen)
+    #[must_use]
     pub fn song_durations(&self) -> HashMap<Song, Duration> {
         let mut big_boy = HashMap::<Song, HashMap<Duration, usize>>::with_capacity(10_000);
 
@@ -482,7 +511,11 @@ impl SongEntries {
     /// below a certain threshold of their duration
     ///
     /// `threshold` is a value between 0 and 100 (%)
-    #[allow(dead_code)]
+    ///
+    /// # Panics
+    ///
+    /// Will panic if it cannot find a song in the map of song durations
+    /// (but that should never happen)
     pub fn filter(&mut self, threshold: i32) {
         assert!(
             (0..=100).contains(&threshold),
@@ -539,6 +572,7 @@ impl<'a> Find<'a> {
     /// (i.e. the capitalization of the first entry it finds)
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
+    #[must_use]
     pub fn artist(&self, artist_name: &str) -> Option<Artist> {
         find::artist(self.0, artist_name)
     }
@@ -549,6 +583,7 @@ impl<'a> Find<'a> {
     /// (i.e. the capitalization of the first entry it finds)
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
+    #[must_use]
     pub fn album(&self, album_name: &str, artist_name: &str) -> Option<Album> {
         find::album(self.0, album_name, artist_name)
     }
@@ -560,6 +595,7 @@ impl<'a> Find<'a> {
     /// (i.e. the capitalization of the first entry it finds)
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
+    #[must_use]
     pub fn song_from_album(
         &self,
         song_name: &str,
@@ -575,6 +611,7 @@ impl<'a> Find<'a> {
     /// of [`Song`] for every album it's been found in with proper capitalization
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
+    #[must_use]
     pub fn song(&self, song_name: &str, artist_name: &str) -> Option<Vec<Song>> {
         find::song(self.0, song_name, artist_name)
     }
@@ -584,6 +621,7 @@ impl<'a> Find<'a> {
     /// # Panics
     ///
     /// Panics if `album` is not in the dataset
+    #[must_use]
     pub fn songs_from_album(&self, album: &Album) -> Vec<Song> {
         find::songs_from_album(self.0, album)
     }

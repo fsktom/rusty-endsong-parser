@@ -1,8 +1,18 @@
-//! [![github]](https://github.com/fsktom/rusty-endsong-parser/)
-//!
-//! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
-//!
-//! Library for analyzing Spotify endsong.json files
+//! Library for getting data from Spotify endsong.json files
+
+#![deny(unsafe_code)]
+// To require working docs
+#![warn(
+    missing_docs,
+    clippy::missing_docs_in_private_items,
+    rustdoc::broken_intra_doc_links,
+    rustdoc::private_intra_doc_links,
+    rustdoc::missing_crate_level_docs,
+    rustdoc::invalid_codeblock_attributes,
+    rustdoc::invalid_rust_codeblocks,
+    rustdoc::bare_urls
+)]
+#![warn(clippy::pedantic)]
 
 pub mod find;
 pub mod gather;

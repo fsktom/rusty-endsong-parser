@@ -100,6 +100,10 @@ pub struct Entry {
 /// Main parsing function that parses many `endsong.json` files
 ///
 /// Returns a vector of [`SongEntry`]s sorted by timestamp
+///
+/// # Errors
+///
+/// Will return an error if any of the files can't be opened or read
 pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     // at least for me: about 15.8k-15.95k entries per file
     // to prevent reallocations?
