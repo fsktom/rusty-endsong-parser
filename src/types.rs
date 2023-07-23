@@ -6,6 +6,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
+use std::path::Path;
 
 use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
@@ -317,8 +318,8 @@ impl SongEntries {
     ///
     /// Returns an [`Error`] if it encounters problems while parsing
     ///
-    /// * `paths` - a slice of [`Path`][`std::path::Path`]s to each `endsong.json` file
-    pub fn new<P: AsRef<std::path::Path>>(paths: &[P]) -> Result<SongEntries, Box<dyn Error>> {
+    /// * `paths` - a slice of [`Path`][`Path`]s to each `endsong.json` file
+    pub fn new<P: AsRef<Path>>(paths: &[P]) -> Result<SongEntries, Box<dyn Error>> {
         Ok(SongEntries(parse::parse(paths)?))
     }
 
@@ -572,6 +573,18 @@ impl std::ops::Deref for SongEntries {
 impl std::ops::DerefMut for SongEntries {
     fn deref_mut(&mut self) -> &mut Vec<SongEntry> {
         &mut self.0
+    }
+}
+// TryFrom because of ergonomic API design -> into() etc.
+// see https://youtu.be/0zOg8_B71gE?t=922
+impl<P: AsRef<Path>> TryFrom<&[P]> for SongEntries {
+    type Error = Box<dyn Error>;
+
+    /// Creates an instance of [`SongEntries`] from a slice of [`Path`][`Path`]s
+    ///
+    /// Those can be [`Strings`][String], [`strs`][str], [`PathBufs`][std::path::PathBuf] or whatever implements [`AsRef<Path>`]
+    fn try_from(path: &[P]) -> Result<Self, Self::Error> {
+        SongEntries::new(path)
     }
 }
 
