@@ -1,6 +1,4 @@
 //! Module containg many types used throughout the program
-// https://doc.rust-lang.org/stable/book/ch06-01-defining-an-enum.html
-pub use plotly::Trace;
 
 use std::cmp::Ordering;
 use std::collections::HashMap;
