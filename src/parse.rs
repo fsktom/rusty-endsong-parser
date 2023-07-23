@@ -98,6 +98,8 @@ pub struct Entry {
 }
 
 /// Main parsing function that parses many `endsong.json` files
+///
+/// Returns a vector of [`SongEntry`]s sorted by timestamp
 pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     // at least for me: about 15.8k-15.95k entries per file
     // to prevent reallocations?
@@ -113,7 +115,7 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Erro
     Ok(song_entries)
 }
 
-/// Responsible for parsing the json into a vector of the general [`Entry`]
+/// Responsible for parsing the a single `endsong.json` file into a vector of [`SongEntry`]
 fn parse_single<P: AsRef<Path>>(path: P) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     // https://github.com/serde-rs/json/issues/160#issuecomment-253446892
     let mut file_contents = String::new();
