@@ -14,9 +14,10 @@ use rustyline::{
 };
 
 use crate::print;
-use crate::types::{plot_compare, plot_single, Aspect, AspectFull, SongEntries, Trace};
+use crate::types::{plot_compare, plot_single, SongEntries, Trace};
 use crate::types::{Album, Artist, Song};
 use crate::LOCATION_TZ;
+use print::{Aspect, AspectFull};
 
 /// Prompt used for top-level shell commands
 ///

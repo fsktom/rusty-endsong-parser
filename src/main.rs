@@ -27,10 +27,10 @@ use endsong::parse;
 use endsong::plot;
 use endsong::types;
 
-use types::Aspect;
-use types::AspectFull;
+use print::Aspect;
+use print::AspectFull;
+use print::Mode;
 use types::DurationUtils;
-use types::Mode;
 use types::SongEntries;
 
 use parse::LOCATION_TZ;

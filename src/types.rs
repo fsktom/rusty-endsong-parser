@@ -17,58 +17,6 @@ use crate::gather;
 use crate::parse;
 use crate::plot;
 
-/// Algebraic data type similar to [`Aspect`]
-/// but used by functions such as [`crate::print::aspect()`]
-/// to get more specfic data
-///
-/// Each variant contains a reference to an instance of the aspect
-pub enum AspectFull<'a> {
-    /// with ref to [`Artist`]
-    Artist(&'a Artist),
-    /// with ref to [`Album`]
-    Album(&'a Album),
-    /// with ref to [`Song`]
-    Song(&'a Song),
-}
-
-/// An enum that is among other things used by functions such as
-/// [`crate::print::top()`] and its derivatives to know whether
-/// to print top songs ([`Aspect::Songs`]), albums ([`Aspect::Albums`])
-/// or artists ([`Aspect::Artists`])
-#[derive(Copy, Clone, Debug, Default)]
-pub enum Aspect {
-    /// to print top artists
-    Artists,
-    /// to print top albums
-    Albums,
-    // bc Rust still doesn't have default argument values
-    // https://www.reddit.com/r/rust/comments/fi6nov/why_does_rust_not_support_default_arguments/fkfezxv/
-    /// to print top songs
-    #[default]
-    Songs,
-}
-impl Display for Aspect {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Aspect::Artists => write!(f, "artists"),
-            Aspect::Albums => write!(f, "albums"),
-            Aspect::Songs => write!(f, "songs"),
-        }
-    }
-}
-
-/// For choosing mode of a function, similar to [`Aspect`] but
-/// without [`Aspect::Artists`]
-///
-/// Used in [`crate::print::top_from_artist()`]
-#[derive(Copy, Clone, Debug)]
-pub enum Mode {
-    /// to print albums from artist
-    Albums,
-    /// to print songs from artists
-    Songs,
-}
-
 /// Used for functions that accept either
 /// a [`Song`], [`Album`] or [`Artist`] struct
 pub trait Music: Display + Clone + Eq + Ord {
