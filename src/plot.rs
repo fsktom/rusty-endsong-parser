@@ -1,18 +1,13 @@
 //! Module responsible for plotting/charts
-use crate::types::{Music, SongEntry};
-use crate::ui::user_input_date_parser;
 
-use chrono::DateTime;
+pub mod absolute;
+pub mod relative;
+
+use chrono::{DateTime, TimeZone};
 use chrono_tz::Tz;
 use plotly::{Layout, Plot, Trace};
 
-/// Responsible for plotting absolute plots
-pub mod absolute;
-
-/// Responsible for plotting relative plots
-///
-/// Either to all plays, the artist or the album
-pub mod relative;
+use crate::types::{Music, SongEntry};
 
 /// Creates a plot in the `plots/` folder
 ///
@@ -63,7 +58,11 @@ pub fn find_dates<Asp: Music>(
     }
 
     if add_now {
-        dates.push(user_input_date_parser("now").unwrap());
+        dates.push(
+            crate::LOCATION_TZ
+                .timestamp_millis_opt(chrono::offset::Local::now().timestamp_millis())
+                .unwrap(),
+        );
     }
 
     // should be sorted because &[SongEntries] should have been sorted at the beginning

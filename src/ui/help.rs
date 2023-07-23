@@ -1,6 +1,8 @@
-use super::Color;
+//! Module containing stuff for the `help` command
 
 use unicode_width::UnicodeWidthStr;
+
+use super::Color;
 
 /// Used by [`match_input()`][`super::match_input()`] for `help` command
 ///

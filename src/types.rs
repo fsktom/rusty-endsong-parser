@@ -1,71 +1,21 @@
 //! Module containg many types used throughout the program
 // https://doc.rust-lang.org/stable/book/ch06-01-defining-an-enum.html
+pub use plotly::Trace;
+
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
+use std::path::Path;
 
 use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
 use itertools::Itertools;
-pub use plotly::Trace;
 
-use crate::display;
-use crate::display::date::find_timestamp_indexes;
+use crate::find;
+use crate::gather;
 use crate::parse;
 use crate::plot;
-
-/// Algebraic data type similar to [`Aspect`]
-/// but used by functions such as [`display::print_aspect()`]
-/// to get more specfic data
-///
-/// Each variant contains a reference to an instance of the aspect
-pub enum AspectFull<'a> {
-    /// with ref to [`Artist`]
-    Artist(&'a Artist),
-    /// with ref to [`Album`]
-    Album(&'a Album),
-    /// with ref to [`Song`]
-    Song(&'a Song),
-}
-
-/// An enum that is among other things used by functions such as
-/// [`display::print_top()`] and its derivatives to know whether
-/// to print top songs ([`Aspect::Songs`]), albums ([`Aspect::Albums`])
-/// or artists ([`Aspect::Artists`])
-#[derive(Copy, Clone, Debug, Default)]
-pub enum Aspect {
-    /// to print top artists
-    Artists,
-    /// to print top albums
-    Albums,
-    // bc Rust still doesn't have default argument values
-    // https://www.reddit.com/r/rust/comments/fi6nov/why_does_rust_not_support_default_arguments/fkfezxv/
-    /// to print top songs
-    #[default]
-    Songs,
-}
-impl Display for Aspect {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Aspect::Artists => write!(f, "artists"),
-            Aspect::Albums => write!(f, "albums"),
-            Aspect::Songs => write!(f, "songs"),
-        }
-    }
-}
-
-/// For choosing mode of a function, similar to [`Aspect`] but
-/// without [`Aspect::Artists`]
-///
-/// Used in [`display::print_top_from_artist()`]
-#[derive(Copy, Clone, Debug)]
-pub enum Mode {
-    /// to print albums from artist
-    Albums,
-    /// to print songs from artists
-    Songs,
-}
 
 /// Used for functions that accept either
 /// a [`Song`], [`Album`] or [`Artist`] struct
@@ -316,8 +266,8 @@ impl SongEntries {
     ///
     /// Returns an [`Error`] if it encounters problems while parsing
     ///
-    /// * `paths` - a slice of [`Path`][`std::path::Path`]s to each `endsong.json` file
-    pub fn new<P: AsRef<std::path::Path>>(paths: &[P]) -> Result<SongEntries, Box<dyn Error>> {
+    /// * `paths` - a slice of [`Path`][`Path`]s to each `endsong.json` file
+    pub fn new<P: AsRef<Path>>(paths: &[P]) -> Result<SongEntries, Box<dyn Error>> {
         Ok(SongEntries(parse::parse(paths)?))
     }
 
@@ -333,73 +283,9 @@ impl SongEntries {
         self.iter().next_back().unwrap().timestamp
     }
 
-    /// Prints the top `num` of an `asp`
-    ///
-    /// * `asp` - [`Aspect::Songs`] for top songs, [`Aspect::Albums`]
-    ///  for top albums and [`Aspect::Artists`] for top artists
-    /// * `num` - number of displayed top aspects.
-    /// Will automatically change to total number of that aspect if `num` is higher than that
-    /// * `sum_songs_from_different_albums` - only matters if `asp` is [`Aspect::Songs`].
-    /// If set to true, it will sum up the plays of
-    /// one song across multiple albums it may be in.
-    /// The album displayed in the parantheses will be the one it has the
-    /// highest amount of listens from.
-    pub fn print_top(&self, asp: Aspect, num: usize, sum_songs_from_different_albums: bool) {
-        display::print_top(self, asp, num, sum_songs_from_different_albums);
-    }
-
-    /// Prints top songs or albums from an artist
-    ///
-    /// * `asp` - [`Aspect::Songs`] for top songs and [`Aspect::Albums`] for top albums
-    /// * `artist` - the [`Artist`] you want the top songs/albums from
-    /// * `num` - number of displayed top aspects.
-    /// Will automatically change to total number of that aspect if `num` is higher than that
-    ///
-    /// Wrapper for [`display::print_top_from_artist()`]
-    pub fn print_top_from_artist(&self, mode: Mode, artist: &Artist, num: usize) {
-        display::print_top_from_artist(self, mode, artist, num);
-    }
-
-    /// Prints top songs from an album
-    ///
-    /// * `album` - the [`Album`] you want the top songs from
-    /// * `num` - number of displayed top songs.
-    /// Will automatically change to total number of songs from that album if `num` is higher than that
-    ///
-    /// Wrapper for [`display::print_top_from_album()`]
-    pub fn print_top_from_album(&self, album: &Album, num: usize) {
-        display::print_top_from_album(self, album, num);
-    }
-
-    /// Prints a specfic aspect
-    ///
-    /// * `asp` - the aspect you want informationa about containing the
-    /// relevant struct
-    ///
-    /// Wrapper for [`display::print_aspect()`]
-    pub fn print_aspect(&self, asp: &AspectFull) {
-        display::print_aspect(self, asp);
-    }
-
-    /// Prints a specfic aspect
-    ///
-    /// Basically [`print_aspect()`][SongEntries::print_aspect()] but with date limitations
-    ///
-    /// * `asp` - the aspect you want informationa about containing the
-    /// relevant struct
-    ///
-    /// Wrapper for [`display::print_aspect_date()`]
-    pub fn print_aspect_date(&self, asp: &AspectFull, start: &DateTime<Tz>, end: &DateTime<Tz>) {
-        display::print_aspect_date(self, asp, start, end);
-    }
-
     /// Returns the total time listened
-    pub fn total_listening_time(&self) -> Duration {
-        // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
-        // self.iter().map(|entry| entry.time_played).sum::<Duration>()
-        self.iter()
-            .map(|entry| entry.time_played)
-            .fold(Duration::milliseconds(0), |sum, dur| sum + dur)
+    pub fn listening_time(&self) -> Duration {
+        gather::listening_time(self)
     }
 
     /// Returns the time listened in a given date period
@@ -407,17 +293,8 @@ impl SongEntries {
     /// # Panics
     ///
     /// Panics if `start` is after or equal to `end`
-    pub fn listening_time(&self, start: &DateTime<Tz>, end: &DateTime<Tz>) -> Duration {
-        assert!(start <= end, "Start date is after end date!");
-
-        let (begin, stop) = find_timestamp_indexes(self, start, end);
-
-        // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
-        // self[begin..=stop].iter().map(|entry| entry.time_played).sum::<Duration>();
-        self[begin..=stop]
-            .iter()
-            .map(|entry| entry.time_played)
-            .fold(Duration::milliseconds(0), |sum, dur| sum + dur)
+    pub fn listening_time_date(&self, start: &DateTime<Tz>, end: &DateTime<Tz>) -> Duration {
+        gather::listening_time_date(self, start, end)
     }
 
     /// Finds the date period with the most listening time for the given `time_span`
@@ -431,7 +308,7 @@ impl SongEntries {
         let actual_time_span = match time_span {
             // maximum duration is whole dataset?
             x if x >= last - first => {
-                return (self.total_listening_time(), first, last);
+                return (self.listening_time(), first, last);
             }
             // minimum duration is 1 day
             x if x < Duration::days(1) => Duration::days(1),
@@ -447,7 +324,7 @@ impl SongEntries {
         let mut end = end_max;
 
         while end <= last {
-            let current = self.listening_time(&start, &end);
+            let current = self.listening_time_date(&start, &end);
             if current > highest {
                 highest = current;
                 start_max = start;
@@ -536,32 +413,23 @@ impl SongEntries {
             .0
     }
 
-    /// Finds out the total number of plays for the given songs
-    pub fn songs_plays(&self, songs: &[Song]) -> usize {
-        self.iter()
-            .filter(|entry| songs.iter().any(|song| song.is_entry(entry)))
-            .count()
+    /// Counts up the plays of all [`Music`] in a collection
+    pub fn gather_plays_of_many<Asp: Music>(&self, aspects: &[Asp]) -> usize {
+        gather::plays_of_many(self, aspects)
     }
 
-    /// Finds out the total number of plays for the given songs in a date period
+    /// Counts up the plays of all [`Music`] in a collection within the date range
     ///
     /// # Panics
     ///
     /// Panics if `start` is after or equal to `end`
-    pub fn songs_plays_date(
+    pub fn gather_plays_of_many_date<Asp: Music>(
         &self,
-        songs: &[Song],
+        aspects: &[Asp],
         start: &DateTime<Tz>,
         end: &DateTime<Tz>,
     ) -> usize {
-        assert!(start <= end, "Start date is after end date!");
-
-        let (begin, stop) = find_timestamp_indexes(self, start, end);
-
-        self[begin..=stop]
-            .iter()
-            .filter(|entry| songs.iter().any(|song| song.is_entry(entry)))
-            .count()
+        gather::plays_of_many_date(self, aspects, start, end)
     }
 
     /// Adds search capability
@@ -632,6 +500,7 @@ impl SongEntries {
         // discards every entry whose time_played is below the
         // threshhold percentage of its duration
         self.retain(|entry| {
+            // retain is supposed to preserve the order so I don't have to sort again?
             let (_, dur) = durations
                 .iter()
                 .find(|(son, _)| son.is_entry(entry))
@@ -654,14 +523,20 @@ impl std::ops::DerefMut for SongEntries {
         &mut self.0
     }
 }
+// TryFrom because of ergonomic API design -> into() etc.
+// see https://youtu.be/0zOg8_B71gE?t=922
+impl<P: AsRef<Path>> TryFrom<&[P]> for SongEntries {
+    type Error = Box<dyn Error>;
 
-/// Used by [`SongEntries`] as a wrapper for
-/// [`display::find_artist()`], [`display::find_album()`],
-/// [`display::find_song_from_album()`] and [`display::find_song()`]
-///
-/// # Errors
-///
-/// Methods can return an [`Err`] with [`NotFoundError`]
+    /// Creates an instance of [`SongEntries`] from a slice of [`Path`][`Path`]s
+    ///
+    /// Those can be [`Strings`][String], [`strs`][str], [`PathBufs`][std::path::PathBuf] or whatever implements [`AsRef<Path>`]
+    fn try_from(path: &[P]) -> Result<Self, Self::Error> {
+        SongEntries::new(path)
+    }
+}
+
+/// Used by [`SongEntries`] as a wrapper for [`find`] methods
 pub struct Find<'a>(&'a SongEntries);
 impl<'a> Find<'a> {
     /// Searches the entries for if the given artist exists in the dataset
@@ -671,7 +546,7 @@ impl<'a> Find<'a> {
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     pub fn artist(&self, artist_name: &str) -> Option<Artist> {
-        display::find_artist(self.0, artist_name)
+        find::artist(self.0, artist_name)
     }
 
     /// Searches the entries for if the given album exists in the dataset
@@ -681,7 +556,7 @@ impl<'a> Find<'a> {
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     pub fn album(&self, album_name: &str, artist_name: &str) -> Option<Album> {
-        display::find_album(self.0, album_name, artist_name)
+        find::album(self.0, album_name, artist_name)
     }
 
     /// Searches the entries for if the given song (in that specific album)
@@ -697,7 +572,7 @@ impl<'a> Find<'a> {
         album_name: &str,
         artist_name: &str,
     ) -> Option<Song> {
-        display::find_song_from_album(self.0, song_name, album_name, artist_name)
+        find::song_from_album(self.0, song_name, album_name, artist_name)
     }
 
     /// Searches the dataset for multiple versions of a song
@@ -707,7 +582,7 @@ impl<'a> Find<'a> {
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     pub fn song(&self, song_name: &str, artist_name: &str) -> Option<Vec<Song>> {
-        display::find_song(self.0, song_name, artist_name)
+        find::song(self.0, song_name, artist_name)
     }
 
     /// Returns a [`Vec<Song>`] with all the songs in the given album
@@ -716,7 +591,7 @@ impl<'a> Find<'a> {
     ///
     /// Panics if `album` is not in the dataset
     pub fn songs_from_album(&self, album: &Album) -> Vec<Song> {
-        display::find_songs_from_album(self.0, album)
+        find::songs_from_album(self.0, album)
     }
 }
 
@@ -755,11 +630,6 @@ impl<'a> Traces<'a> {
 
 pub use plot::compare as plot_compare;
 pub use plot::single as plot_single;
-
-/// A more specific version of [`parse::Entry`]
-/// for podcast entries.
-#[derive(Clone, Debug)]
-pub struct PodcastEntry {}
 
 /// [`SongEntry`] but for podcasts
 pub struct PodEntry {

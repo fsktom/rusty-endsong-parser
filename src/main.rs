@@ -17,18 +17,20 @@
 )]
 #![warn(clippy::pedantic)]
 
-mod display;
-mod parse;
-mod plot;
-mod types;
+mod print;
 mod ui;
 
 use chrono::{Duration, TimeZone};
 
-use types::Aspect;
-use types::AspectFull;
+use endsong::gather;
+use endsong::parse;
+use endsong::plot;
+use endsong::types;
+
+use print::Aspect;
+use print::AspectFull;
+use print::Mode;
 use types::DurationUtils;
-use types::Mode;
 use types::SongEntries;
 
 use parse::LOCATION_TZ;
@@ -70,23 +72,23 @@ fn main() {
 /// or its wrapper associated methods from [`SongEntries`]
 #[allow(dead_code)]
 fn test(entries: &SongEntries) {
-    entries.print_top(Aspect::default(), 10, false);
-    entries.print_top(Aspect::Albums, 10, false);
-    entries.print_top(Aspect::Artists, 10, false);
+    print::top(entries, Aspect::default(), 10, false);
+    print::top(entries, Aspect::Albums, 10, false);
+    print::top(entries, Aspect::Artists, 10, false);
 
     let powerwolf = types::Artist::new("Powerwolf");
-    entries.print_top_from_artist(Mode::Songs, &powerwolf, 10);
-    entries.print_top_from_artist(Mode::Albums, &powerwolf, 10);
+    print::top_from_artist(entries, Mode::Songs, &powerwolf, 10);
+    print::top_from_artist(entries, Mode::Albums, &powerwolf, 10);
 
     let coat = types::Album::new("Coat of Arms", "Sabaton");
-    entries.print_top_from_album(&coat, 50);
+    print::top_from_album(entries, &coat, 50);
 
     let final_solution = types::Song::new("The Final Solution", "Coat of Arms", "Sabaton");
-    entries.print_aspect(&AspectFull::Artist(&types::Artist::new("Sabaton")));
+    print::aspect(entries, &AspectFull::Artist(&types::Artist::new("Sabaton")));
     println!();
-    entries.print_aspect(&AspectFull::Album(&coat));
+    print::aspect(entries, &AspectFull::Album(&coat));
     println!();
-    entries.print_aspect(&AspectFull::Song(&final_solution));
+    print::aspect(entries, &AspectFull::Song(&final_solution));
 
     dbg!(entries.find().artist("Sabaton").unwrap());
     dbg!(entries.find().album("COAT OF ARMS", "sabaton").unwrap());
@@ -117,26 +119,36 @@ fn test(entries: &SongEntries) {
         .datetime_from_str("2022-07-01T01:01:01Z", "%Y-%m-%dT%H:%M:%SZ")
         .unwrap();
 
-    entries.print_aspect_date(&AspectFull::Artist(&powerwolf), &start_date, &end_date);
-    entries.print_aspect_date(&AspectFull::Album(&coat), &start_date, &end_date);
-    entries.print_aspect_date(&AspectFull::Song(&final_solution), &start_date, &end_date);
+    print::aspect_date(
+        entries,
+        &AspectFull::Artist(&powerwolf),
+        &start_date,
+        &end_date,
+    );
+    print::aspect_date(entries, &AspectFull::Album(&coat), &start_date, &end_date);
+    print::aspect_date(
+        entries,
+        &AspectFull::Song(&final_solution),
+        &start_date,
+        &end_date,
+    );
 
     assert_eq!(
-        &entries.total_listening_time(),
-        &entries.listening_time(&entries.first_date(), &entries.last_date())
+        &entries.listening_time(),
+        &entries.listening_time_date(&entries.first_date(), &entries.last_date())
     );
 
     let (time, start, end) = entries.max_listening_time(chrono::Duration::weeks(26 * 9));
     dbg!(time.num_minutes(), start.date_naive(), end.date_naive());
 
-    dbg!(display::date::sum_plays(entries, &start, &end));
-    display::date::print_time_played(entries, &start, &end);
-    dbg!(entries.listening_time(&start, &end).num_minutes());
+    dbg!(gather::all_plays_date(entries, &start, &end));
+    print::time_played_date(entries, &start, &end);
+    dbg!(entries.listening_time_date(&start, &end).num_minutes());
 
-    entries.print_aspect(&AspectFull::Album(&types::Album::new(
-        "Built To Last",
-        "HammerFall",
-    )));
+    print::aspect(
+        entries,
+        &AspectFull::Album(&types::Album::new("Built To Last", "HammerFall")),
+    );
 }
 
 /// another test function

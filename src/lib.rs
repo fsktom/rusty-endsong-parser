@@ -4,10 +4,10 @@
 //!
 //! Library for analyzing Spotify endsong.json files
 
-pub mod display;
+pub mod find;
+pub mod gather;
 pub mod parse;
 pub mod plot;
 pub mod types;
-pub mod ui;
 
 pub use parse::LOCATION_TZ;

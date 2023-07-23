@@ -1,3 +1,5 @@
+//! Responsible for plotting absolute plots
+
 use plotly::{Scatter, Trace};
 
 use super::find_dates;
