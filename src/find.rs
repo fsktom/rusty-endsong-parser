@@ -2,8 +2,8 @@
 
 use itertools::Itertools;
 
-use crate::types::Music;
-use crate::types::{Album, Artist, Song, SongEntry};
+use crate::aspect::{Album, Artist, Music, Song};
+use crate::entry::SongEntry;
 
 /// Searches the entries for if the given artist exists in the dataset
 ///
@@ -110,7 +110,7 @@ mod tests {
             "{}/stuff/example_endsong/endsong_0.json",
             std::env::current_dir().unwrap().display()
         )];
-        let entries = crate::types::SongEntries::new(&paths).unwrap();
+        let entries = crate::entry::SongEntries::new(&paths).unwrap();
 
         assert_eq!(
             artist(&entries, "Theocracy").unwrap(),

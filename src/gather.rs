@@ -6,7 +6,8 @@ use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
 use itertools::Itertools;
 
-use crate::types::{Album, Artist, HasSongs, Music, Song, SongEntry};
+use crate::aspect::{Album, Artist, HasSongs, Music, Song};
+use crate::entry::SongEntry;
 
 /// Returns a map with all [`Songs`][Song] and their playcount
 ///

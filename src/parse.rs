@@ -11,7 +11,7 @@ use chrono_tz::Tz;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::types::SongEntry;
+use crate::entry::SongEntry;
 
 /// responsible for time zone handling
 ///

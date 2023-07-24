@@ -14,9 +14,10 @@
 )]
 #![warn(clippy::pedantic)]
 
+pub mod aspect;
+pub mod entry;
 pub mod find;
 pub mod gather;
-pub mod types;
 
 pub use parse::LOCATION_TZ;
 
@@ -27,11 +28,11 @@ pub mod prelude {
     //! and its dependencies.
     pub use crate::{find, gather};
 
-    pub use crate::types::{Album, Artist, Song};
-    pub use crate::types::{SongEntries, SongEntry};
+    pub use crate::entry::{SongEntries, SongEntry};
 
+    pub use crate::aspect::{Album, Artist, Song};
     // traits for dealing with Album, Artist and Song
-    pub use crate::types::{HasArtist, HasSongs, Music};
+    pub use crate::aspect::{HasArtist, HasSongs, Music};
 
     pub use crate::LOCATION_TZ;
 
