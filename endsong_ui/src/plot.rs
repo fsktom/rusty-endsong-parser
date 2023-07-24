@@ -3,11 +3,8 @@
 pub mod absolute;
 pub mod relative;
 
-use chrono::{DateTime, TimeZone};
-use chrono_tz::Tz;
+use endsong::prelude::*;
 use plotly::{Layout, Plot, Trace};
-
-use crate::types::{Music, SongEntry};
 
 /// Creates a plot in the `plots/` folder
 ///

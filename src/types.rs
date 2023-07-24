@@ -216,9 +216,10 @@ impl HasArtist for Song {
     }
 }
 
-/// A more specific version of [`parse::Entry`]
+/// A representation of a single song stream in endsong.json
 /// utilized by many functions here.
-/// Only for entries which are songs (there are also podcast entries)
+/// Only for entries which are songs
+/// (there are also podcast entries but those are ignored while parsing)
 ///
 /// Contains the relevant metadata of each entry song entry in endsong.json
 #[derive(Clone, Debug)]
@@ -261,11 +262,12 @@ pub struct SongEntries(Vec<SongEntry>);
 impl SongEntries {
     /// Creates an instance of [`SongEntries`]
     ///
-    /// Returns an [`Error`] if it encounters problems while parsing
+    /// # Arguments
     ///
-    /// * `paths` - a slice of [`Path`][`Path`]s to each `endsong.json` file
+    /// * `paths` - a slice of [`Paths`][`Path`] to each `endsong.json` file.
+    /// Those can be [`Strings`][String], [`strs`][str], [`PathBufs`][std::path::PathBuf] or whatever implements [`AsRef<Path>`]
     ///
-    ///  # Errors
+    /// # Errors
     ///
     /// Will return an error if any of the files can't be opened or read
     pub fn new<P: AsRef<Path>>(paths: &[P]) -> Result<SongEntries, Box<dyn Error>> {
@@ -311,6 +313,12 @@ impl SongEntries {
     }
 
     /// Finds the date period with the most listening time for the given `time_span`
+    ///
+    /// Returns the actual timespan (in case `time_span` was too big or too small)
+    /// with the corresponding start and end dates
+    ///
+    /// Minimum duration is 1 day and maximum duration is the whole dataset, so
+    /// a check is performed and the timespan is adjusted accordingly
     #[must_use]
     pub fn max_listening_time(
         &self,
@@ -326,7 +334,7 @@ impl SongEntries {
             }
             // minimum duration is 1 day
             x if x < Duration::days(1) => Duration::days(1),
-            //
+            // duration is within bounds
             _ => time_span,
         };
 
@@ -469,6 +477,7 @@ impl SongEntries {
     /// Panics if the dataset is empty? (but that should never happen)
     #[must_use]
     pub fn song_durations(&self) -> HashMap<Song, Duration> {
+        // 10k is just a guess for amount of unique songs
         let mut big_boy = HashMap::<Song, HashMap<Duration, usize>>::with_capacity(10_000);
 
         for entry in self.iter() {
@@ -508,12 +517,13 @@ impl SongEntries {
     /// Filters out song entries that have been played
     /// below a certain threshold of their duration
     ///
-    /// `threshold` is a value between 0 and 100 (%)
+    /// # Arguments
+    ///
+    /// `threshold` - a value between 0 and 100 (%)
     ///
     /// # Panics
     ///
-    /// Will panic if it cannot find a song in the map of song durations
-    /// (but that should never happen)
+    /// Will panic if `threshhold` is below 0 or above 100
     pub fn filter(&mut self, threshold: i32) {
         assert!(
             (0..=100).contains(&threshold),
@@ -622,26 +632,6 @@ impl<'a> Find<'a> {
     #[must_use]
     pub fn songs_from_album(&self, album: &Album) -> Vec<Song> {
         find::songs_from_album(self.0, album)
-    }
-}
-
-/// Trait for better display of [`Durations`][Duration]
-pub trait DurationUtils {
-    /// Returns a string with the duration in the format `HH:MM:SS`
-    /// or `MM:SS` (if the duration is less than an hour)
-    fn display(&self) -> String;
-}
-impl DurationUtils for Duration {
-    fn display(&self) -> String {
-        let hours = self.num_hours();
-        let seconds = self.num_seconds() % 60;
-        if hours > 0 {
-            let minutes = self.num_minutes() % hours;
-            format!("{hours:02}:{minutes:02}:{seconds:02}")
-        } else {
-            let minutes = self.num_minutes();
-            format!("{minutes:02}:{seconds:02}")
-        }
     }
 }
 

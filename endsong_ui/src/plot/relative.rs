@@ -2,11 +2,10 @@
 //!
 //! Either to all plays, the artist or the album
 
+use endsong::prelude::*;
 use plotly::{Scatter, Trace};
 
 use super::find_dates;
-use crate::gather;
-use crate::types::{HasArtist, Music, Song, SongEntries};
 
 /// Creates a trace of the amount of plays of an [`Music`] relative to all plays
 pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {

@@ -1,9 +1,9 @@
 //! Responsible for plotting absolute plots
 
+use endsong::prelude::*;
 use plotly::{Scatter, Trace};
 
 use super::find_dates;
-use crate::types::{Music, SongEntries};
 
 /// Creates a trace of the absolute amount of plays
 pub fn aspect<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
