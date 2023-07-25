@@ -30,9 +30,8 @@ pub mod prelude {
 
     pub use crate::entry::{SongEntries, SongEntry};
 
+    pub use crate::aspect::Music;
     pub use crate::aspect::{Album, Artist, Song};
-    // traits for dealing with Album, Artist and Song
-    pub use crate::aspect::{HasArtist, HasSongs, Music};
 
     pub use crate::LOCATION_TZ;
 

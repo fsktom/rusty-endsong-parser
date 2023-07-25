@@ -1,4 +1,35 @@
 //! Module containing representations of songs, albums, artists and their traits
+//!
+//! If you want to make a function that accepts either a [`Song`], [`Album`] or [`Artist`] struct,
+//! use the [`Music`] trait. It's got methods for comparing with a [`SongEntry`].
+//! ```
+//! use endsong::prelude::*;
+//! fn foo<Asp: Music>(asp: &Asp, entry: &SongEntry) -> bool {
+//!     asp.is_entry(entry)
+//! }
+//!
+//! ```
+//!
+//! If you want to make a function that extracts the artist from either of them, use the [`AsRef<Artist>`] trait.
+//! ```
+//! use endsong::prelude::*;
+//! fn foo<Asp: AsRef<Artist>>(has_art: &Asp) {
+//!     let artist: &Artist = has_art.as_ref();
+//!     // do stuff with artist
+//! }
+//! ```
+//!
+//! If you want to make a function that extracts the album from [`Album`] or [`Song`], use the [`AsRef<Album>`] trait.
+//! ```
+//! use endsong::prelude::*;
+//! fn foo<Asp: AsRef<Album>>(has_alb: &Asp) {
+//!     let album: &Album = has_alb.as_ref();
+//!     // do stuff with album
+//! }
+//! ```
+//!
+//! You can also freely create insances of e.g. [`Artist`] and [`Album`] from [`Song`] using its [`From`] impls.
+//! See the specific struct [`From`] and [`AsRef`] impls for more info.
 
 use std::cmp::Ordering;
 use std::fmt::Display;
@@ -21,12 +52,6 @@ pub trait Music: Display + Clone + Eq + Ord {
 /// Trait used to accept only [`Artist`] and [`Album`]
 pub trait HasSongs: Music {}
 
-/// Trait used to accept only [`Album`] and [`Song`]
-pub trait HasArtist: Music {
-    /// Returns a reference to the corresponding [`Artist`]
-    fn artist(&self) -> &Artist;
-}
-
 /// Struct for representing an artist
 #[derive(PartialEq, Eq, Hash, Debug, Clone, PartialOrd, Ord)]
 pub struct Artist {
@@ -47,9 +72,47 @@ impl Display for Artist {
         write!(f, "{}", self.name)
     }
 }
+impl From<&Artist> for Artist {
+    /// Clones the artist
+    fn from(artist: &Artist) -> Self {
+        artist.clone()
+    }
+}
+impl From<Album> for Artist {
+    /// Consumes `alb` and returns its artist
+    fn from(alb: Album) -> Self {
+        alb.artist
+    }
+}
+impl From<&Album> for Artist {
+    /// Clones the artist of `alb`
+    fn from(alb: &Album) -> Self {
+        alb.artist.clone()
+    }
+}
+impl From<Song> for Artist {
+    /// Consumes `son` and returns its artist
+    fn from(son: Song) -> Self {
+        son.album.artist
+    }
+}
+impl From<&Song> for Artist {
+    /// Clones the artist of `son`
+    fn from(son: &Song) -> Self {
+        son.album.artist.clone()
+    }
+}
 impl From<&SongEntry> for Artist {
+    /// Creates an instance of Artist from a ref to [`SongEntry`]
+    ///
+    /// Clones the artist name from `entry`
     fn from(entry: &SongEntry) -> Self {
         Artist::new(&entry.artist)
+    }
+}
+impl AsRef<Artist> for Artist {
+    fn as_ref(&self) -> &Artist {
+        self
     }
 }
 impl Music for Artist {
@@ -105,9 +168,40 @@ impl Ord for Album {
         }
     }
 }
+impl From<&Album> for Album {
+    /// Clones the album
+    fn from(album: &Album) -> Self {
+        album.clone()
+    }
+}
+impl From<Song> for Album {
+    /// Consumes `son` and returns its album
+    fn from(son: Song) -> Self {
+        son.album
+    }
+}
+impl From<&Song> for Album {
+    /// Clones the album of `son`
+    fn from(son: &Song) -> Self {
+        son.album.clone()
+    }
+}
 impl From<&SongEntry> for Album {
+    /// Creates an instance of Album from a ref to [`SongEntry`]
+    ///
+    /// Clones the album and artist name from `entry`
     fn from(entry: &SongEntry) -> Self {
         Album::new(&entry.album, &entry.artist)
+    }
+}
+impl AsRef<Album> for Album {
+    fn as_ref(&self) -> &Album {
+        self
+    }
+}
+impl AsRef<Artist> for Album {
+    fn as_ref(&self) -> &Artist {
+        &self.artist
     }
 }
 impl Music for Album {
@@ -119,11 +213,6 @@ impl Music for Album {
     }
 }
 impl HasSongs for Album {}
-impl HasArtist for Album {
-    fn artist(&self) -> &Artist {
-        &self.artist
-    }
-}
 
 /// Struct for representing a song
 // to allow for custom HashMap key
@@ -184,9 +273,33 @@ impl Ord for Song {
         }
     }
 }
+impl From<&Song> for Song {
+    /// Clones the song
+    fn from(song: &Song) -> Self {
+        song.clone()
+    }
+}
 impl From<&SongEntry> for Song {
+    /// Creates an instance of Song from a ref to [`SongEntry`]
+    ///
+    /// Clones the song, album and artist name from `entry`
     fn from(entry: &SongEntry) -> Self {
         Song::new(&entry.track, &entry.album, &entry.artist)
+    }
+}
+impl AsRef<Song> for Song {
+    fn as_ref(&self) -> &Song {
+        self
+    }
+}
+impl AsRef<Artist> for Song {
+    fn as_ref(&self) -> &Artist {
+        &self.album.artist
+    }
+}
+impl AsRef<Album> for Song {
+    fn as_ref(&self) -> &Album {
+        &self.album
     }
 }
 impl Music for Song {
@@ -199,11 +312,6 @@ impl Music for Song {
         entry.artist.to_lowercase() == self.album.artist.name
             && entry.album.to_lowercase() == self.album.name
             && entry.track.to_lowercase() == self.name
-    }
-}
-impl HasArtist for Song {
-    fn artist(&self) -> &Artist {
-        &self.album.artist
     }
 }
 
