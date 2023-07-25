@@ -1,10 +1,10 @@
 [package]
 name = "endsong"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Filip Tomaśko <shader301270@gmail.com>"]
 edition = "2021"
 rust-version = "1.71"
-description = "Handling of Spotify endsong.json files - printing top 10 songs/albums/artists, plotting etc."
+description = "Library for getting data from Spotify endsong.json files"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -14,9 +14,6 @@ serde = { version = "1.0.*", features = ["derive"] }
 serde_json = "1.0.*"
 chrono = "0.4"
 chrono-tz = "0.8"
-rustyline = { version = "12.*", features = ["derive"] }
-unicode-width = "0.1.10"
-plotly = "0.8"
 itertools = "0.11"
 
 [dev-dependencies]

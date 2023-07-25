@@ -11,13 +11,15 @@ use chrono_tz::Tz;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::types::SongEntry;
+use crate::entry::SongEntry;
 
 /// responsible for time zone handling
 ///
-/// see issue #4 <https://github.com/Filip-Tomasko/rusty-endsong-parser/issues/4>
+/// see issue #4 <https://github.com/fsktom/rusty-endsong-parser/issues/4>
 ///
-/// used for parsing the timestamp in [`parse`][self]
+/// used for parsing the timestamp from `endsong.json` relative to the user's time zone
+///
+/// Currently hard-coded to Europe/Berlin
 pub const LOCATION_TZ: Tz = chrono_tz::Europe::Berlin;
 
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
@@ -30,7 +32,7 @@ pub const LOCATION_TZ: Tz = chrono_tz::Europe::Berlin;
 /// These are later "converted" to [`SongEntry`] if they represent a song stream.
 /// Podcast streams are ignored.
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Entry {
+struct Entry {
     /// timestamp in `"YYY-MM-DD 13:30:30"` format
     ts: String,
     /// Skipped
@@ -100,6 +102,10 @@ pub struct Entry {
 /// Main parsing function that parses many `endsong.json` files
 ///
 /// Returns a vector of [`SongEntry`]s sorted by timestamp
+///
+/// # Errors
+///
+/// Will return an error if any of the files can't be opened or read
 pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     // at least for me: about 15.8k-15.95k entries per file
     // to prevent reallocations?

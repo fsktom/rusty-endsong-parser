@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./endsong_ui/Cargo.toml",
+        "./Cargo.toml"
+    ]
+}

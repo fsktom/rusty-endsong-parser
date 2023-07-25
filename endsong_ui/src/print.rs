@@ -5,13 +5,7 @@
 use std::collections::HashMap;
 use std::fmt::Display;
 
-use chrono::DateTime;
-use chrono_tz::Tz;
-
-use crate::gather;
-use crate::types::Music;
-use crate::types::SongEntry;
-use crate::types::{Album, Artist, Song};
+use endsong::prelude::*;
 
 /// An enum that is among other things used by functions such as
 /// [`top()`] and its derivatives to know whether
@@ -63,6 +57,26 @@ pub enum Mode {
     Albums,
     /// to print songs from artists
     Songs,
+}
+
+/// Trait for better display of [`Durations`][Duration]
+pub trait DurationUtils {
+    /// Returns a string with the duration in the format `HH:MM:SS`
+    /// or `MM:SS` (if the duration is less than an hour)
+    fn display(&self) -> String;
+}
+impl DurationUtils for Duration {
+    fn display(&self) -> String {
+        let hours = self.num_hours();
+        let seconds = self.num_seconds() % 60;
+        if hours > 0 {
+            let minutes = self.num_minutes() % hours;
+            format!("{hours:02}:{minutes:02}:{seconds:02}")
+        } else {
+            let minutes = self.num_minutes();
+            format!("{minutes:02}:{seconds:02}")
+        }
+    }
 }
 
 /// Prints the top `num` of an `asp`

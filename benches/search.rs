@@ -4,8 +4,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 // use endsong::plot;
 #[allow(unused_imports)]
-use endsong::types::{Album, Artist, Song, SongEntries};
-use endsong::LOCATION_TZ;
+use endsong::prelude::*;
 
 /// # Arguments
 /// * `usr_input` - in YYYY-MM-DD format or 'now' or 'start'
@@ -54,14 +53,14 @@ fn lol(c: &mut Criterion) {
 
     c.bench_function("artists_vec", |c| {
         c.iter(|| {
-            entries.artists();
+            black_box(entries.artists());
         })
     });
 
     let powerwolf = black_box(Artist::new("Powerwolf"));
     c.bench_function("albums_vec", |c| {
         c.iter(|| {
-            entries.albums(&powerwolf);
+            black_box(entries.albums(&powerwolf));
         })
     });
 
@@ -87,7 +86,7 @@ fn lol(c: &mut Criterion) {
     let end = user_input_date_parser("2021-01-01").unwrap();
     c.bench_function("listening_time", |c| {
         c.iter(|| {
-            entries.listening_time_date(&start, &end);
+            black_box(entries.listening_time_date(&start, &end));
         })
     });
 }
@@ -166,7 +165,7 @@ fn parse(c: &mut Criterion) {
 
     c.bench_function("parse", |c| {
         c.iter(|| {
-            black_box(endsong::types::SongEntries::new(&paths[..=1]).unwrap());
+            black_box(SongEntries::new(&paths[..=1]).unwrap());
         })
     });
 }

@@ -21,19 +21,12 @@ mod plot;
 mod print;
 mod ui;
 
-use chrono::{Duration, TimeZone};
-
-use endsong::gather;
-use endsong::parse;
-use endsong::types;
+use endsong::prelude::*;
 
 use print::Aspect;
 use print::AspectFull;
+use print::DurationUtils;
 use print::Mode;
-use types::DurationUtils;
-use types::SongEntries;
-
-use parse::LOCATION_TZ;
 
 /// Intializes the data,
 /// tests some functions using [`test()`] and
@@ -76,15 +69,15 @@ fn test(entries: &SongEntries) {
     print::top(entries, Aspect::Albums, 10, false);
     print::top(entries, Aspect::Artists, 10, false);
 
-    let powerwolf = types::Artist::new("Powerwolf");
+    let powerwolf = Artist::new("Powerwolf");
     print::top_from_artist(entries, Mode::Songs, &powerwolf, 10);
     print::top_from_artist(entries, Mode::Albums, &powerwolf, 10);
 
-    let coat = types::Album::new("Coat of Arms", "Sabaton");
+    let coat = Album::new("Coat of Arms", "Sabaton");
     print::top_from_album(entries, &coat, 50);
 
-    let final_solution = types::Song::new("The Final Solution", "Coat of Arms", "Sabaton");
-    print::aspect(entries, &AspectFull::Artist(&types::Artist::new("Sabaton")));
+    let final_solution = Song::new("The Final Solution", "Coat of Arms", "Sabaton");
+    print::aspect(entries, &AspectFull::Artist(&Artist::new("Sabaton")));
     println!();
     print::aspect(entries, &AspectFull::Album(&coat));
     println!();
@@ -147,14 +140,14 @@ fn test(entries: &SongEntries) {
 
     print::aspect(
         entries,
-        &AspectFull::Album(&types::Album::new("Built To Last", "HammerFall")),
+        &AspectFull::Album(&Album::new("Built To Last", "HammerFall")),
     );
 }
 
 /// another test function
 #[allow(dead_code)]
 fn test_two(entries: &mut SongEntries) {
-    let s = types::Song::new("STYX HELIX", "eYe's", "MYTH & ROID");
+    let s = Song::new("STYX HELIX", "eYe's", "MYTH & ROID");
     assert!(entries
         .find()
         .song_from_album("STYX HELIX", "eYe's", "MYTH & ROID")
@@ -163,7 +156,7 @@ fn test_two(entries: &mut SongEntries) {
     dbg!(a.num_minutes(), a.num_seconds() - a.num_minutes() * 60);
     dbg!(a.display());
 
-    let ct = types::Album::new("Waking The Fallen", "Avenged Sevenfold");
+    let ct = Album::new("Waking The Fallen", "Avenged Sevenfold");
     let mut alb_dur = Duration::seconds(0);
     let ct_songs = entries.find().songs_from_album(&ct);
     for song in &ct_songs {
@@ -182,14 +175,14 @@ fn test_two(entries: &mut SongEntries) {
 fn test_plot(entries: &SongEntries) {
     // plot::absolute::create(entries, &types::Artist::from_str("Sabaton"));
 
-    let stand = types::Album::new("The Last Stand", "Sabaton");
+    let stand = Album::new("The Last Stand", "Sabaton");
     // plot::relative::to_all(entries, &coat);
     // plot::relative::to_artist(entries, &coat);
 
     // plot::single(plot::absolute::aspect(entries, &stand));
     plot::single(plot::absolute::aspect(entries, &stand));
 
-    let eminem = types::Artist::new("Eminem");
+    let eminem = Artist::new("Eminem");
     plot::compare(
         plot::relative::to_artist(entries, &stand),
         plot::relative::to_all(entries, &eminem),
