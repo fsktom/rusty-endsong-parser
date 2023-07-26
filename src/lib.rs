@@ -23,9 +23,9 @@ pub use parse::LOCATION_TZ;
 
 mod parse;
 
+/// Re-exports the most commonly used items from this crate
+/// and its dependencies.
 pub mod prelude {
-    //! Re-exports the most commonly used items from this crate
-    //! and its dependencies.
     pub use crate::{find, gather};
 
     pub use crate::entry::{SongEntries, SongEntry};

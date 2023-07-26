@@ -1,9 +1,42 @@
 //! Module responsible for gathering artists, albums and songs with their playcounts
+//!
+//! These functions take in a slice of [`SongEntry`]s. If you want get data
+//! between certain dates use [`SongEntries::between`][crate::entry::SongEntries::between]
+//! to get a slice of entries between two dates and then pass that slice to these functions.
+//!
+//! Using [`&SongEntries`][crate::entry::SongEntries] is also possible for data for the whole dataset
+//! since it implements [`Deref`][std::ops::Deref] to the [`Vec<SongEntry>`] it contains.
+//!
+//! # Examples
+//! ```rust
+//! use endsong::prelude::*;
+//!
+//! // create SongEntries from a single file
+//! let paths = vec![format!(
+//!     "{}/stuff/example_endsong/endsong_0.json",
+//!     std::env::current_dir().unwrap().display()
+//! )];
+//! let entries = SongEntries::new(&paths).unwrap();
+//!
+//! // example artist
+//! let artist = Artist::new("Sabaton");
+//!
+//! // get all albums from the artist
+//! let _ = gather::albums_from_artist(&entries, &artist);
+//!
+//! // get albums from the artist in a given time period
+//! let start_date = LOCATION_TZ
+//!     .datetime_from_str("2020-12-14T00:00:00Z", "%FT%TZ")
+//!     .unwrap();
+//! let end_date = LOCATION_TZ
+//!     .datetime_from_str("2021-03-01T00:00:00Z", "%FT%TZ")
+//!     .unwrap();
+//! let _ = gather::albums_from_artist(entries.between(&start_date, &end_date), &artist);
+//! ```
 
 use std::collections::HashMap;
 
-use chrono::{DateTime, Duration};
-use chrono_tz::Tz;
+use chrono::Duration;
 use itertools::Itertools;
 
 use crate::aspect::{Album, Artist, HasSongs, Music, Song};
@@ -82,31 +115,6 @@ pub fn songs_from<Asp: HasSongs>(entries: &[SongEntry], aspect: &Asp) -> HashMap
         .counts()
 }
 
-/// Returns a map with all [`Songs`][Song] corresponding to `asp` with their playcount in a date range
-///
-/// Basically [`songs_from()`] but with date functionality
-///
-/// # Panics
-///
-/// Panics if `start` is after or equal to `end`
-#[must_use]
-pub fn songs_from_date<Asp: HasSongs>(
-    entries: &[SongEntry],
-    aspect: &Asp,
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) -> HashMap<Song, usize> {
-    assert!(start <= end, "Start date is after end date!");
-
-    let (begin, stop) = find_timestamp_indexes(entries, start, end);
-
-    entries[begin..=stop]
-        .iter()
-        .filter(|entry| aspect.is_entry(entry))
-        .map(Song::from)
-        .counts()
-}
-
 /// Returns a map with all [`Albums`][Album] and their playcount
 #[must_use]
 pub fn albums(entries: &[SongEntry]) -> HashMap<Album, usize> {
@@ -114,36 +122,17 @@ pub fn albums(entries: &[SongEntry]) -> HashMap<Album, usize> {
 }
 
 /// Returns a map with all [`Albums`][Album] corresponding to `art` with their playcount
+///
+/// `art` - the artist to find albums of; accepts either [`&Artist`][Artist],
+/// [`&Album`][Album] or [`&Song`][Song] (takes the artist field from the latter two)
 #[must_use]
-pub fn albums_from_artist(entries: &[SongEntry], art: &Artist) -> HashMap<Album, usize> {
+pub fn albums_from_artist<HasArtist: AsRef<Artist>>(
+    entries: &[SongEntry],
+    art: &HasArtist,
+) -> HashMap<Album, usize> {
     entries
         .iter()
-        .filter(|entry| art.is_entry(entry))
-        .map(Album::from)
-        .counts()
-}
-
-/// Returns a map with all [`Albums`][Album] corresponding to `art` with their playcount in a date range
-///
-/// Basically [`albums_from_artist()`] but with date functionality
-///
-/// # Panics
-///
-/// Panics if `start` is after or equal to `end`
-#[must_use]
-pub fn albums_from_artist_date(
-    entries: &[SongEntry],
-    art: &Artist,
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) -> HashMap<Album, usize> {
-    assert!(start <= end, "Start date is after end date!");
-
-    let (begin, stop) = find_timestamp_indexes(entries, start, end);
-
-    entries[begin..=stop]
-        .iter()
-        .filter(|entry| art.is_entry(entry))
+        .filter(|entry| art.as_ref().is_entry(entry))
         .map(Album::from)
         .counts()
 }
@@ -172,66 +161,12 @@ pub fn plays_of_many<Asp: Music>(entries: &[SongEntry], aspects: &[Asp]) -> usiz
         .count()
 }
 
-/// Counts up the plays of a single [`Music`] within the date range
+/// Sums all plays
 ///
-/// Basically [`plays()`] but with date functionality
-///
-/// # Panics
-///
-/// Panics if `start` is after or equal to `end`
+/// Just returns the length of the entries slice
 #[must_use]
-pub fn plays_date<Asp: Music>(
-    entries: &[SongEntry],
-    aspect: &Asp,
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) -> usize {
-    assert!(start <= end, "Start date is after end date!");
-
-    let (begin, stop) = find_timestamp_indexes(entries, start, end);
-
-    entries[begin..=stop]
-        .iter()
-        .filter(|entry| aspect.is_entry(entry))
-        .count()
-}
-
-/// Counts up the plays of all [`Music`] in a collection within the date range
-///
-/// Basically [`plays_of_many()`] but with date functionality
-///
-/// # Panics
-///
-/// Panics if `start` is after or equal to `end`
-#[must_use]
-pub fn plays_of_many_date<Asp: Music>(
-    entries: &[SongEntry],
-    aspects: &[Asp],
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) -> usize {
-    assert!(start <= end, "Start date is after end date!");
-
-    let (begin, stop) = find_timestamp_indexes(entries, start, end);
-
-    entries[begin..=stop]
-        .iter()
-        .filter(|entry| aspects.iter().any(|aspect| aspect.is_entry(entry)))
-        .count()
-}
-
-/// Sums all plays in the given date frame
-///
-/// # Panics
-///
-/// Panics if `start` is after or equal to `end`
-#[must_use]
-pub fn all_plays_date(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>) -> usize {
-    assert!(start <= end, "Start date is after end date!");
-
-    let (begin, stop) = find_timestamp_indexes(entries, start, end);
-
-    entries[begin..=stop].len()
+pub fn all_plays(entries: &[SongEntry]) -> usize {
+    entries.len()
 }
 
 /// Returns the total time listened
@@ -242,58 +177,5 @@ pub fn listening_time(entries: &[SongEntry]) -> Duration {
     entries
         .iter()
         .map(|entry| entry.time_played)
-        .fold(Duration::milliseconds(0), |sum, dur| sum + dur)
-}
-
-/// Returns the time listened in a given date period
-///
-/// # Panics
-///
-/// Panics if `start` is after or equal to `end`
-#[must_use]
-pub fn listening_time_date(
-    entries: &[SongEntry],
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) -> Duration {
-    assert!(start <= end, "Start date is after end date!");
-
-    let (begin, stop) = find_timestamp_indexes(entries, start, end);
-
-    // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
-    // entries[begin..=stop].iter().map(|entry| entry.time_played).sum::<Duration>();
-    entries[begin..=stop]
-        .iter()
-        .map(|entry| entry.time_played)
-        .fold(Duration::milliseconds(0), |sum, dur| sum + dur)
-}
-
-/// Finds the indexes of `start` and `end` in `entries`
-///
-/// Uses binary search to find the indexes of the timestamps closest to `start` and `end`
-/// if the exact ones are not in the dataset
-fn find_timestamp_indexes(
-    entries: &[SongEntry],
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) -> (usize, usize) {
-    let begin = match entries.binary_search_by(|entry| entry.timestamp.cmp(start)) {
-        // timestamp from entry
-        Ok(i) => i,
-        // user inputted date - i because you want it to begin at the closest entry
-        Err(i) if i != entries.len() => i,
-        // user inputted date that's after the last entry
-        Err(_) => entries.len() - 1,
-    };
-
-    let stop = match entries.binary_search_by(|entry| entry.timestamp.cmp(end)) {
-        // timestamp from entry
-        Ok(i) => i,
-        // user inputted date - i-1 becuase i would include one entry too much
-        Err(i) if i != 0 => i - 1,
-        // user inputted date that's before the first entry
-        Err(_) => 0,
-    };
-
-    (begin, stop)
+        .fold(Duration::zero(), |sum, dur| sum + dur)
 }

@@ -75,6 +75,40 @@ impl SongEntries {
         Ok(SongEntries(parse::parse(paths)?))
     }
 
+    /// Returns a slice of [`SongEntry`]s between the given dates
+    ///
+    /// This slice can be used in functions in [`gather`] to gather data between the given dates
+    ///
+    /// This function uses binary search to find the closest entries to the given dates
+    ///
+    /// # Panics
+    ///
+    /// Panics if `start` is after or equal to `end`
+    #[must_use]
+    pub fn between<'a>(&'a self, start: &DateTime<Tz>, end: &DateTime<Tz>) -> &'a [SongEntry] {
+        assert!(start <= end, "Start date is after end date!");
+
+        let begin = match self.binary_search_by(|entry| entry.timestamp.cmp(start)) {
+            // timestamp from entry
+            Ok(i) => i,
+            // user inputted date - i because you want it to begin at the closest entry
+            Err(i) if i != self.len() => i,
+            // user inputted date that's after the last entry
+            Err(_) => self.len() - 1,
+        };
+
+        let stop = match self.binary_search_by(|entry| entry.timestamp.cmp(end)) {
+            // timestamp from entry
+            Ok(i) => i,
+            // user inputted date - i-1 becuase i would include one entry too much
+            Err(i) if i != 0 => i - 1,
+            // user inputted date that's before the first entry
+            Err(_) => 0,
+        };
+
+        &self[begin..=stop]
+    }
+
     /// Returns the date of the first (time-wise) occurrence of any [`SongEntry`]
     ///
     /// # Panics
@@ -97,22 +131,6 @@ impl SongEntries {
         self.iter().next_back().unwrap().timestamp
     }
 
-    /// Returns the total time listened
-    #[must_use]
-    pub fn listening_time(&self) -> Duration {
-        gather::listening_time(self)
-    }
-
-    /// Returns the time listened in a given date period
-    ///
-    /// # Panics
-    ///
-    /// Panics if `start` is after or equal to `end`
-    #[must_use]
-    pub fn listening_time_date(&self, start: &DateTime<Tz>, end: &DateTime<Tz>) -> Duration {
-        gather::listening_time_date(self, start, end)
-    }
-
     /// Finds the date period with the most listening time for the given `time_span`
     ///
     /// Returns the actual timespan (in case `time_span` was too big or too small)
@@ -131,7 +149,7 @@ impl SongEntries {
         let actual_time_span = match time_span {
             // maximum duration is whole dataset?
             x if x >= last - first => {
-                return (self.listening_time(), first, last);
+                return (gather::listening_time(self), first, last);
             }
             // minimum duration is 1 day
             x if x < Duration::days(1) => Duration::days(1),
@@ -147,7 +165,7 @@ impl SongEntries {
         let mut end = end_max;
 
         while end <= last {
-            let current = self.listening_time_date(&start, &end);
+            let current = gather::listening_time(self.between(&start, &end));
             if current > highest {
                 highest = current;
                 start_max = start;
@@ -244,21 +262,6 @@ impl SongEntries {
     #[must_use]
     pub fn gather_plays_of_many<Asp: Music>(&self, aspects: &[Asp]) -> usize {
         gather::plays_of_many(self, aspects)
-    }
-
-    /// Counts up the plays of all [`Music`] in a collection within the date range
-    ///
-    /// # Panics
-    ///
-    /// Panics if `start` is after or equal to `end`
-    #[must_use]
-    pub fn gather_plays_of_many_date<Asp: Music>(
-        &self,
-        aspects: &[Asp],
-        start: &DateTime<Tz>,
-        end: &DateTime<Tz>,
-    ) -> usize {
-        gather::plays_of_many_date(self, aspects, start, end)
     }
 
     /// Adds search capability
