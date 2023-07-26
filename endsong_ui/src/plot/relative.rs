@@ -37,8 +37,8 @@ pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace
     (trace, title)
 }
 
-/// Creates a plot of the amount of plays of an [`Album`][crate::types::Album] or [`Song`]
-/// relative to total plays of the affiated [`Artist`][crate::types::Artist]
+/// Creates a plot of the amount of plays of an [`Album`] or [`Song`]
+/// relative to total plays of the corresponding [`Artist`]
 pub fn to_artist<Asp: AsRef<Artist> + Music>(
     entries: &SongEntries,
     aspect: &Asp,
@@ -74,7 +74,7 @@ pub fn to_artist<Asp: AsRef<Artist> + Music>(
 }
 
 /// Creates a plot of the amount of plays of a [`Song`]
-/// relative to total plays of the affiated [`Album`][crate::types::Album]
+/// relative to total plays of the corresponding [`Album`]
 pub fn to_album(entries: &SongEntries, aspect: &Song) -> (Box<dyn Trace>, String) {
     let mut times = Vec::<i64>::new();
     // percentages relative to the sum of respective album plays

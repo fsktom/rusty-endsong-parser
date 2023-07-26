@@ -61,8 +61,7 @@ fn main() {
     ui::start(&entries);
 }
 
-/// tests various [`display`] functions
-/// or its wrapper associated methods from [`SongEntries`]
+/// tests various [`print`][crate::print] and [`endsong::gather`] functions
 #[allow(dead_code)]
 fn test(entries: &SongEntries) {
     print::top(entries, Aspect::default(), 10, false);

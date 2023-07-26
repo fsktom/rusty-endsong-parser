@@ -142,7 +142,7 @@ pub fn top_from_album(entries: &[SongEntry], album: &Album, num: usize) {
     println!();
 }
 
-/// Used by [`print_top()`]
+/// Used by [`top()`]
 fn top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
     // https://stackoverflow.com/q/34555837/6694963
     let mut music_vec: Vec<(Asp, usize)> = music_dict.into_iter().collect();
