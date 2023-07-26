@@ -215,7 +215,6 @@ impl Music for Album {
 impl HasSongs for Album {}
 
 /// Struct for representing a song
-// to allow for custom HashMap key
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Song {
     /// Name of the song
@@ -493,5 +492,17 @@ mod tests {
             .unwrap() // unwrap ok bc there is at least one entry
             .timestamp;
         assert_eq!(last, entries.last_date());
+    }
+
+    /// Checks whether a type is safe to send across threads
+    fn is_normal<T: Sized + Send + Sync + Unpin>() {}
+
+    #[test]
+    fn normal_types() {
+        // https://youtu.be/Nzclc6MswaI?t=338
+        // thx jonhoo !
+        is_normal::<Artist>();
+        is_normal::<Album>();
+        is_normal::<Song>();
     }
 }
