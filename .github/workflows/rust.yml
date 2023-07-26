@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo check
+      - run: cargo check && cd endsong_ui && cargo check
 
   test:
     name: Test Suite
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --all-features
+      - run: cargo test --all-features && cd endsong_ui && cargo test --all-features
 
   fmt:
     name: Rustfmt
@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo fmt --all --check
+      - run: cargo fmt --all --check && cd endsong_ui && cargo fmt --all --check
 
   clippy:
     name: Clippy
@@ -33,4 +33,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo clippy -- --deny warnings
+      - run: cargo clippy -- --deny warnings && cd endsong_ui && cargo clippy -- --deny warnings
