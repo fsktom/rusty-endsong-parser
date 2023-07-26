@@ -588,7 +588,7 @@ fn match_print_songs_date(
             songs.len(),
             &songs[0].name,
             &songs[0].album.artist.name,
-            entries.gather_plays_of_many_date(&songs, &start_date, &end_date)
+            gather::plays_of_many(entries.between(&start_date, &end_date), &songs)
         );
     }
     for song in songs {

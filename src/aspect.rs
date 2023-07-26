@@ -19,6 +19,18 @@
 //! }
 //! ```
 //!
+//! If you want to make a function that accepts either an [`Album`] or [`Song`],
+//! use the [`AsRef<Artist>`] with [`Music`] trait (which contains [`Display`] impls etc).
+//! To then get the artist, use `as_ref()`.
+//! ```
+//! use endsong::prelude::*;
+//! fn foo<'a, Asp: AsRef<Artist> + Music>(asp: &'a Asp, entry: &SongEntry) -> &'a Artist {
+//!     println!("{asp}");
+//!     asp.as_ref()
+//! }
+//!
+//! ```
+//!
 //! If you want to make a function that extracts the album from [`Album`] or [`Song`], use the [`AsRef<Album>`] trait.
 //! ```
 //! use endsong::prelude::*;

@@ -30,8 +30,8 @@ pub mod prelude {
 
     pub use crate::entry::{SongEntries, SongEntry};
 
-    pub use crate::aspect::Music;
     pub use crate::aspect::{Album, Artist, Song};
+    pub use crate::aspect::{HasSongs, Music};
 
     pub use crate::LOCATION_TZ;
 

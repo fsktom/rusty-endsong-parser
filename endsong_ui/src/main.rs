@@ -127,16 +127,16 @@ fn test(entries: &SongEntries) {
     );
 
     assert_eq!(
-        &entries.listening_time(),
-        &entries.listening_time_date(&entries.first_date(), &entries.last_date())
+        gather::listening_time(entries),
+        gather::listening_time(entries.between(&entries.first_date(), &entries.last_date()))
     );
 
     let (time, start, end) = entries.max_listening_time(chrono::Duration::weeks(26 * 9));
     dbg!(time.num_minutes(), start.date_naive(), end.date_naive());
 
-    dbg!(gather::all_plays_date(entries, &start, &end));
+    dbg!(gather::all_plays(entries.between(&start, &end)));
     print::time_played_date(entries, &start, &end);
-    dbg!(entries.listening_time_date(&start, &end).num_minutes());
+    dbg!(gather::listening_time(entries.between(&start, &end)).num_minutes());
 
     print::aspect(
         entries,

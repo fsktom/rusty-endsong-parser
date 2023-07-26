@@ -263,7 +263,7 @@ fn album(songs: &HashMap<Song, usize>) {
 ///
 /// Panics if `start` is after or equal to `end`
 pub fn aspect_date(
-    entries: &[SongEntry],
+    entries: &SongEntries,
     asp: &AspectFull,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
@@ -276,11 +276,11 @@ pub fn aspect_date(
                 art,
                 start.date_naive(),
                 end.date_naive(),
-                gather::plays_date(entries, art, start, end)
+                gather::plays(entries.between(start, end), art)
             );
             artist_date(
                 entries,
-                &gather::albums_from_artist_date(entries, art, start, end),
+                &gather::albums_from_artist(entries.between(start, end), art),
                 start,
                 end,
             );
@@ -291,9 +291,9 @@ pub fn aspect_date(
                 alb,
                 start.date_naive(),
                 end.date_naive(),
-                gather::plays_date(entries, alb, start, end)
+                gather::plays(entries.between(start, end), alb)
             );
-            album(&gather::songs_from_date(entries, alb, start, end));
+            album(&gather::songs_from(entries.between(start, end), alb));
         }
         AspectFull::Song(son) => {
             println!(
@@ -301,7 +301,7 @@ pub fn aspect_date(
                 son,
                 start.date_naive(),
                 end.date_naive(),
-                gather::plays_date(entries, son, start, end)
+                gather::plays(entries.between(start, end), son)
             );
         }
     }
@@ -313,7 +313,7 @@ pub fn aspect_date(
 ///
 /// Panics if `start` is after or equal to `end`
 fn artist_date(
-    entries: &[SongEntry],
+    entries: &SongEntries,
     albums: &HashMap<Album, usize>,
     start: &DateTime<Tz>,
     end: &DateTime<Tz>,
@@ -324,7 +324,7 @@ fn artist_date(
 
     for (alb, plays) in albums_vec {
         println!("--- {alb} | {plays} plays ---");
-        album(&gather::songs_from_date(entries, alb, start, end));
+        album(&gather::songs_from(entries.between(start, end), alb));
     }
 }
 
@@ -348,9 +348,9 @@ pub fn time_played(entries: &[SongEntry]) {
 ///
 /// Panics if `start` is after or equal to `end`
 #[allow(clippy::cast_precision_loss)]
-pub fn time_played_date(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateTime<Tz>) {
+pub fn time_played_date(entries: &SongEntries, start: &DateTime<Tz>, end: &DateTime<Tz>) {
     assert!(start <= end, "Start date is after end date!");
-    let duration = gather::listening_time_date(entries, start, end);
+    let duration = gather::listening_time(entries.between(start, end));
     let period = *end - *start;
 
     println!(
@@ -362,7 +362,7 @@ pub fn time_played_date(entries: &[SongEntry], start: &DateTime<Tz>, end: &DateT
         start.date_naive(),
         end.date_naive(),
         period.num_days(),
-        gather::all_plays_date(entries, start, end) as i64 / period.num_days(),
+        gather::all_plays(entries.between(start, end)) as i64 / period.num_days(),
         duration.num_hours() / period.num_days(),
     );
 }
