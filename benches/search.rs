@@ -168,6 +168,14 @@ fn parse(c: &mut Criterion) {
             black_box(SongEntries::new(&paths[..=1]).unwrap());
         })
     });
+
+    let entries = black_box(SongEntries::new(&paths[..=1]).unwrap());
+
+    c.bench_function("songs", |c| {
+        c.iter(|| {
+            black_box(gather::songs(&entries, true));
+        })
+    });
 }
 
 // criterion_group!(benches, lol);

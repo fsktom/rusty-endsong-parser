@@ -56,10 +56,12 @@ use crate::entry::SongEntry;
 /// Uses .unwrap() but it should never panic
 #[must_use]
 pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> HashMap<Song, usize> {
-    let mut songs = entries.iter().map(Song::from).counts();
+    let songs = entries.iter().map(Song::from).counts();
     if !sum_songs_from_different_albums {
         return songs;
     }
+
+    let length = songs.len();
 
     // to know which album the song had highest amount of plays from
     // that album will be then displayed in () after the song name
@@ -67,25 +69,26 @@ pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> Ha
     // the plays from all albums
     // key: (song name, artist)
     // value: HashMap of albums with number of plays of the song in that album
-    let mut changed: HashMap<(String, Artist), HashMap<Album, usize>> = HashMap::new();
-    for (song, plays_song) in &songs {
-        let song_just_artist = (song.name.clone(), song.album.artist.clone());
+    let mut songs_albums: HashMap<(String, Artist), HashMap<Album, usize>> =
+        HashMap::with_capacity(length);
+    for (song, plays_song) in songs {
+        let song_just_artist = (song.name, song.album.artist.clone());
 
-        changed
+        songs_albums
             .entry(song_just_artist)
             .or_insert_with(HashMap::new)
-            .insert(song.album.clone(), *plays_song);
+            .insert(song.album, plays_song);
     }
 
     // required because only one version (i.e. album) of the song should be saved
-    songs.clear();
+    let mut songs: HashMap<Song, usize> = HashMap::with_capacity(length);
 
-    for ((song_name, _), albs) in &changed {
+    for ((song_name, _), albs) in songs_albums {
         // number of plays of the song across all albums
-        let total = albs.iter().map(|(_, plays)| plays).sum();
+        let total = albs.values().sum();
         // album with the highest number of plays
         let highest = albs
-            .iter()
+            .into_iter()
             // sorts albums alphabetically so that this function is deterministic
             // if different albums have the same highest number of plays
             .sorted_unstable_by(|(a, _), (b, _)| a.cmp(b))
@@ -94,9 +97,9 @@ pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> Ha
             // unwrap ok because there's at least one album?
             .unwrap();
 
-        let son = Song {
-            name: song_name.clone(),
-            album: highest.clone(),
+        let son: Song = Song {
+            name: song_name,
+            album: highest,
         };
 
         songs.insert(son, total);
