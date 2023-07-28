@@ -15,6 +15,7 @@ use rustyline::{
 
 use crate::plot;
 use crate::print;
+use crate::trace;
 use print::{Aspect, AspectFull};
 
 /// Prompt used for top-level shell commands
@@ -749,7 +750,7 @@ fn match_plot_artist(
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
-    Ok(plot::absolute::aspect(entries, &art))
+    Ok(trace::absolute(entries, &art))
 }
 
 /// Used by [`match_plot()`] for plotting absolute plays of album
@@ -763,7 +764,7 @@ fn match_plot_album(
     // 2nd prompt: album name
     let alb = read_album(rl, entries, &art)?;
 
-    Ok(plot::absolute::aspect(entries, &alb))
+    Ok(trace::absolute(entries, &alb))
 }
 
 /// Used by [`match_plot()`] for plotting absolute plays of song
@@ -780,7 +781,7 @@ fn match_plot_song(
     // 3rd prompt: song name
     let son = read_song(rl, entries, &alb)?;
 
-    Ok(plot::absolute::aspect(entries, &son))
+    Ok(trace::absolute(entries, &son))
 }
 
 /// Used by [`match_plot_relative()`] for plotting relative plots of artist
@@ -791,7 +792,7 @@ fn match_plot_artist_relative(
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
-    Ok(plot::relative::to_all(entries, &art))
+    Ok(trace::relative::to_all(entries, &art))
 }
 
 /// Used by [`match_plot_relative()`] for plotting relative plots of album
@@ -813,8 +814,8 @@ fn match_plot_album_relative(
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
     match usr_input_rel.as_str() {
-        "all" => Ok(plot::relative::to_all(entries, &alb)),
-        "artist" => Ok(plot::relative::to_artist(entries, &alb)),
+        "all" => Ok(trace::relative::to_all(entries, &alb)),
+        "artist" => Ok(trace::relative::to_artist(entries, &alb)),
         _ => Err(Box::new(InvalidArgumentError::Artist)),
     }
 }
@@ -842,9 +843,9 @@ fn match_plot_song_relative(
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
     match usr_input_rel.as_str() {
-        "all" => Ok(plot::relative::to_all(entries, &son)),
-        "artist" => Ok(plot::relative::to_artist(entries, &son)),
-        "album" => Ok(plot::relative::to_album(entries, &son)),
+        "all" => Ok(trace::relative::to_all(entries, &son)),
+        "artist" => Ok(trace::relative::to_artist(entries, &son)),
+        "album" => Ok(trace::relative::to_album(entries, &son)),
         _ => Err(Box::new(InvalidArgumentError::Album)),
     }
 }

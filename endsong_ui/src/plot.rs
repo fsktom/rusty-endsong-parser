@@ -1,9 +1,5 @@
 //! Module responsible for plotting/charts
 
-pub mod absolute;
-pub mod relative;
-
-use endsong::prelude::*;
 use plotly::{Layout, Plot, Trace};
 
 /// Creates a plot in the `plots/` folder
@@ -35,35 +31,6 @@ pub fn compare(trace_one: (Box<dyn Trace>, String), trace_two: (Box<dyn Trace>, 
     plot.set_layout(layout);
 
     write_and_open_plot(&plot, title);
-}
-
-/// Returns the dates of all occurrences of the `aspect`
-///
-/// * `add_now` - with this set to true, it will put the current time as the last date,
-/// otherwise it will be the last occurrence of `aspect`
-pub fn find_dates<Asp: Music>(
-    entries: &[SongEntry],
-    aspect: &Asp,
-    add_now: bool,
-) -> Vec<DateTime<Tz>> {
-    let mut dates = Vec::<DateTime<Tz>>::new();
-
-    for entry in entries {
-        if aspect.is_entry(entry) {
-            dates.push(entry.timestamp);
-        }
-    }
-
-    if add_now {
-        dates.push(
-            crate::LOCATION_TZ
-                .timestamp_millis_opt(chrono::offset::Local::now().timestamp_millis())
-                .unwrap(),
-        );
-    }
-
-    // should be sorted because &[SongEntries] should have been sorted at the beginning
-    dates
 }
 
 /// Creates the plot .html in the plots/ folder and opens it in the browser
