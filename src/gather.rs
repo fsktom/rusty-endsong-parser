@@ -146,7 +146,7 @@ pub fn artists(entries: &[SongEntry]) -> HashMap<Artist, usize> {
     entries.iter().map(Artist::from).counts()
 }
 
-/// Counts up the plays of a single [`Music`]
+/// Counts up the plays of an [`Artist`], [`Album`] or [`Song`]
 #[must_use]
 pub fn plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
     entries
@@ -155,7 +155,8 @@ pub fn plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
         .count()
 }
 
-/// Counts up the plays of all [`Music`] in a collection
+/// Counts up the plays of all [`Artists`][Artist],
+/// [`Albums`][Album] or [`Songs`][Song] in a collection
 #[must_use]
 pub fn plays_of_many<Asp: Music>(entries: &[SongEntry], aspects: &[Asp]) -> usize {
     entries

@@ -275,6 +275,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "endsong",
+ "itertools",
  "plotly",
  "rustyline",
  "unicode-width",

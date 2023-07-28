@@ -5,6 +5,8 @@
 use std::collections::HashMap;
 use std::fmt::Display;
 
+use itertools::Itertools;
+
 use endsong::prelude::*;
 
 /// An enum that is among other things used by functions such as
@@ -50,7 +52,7 @@ pub enum AspectFull<'a> {
 /// For choosing mode of a function, similar to [`Aspect`] but
 /// without [`Aspect::Artists`]
 ///
-/// Used in [`crate::print::top_from_artist()`]
+/// Used in [`top_from_artist()`]
 #[derive(Copy, Clone, Debug)]
 pub enum Mode {
     /// to print albums from artist
@@ -229,9 +231,14 @@ pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
 }
 
 /// Prints each [`Album`] of `albums` with the playcount
+///
+/// Preferably `albums` contains only albums from one artist
 fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>) {
-    let mut albums_vec: Vec<(&Album, &usize)> = albums.iter().collect();
-    albums_vec.sort_by(|a, b| b.1.cmp(a.1));
+    // albums sorted by their playcount
+    let albums_vec: Vec<(&Album, &usize)> = albums
+        .iter()
+        .sorted_unstable_by(|a, b| b.1.cmp(a.1))
+        .collect_vec();
 
     for (alb, plays) in albums_vec {
         println!("--- {alb} | {plays} plays ---");
@@ -241,8 +248,11 @@ fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>) {
 
 /// Prints each [`Song`] of `songs` with the playcount
 fn album(songs: &HashMap<Song, usize>) {
-    let mut songs_vec: Vec<(&Song, &usize)> = songs.iter().collect();
-    songs_vec.sort_by(|a, b| b.1.cmp(a.1));
+    // songs sorted by their playcount
+    let songs_vec: Vec<(&Song, &usize)> = songs
+        .iter()
+        .sorted_unstable_by(|a, b| b.1.cmp(a.1))
+        .collect_vec();
 
     for (i, (song, plays)) in songs_vec.iter().enumerate() {
         println!(
@@ -269,6 +279,8 @@ pub fn aspect_date(
     end: &DateTime<Tz>,
 ) {
     assert!(start <= end, "Start date is after end date!");
+    let entries_within_dates = entries.between(start, end);
+
     match *asp {
         AspectFull::Artist(art) => {
             println!(
@@ -276,13 +288,11 @@ pub fn aspect_date(
                 art,
                 start.date_naive(),
                 end.date_naive(),
-                gather::plays(entries.between(start, end), art)
+                gather::plays(entries_within_dates, art)
             );
-            artist_date(
-                entries,
-                &gather::albums_from_artist(entries.between(start, end), art),
-                start,
-                end,
+            artist(
+                entries_within_dates,
+                &gather::albums_from_artist(entries_within_dates, art),
             );
         }
         AspectFull::Album(alb) => {
@@ -291,9 +301,9 @@ pub fn aspect_date(
                 alb,
                 start.date_naive(),
                 end.date_naive(),
-                gather::plays(entries.between(start, end), alb)
+                gather::plays(entries_within_dates, alb)
             );
-            album(&gather::songs_from(entries.between(start, end), alb));
+            album(&gather::songs_from(entries_within_dates, alb));
         }
         AspectFull::Song(son) => {
             println!(
@@ -301,30 +311,9 @@ pub fn aspect_date(
                 son,
                 start.date_naive(),
                 end.date_naive(),
-                gather::plays(entries.between(start, end), son)
+                gather::plays(entries_within_dates, son)
             );
         }
-    }
-}
-
-/// Prints each [`Album`] of `albums` with the playcount in the date range
-///
-/// # Panics
-///
-/// Panics if `start` is after or equal to `end`
-fn artist_date(
-    entries: &SongEntries,
-    albums: &HashMap<Album, usize>,
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
-) {
-    assert!(start <= end, "Start date is after end date!");
-    let mut albums_vec: Vec<(&Album, &usize)> = albums.iter().collect();
-    albums_vec.sort_by(|a, b| b.1.cmp(a.1));
-
-    for (alb, plays) in albums_vec {
-        println!("--- {alb} | {plays} plays ---");
-        album(&gather::songs_from(entries.between(start, end), alb));
     }
 }
 
