@@ -61,8 +61,6 @@ pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> Ha
         return songs;
     }
 
-    let length = songs.len();
-
     // to know which album the song had highest amount of plays from
     // that album will be then displayed in () after the song name
     // but the number of plays that will be displayed will be a sum of
@@ -70,7 +68,7 @@ pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> Ha
     // key: (song name, artist)
     // value: HashMap of albums with number of plays of the song in that album
     let mut songs_albums: HashMap<(String, Artist), HashMap<Album, usize>> =
-        HashMap::with_capacity(length);
+        HashMap::with_capacity(songs.len());
     for (song, plays_song) in songs {
         let song_just_artist = (song.name, song.album.artist.clone());
 
@@ -81,7 +79,7 @@ pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> Ha
     }
 
     // required because only one version (i.e. album) of the song should be saved
-    let mut songs: HashMap<Song, usize> = HashMap::with_capacity(length);
+    let mut songs: HashMap<Song, usize> = HashMap::with_capacity(songs_albums.len());
 
     for ((song_name, _), albs) in songs_albums {
         // number of plays of the song across all albums
