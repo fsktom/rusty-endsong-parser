@@ -597,8 +597,7 @@ dependencies = [
 [[package]]
 name = "plotly"
 version = "0.8.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7174c07682d8c13cded3fcdf54d9c1d09249b4e821f26e4ab7a60eb39e9783d"
+source = "git+https://github.com/fsktom/plotly.git?branch=from#f68b34a0d5f6efa41c14fb2b36b373f713ad5421"
 dependencies = [
  "askama",
  "dyn-clone",
@@ -615,8 +614,7 @@ dependencies = [
 [[package]]
 name = "plotly_derive"
 version = "0.8.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2fcc11cdbc83c1a49ed868156cc485037e01c612b03128ce98519e5662ede63"
+source = "git+https://github.com/fsktom/plotly.git?branch=from#f68b34a0d5f6efa41c14fb2b36b373f713ad5421"
 dependencies = [
  "darling 0.14.4",
  "proc-macro2",

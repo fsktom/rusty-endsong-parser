@@ -28,9 +28,16 @@ fn find_dates<Asp: Music>(entries: &[SongEntry], aspect: &Asp, add_now: bool) ->
     dates
 }
 
+/// Formats date for x-axis`%Y-%m-%d %H:%M`
+///
+/// To something like "2016-09-01 15:06"
+fn format_date(date: &DateTime<Tz>) -> String {
+    date.format("%Y-%m-%d %H:%M").to_string()
+}
+
 /// Creates a trace of the absolute amount of plays
 pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
-    let mut times = Vec::<i64>::new();
+    let mut times = Vec::<String>::new();
     let mut plays = Vec::<usize>::new();
 
     let dates = find_dates(entries, aspect, false);
@@ -39,7 +46,7 @@ pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Tra
     let mut amount_of_plays = 1;
 
     for date in &dates {
-        times.push(date.timestamp());
+        times.push(format_date(date));
         plays.push(amount_of_plays);
         amount_of_plays += 1;
     }
@@ -57,10 +64,11 @@ pub mod relative {
     use plotly::{Scatter, Trace};
 
     use super::find_dates;
+    use super::format_date;
 
     /// Creates a trace of the amount of plays of an [`Music`] relative to all plays
     pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
-        let mut times = Vec::<i64>::new();
+        let mut times = Vec::<String>::new();
         // percentages relative to the sum of all plays
         let mut plays = Vec::<f64>::new();
 
@@ -76,7 +84,7 @@ pub mod relative {
 
         #[allow(clippy::cast_precision_loss)]
         for date in &dates {
-            times.push(date.timestamp());
+            times.push(format_date(date));
             let sum_of_all_plays = gather::all_plays(entries.between(sum_start, date)) as f64;
             // *100 so that the percentage is easier to read...
             plays.push(100.0 * (amount_of_plays / sum_of_all_plays));
@@ -94,7 +102,7 @@ pub mod relative {
         entries: &SongEntries,
         aspect: &Asp,
     ) -> (Box<dyn Trace>, String) {
-        let mut times = Vec::<i64>::new();
+        let mut times = Vec::<String>::new();
         // percentages relative to the sum of respective artist plays
         let mut plays = Vec::<f64>::new();
 
@@ -109,7 +117,7 @@ pub mod relative {
 
         #[allow(clippy::cast_precision_loss)]
         for date in &dates {
-            times.push(date.timestamp());
+            times.push(format_date(date));
 
             let end = artist_dates.binary_search(date).unwrap();
             let sum_of_artist_plays = artist_dates[..=end].len() as f64;
@@ -127,7 +135,7 @@ pub mod relative {
     /// Creates a plot of the amount of plays of a [`Song`]
     /// relative to total plays of the corresponding [`Album`]
     pub fn to_album(entries: &SongEntries, aspect: &Song) -> (Box<dyn Trace>, String) {
-        let mut times = Vec::<i64>::new();
+        let mut times = Vec::<String>::new();
         // percentages relative to the sum of respective album plays
         let mut plays = Vec::<f64>::new();
 
@@ -142,7 +150,7 @@ pub mod relative {
 
         #[allow(clippy::cast_precision_loss)]
         for date in &dates {
-            times.push(date.timestamp());
+            times.push(format_date(date));
 
             let end = album_dates.binary_search(date).unwrap();
             let sum_of_album_plays = album_dates[..=end].len() as f64;

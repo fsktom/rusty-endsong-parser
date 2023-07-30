@@ -11,7 +11,7 @@ pub fn single(trace: (Box<dyn Trace>, String)) {
     plot.add_trace(trace.0);
 
     // sets the title of the plot
-    let layout = Layout::new().title(format!("<b>{title}</b>").as_str().into());
+    let layout = Layout::new().title(format!("<b>{title}</b>").into());
     plot.set_layout(layout);
 
     write_and_open_plot(&plot, title);
@@ -27,7 +27,7 @@ pub fn compare(trace_one: (Box<dyn Trace>, String), trace_two: (Box<dyn Trace>, 
     plot.add_trace(trace_two.0);
 
     // sets the title of the plot
-    let layout = Layout::new().title(format!("<b>{title}</b>").as_str().into());
+    let layout = Layout::new().title(format!("<b>{title}</b>").into());
     plot.set_layout(layout);
 
     write_and_open_plot(&plot, title);
