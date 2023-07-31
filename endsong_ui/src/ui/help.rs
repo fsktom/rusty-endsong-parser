@@ -114,7 +114,7 @@ fn center_phrase(phrase: &str, start: usize, end: usize) -> String {
 }
 
 /// Returns meta commands
-fn meta_commands<'a>() -> &'a [[&'a str; 3]] {
+const fn meta_commands<'a>() -> &'a [[&'a str; 3]] {
     &[
         ["help", "h", "prints this command list"],
         ["exit", "quit", "exits the program"],
@@ -122,7 +122,7 @@ fn meta_commands<'a>() -> &'a [[&'a str; 3]] {
 }
 
 /// Returns print commands
-fn print_commands<'a>() -> &'a [[&'a str; 3]] {
+const fn print_commands<'a>() -> &'a [[&'a str; 3]] {
     &[
         ["print time", "pt", "prints the total time spent listening"],
         [
@@ -200,7 +200,7 @@ fn print_commands<'a>() -> &'a [[&'a str; 3]] {
 }
 
 /// Returns print top commands
-fn print_top_commands<'a>() -> &'a [[&'a str; 3]] {
+const fn print_top_commands<'a>() -> &'a [[&'a str; 3]] {
     &[
         ["print top artists", "ptarts", "prints top n artists"],
         ["print top albums", "ptalbs", "prints top n albums"],
@@ -209,7 +209,7 @@ fn print_top_commands<'a>() -> &'a [[&'a str; 3]] {
 }
 
 /// Returns graph commands
-fn plot_commands<'a>() -> &'a [[&'a str; 3]] {
+const fn plot_commands<'a>() -> &'a [[&'a str; 3]] {
     &[
         [
             "plot",
