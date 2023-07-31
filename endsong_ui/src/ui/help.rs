@@ -11,19 +11,19 @@ pub fn help() {
     // each entry: ["command", "alias", "description"]
 
     // META COMMANDS
-    print("meta", &meta_commands());
+    print("meta", meta_commands());
 
     // PRINT COMMANDS
-    print("print", &print_commands());
+    print("print", print_commands());
 
-    print("print top", &print_top_commands());
+    print("print top", print_top_commands());
 
     // GRAPH COMMANDS
-    print("graph/plot", &plot_commands());
+    print("graph/plot", plot_commands());
 }
 
 /// Prints the commands
-fn print(title: &str, commands: &Vec<[&str; 3]>) {
+fn print(title: &str, commands: &[[&str; 3]]) {
     println!(
         // "{title} commands" has to be centered to "=>"
         // so columns 22 and 23
@@ -114,16 +114,16 @@ fn center_phrase(phrase: &str, start: usize, end: usize) -> String {
 }
 
 /// Returns meta commands
-fn meta_commands<'a>() -> Vec<[&'a str; 3]> {
-    vec![
+fn meta_commands<'a>() -> &'a [[&'a str; 3]] {
+    &[
         ["help", "h", "prints this command list"],
         ["exit", "quit", "exits the program"],
     ]
 }
 
 /// Returns print commands
-fn print_commands<'a>() -> Vec<[&'a str; 3]> {
-    vec![
+fn print_commands<'a>() -> &'a [[&'a str; 3]] {
+    &[
         ["print time", "pt", "prints the total time spent listening"],
         [
             "print time date",
@@ -200,8 +200,8 @@ fn print_commands<'a>() -> Vec<[&'a str; 3]> {
 }
 
 /// Returns print top commands
-fn print_top_commands<'a>() -> Vec<[&'a str; 3]> {
-    vec![
+fn print_top_commands<'a>() -> &'a [[&'a str; 3]] {
+    &[
         ["print top artists", "ptarts", "prints top n artists"],
         ["print top albums", "ptalbs", "prints top n albums"],
         ["print top songs", "ptsons", "prints top n songs"],
@@ -209,8 +209,8 @@ fn print_top_commands<'a>() -> Vec<[&'a str; 3]> {
 }
 
 /// Returns graph commands
-fn plot_commands<'a>() -> Vec<[&'a str; 3]> {
-    vec![
+fn plot_commands<'a>() -> &'a [[&'a str; 3]] {
+    &[
         [
             "plot",
             "g",
