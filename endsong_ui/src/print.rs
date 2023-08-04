@@ -192,10 +192,11 @@ pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
 ///
 /// Preferably `albums` contains only albums from one artist
 fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>) {
-    // albums sorted by their playcount
+    // albums sorted by their playcount descending (primary)
+    // and name ascending (secondary) if plays are equal
     let albums_vec: Vec<(&Album, &usize)> = albums
         .iter()
-        .sorted_unstable_by(|a, b| b.1.cmp(a.1))
+        .sorted_unstable_by_key(|t| (Reverse(t.1), t.0))
         .collect_vec();
 
     for (alb, plays) in albums_vec {
@@ -208,10 +209,11 @@ fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>) {
 ///
 /// Preferably `songs` contains only songs from one album
 fn album(songs: &HashMap<Song, usize>, indent: usize) {
-    // songs sorted by their playcount
+    // songs sorted by their playcount descending (primary)
+    // and name ascending (secondary) if plays are equal
     let songs_vec: Vec<(&Song, &usize)> = songs
         .iter()
-        .sorted_unstable_by(|a, b| b.1.cmp(a.1))
+        .sorted_unstable_by_key(|t| (Reverse(t.1), t.0))
         .collect_vec();
 
     let indent = " ".repeat(indent);
@@ -279,14 +281,11 @@ pub fn aspect_date(
 }
 
 /// Prints the total time played
-pub fn time_played(entries: &[SongEntry]) {
-    let duration = gather::listening_time(entries);
-
-    println!(
-        "You've spent {} days - or {} hours - or {} minutes listening to music!",
-        &duration.num_days(),
-        &duration.num_hours(),
-        &duration.num_minutes()
+pub fn time_played(entries: &SongEntries) {
+    time_played_date(
+        entries,
+        &entries.first().unwrap().timestamp,
+        &entries.last().unwrap().timestamp,
     );
 }
 
