@@ -2,6 +2,7 @@
 //! in a human-readable format (e.g. as 100 most played songs)
 //! to the [`std::io::stdout`]
 
+use std::cmp::Reverse;
 use std::collections::HashMap;
 use std::fmt::Display;
 
@@ -97,17 +98,14 @@ pub fn top(entries: &[SongEntry], asp: Aspect, num: usize, sum_songs_from_differ
         Aspect::Songs => {
             println!("=== TOP {num} SONGS ===");
             top_helper(gather::songs(entries, sum_songs_from_different_albums), num);
-            println!();
         }
         Aspect::Albums => {
             println!("=== TOP {num} ALBUMS ===");
             top_helper(gather::albums(entries), num);
-            println!();
         }
         Aspect::Artists => {
             println!("=== TOP {num} ARTISTS ===");
             top_helper(gather::artists(entries), num);
-            println!();
         }
     }
 }
@@ -123,12 +121,10 @@ pub fn top_from_artist(entries: &[SongEntry], mode: Mode, artist: &Artist, num: 
         Mode::Songs => {
             println!("=== TOP {num} SONGS FROM {artist} ===");
             top_helper(gather::songs_from(entries, artist), num);
-            println!();
         }
         Mode::Albums => {
             println!("=== TOP {num} ALBUMS FROM {artist} ===");
             top_helper(gather::albums_from_artist(entries, artist), num);
-            println!();
         }
     }
 }
@@ -141,53 +137,24 @@ pub fn top_from_artist(entries: &[SongEntry], mode: Mode, artist: &Artist, num: 
 pub fn top_from_album(entries: &[SongEntry], album: &Album, num: usize) {
     println!("=== TOP {num} SONGS FROM {album} ===");
     top_helper(gather::songs_from(entries, album), num);
-    println!();
 }
 
 /// Used by [`top()`]
 fn top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
-    // https://stackoverflow.com/q/34555837/6694963
-    let mut music_vec: Vec<(Asp, usize)> = music_dict.into_iter().collect();
+    let music_vec: Vec<(Asp, usize)> = music_dict
+        .into_iter()
+        // primary sorting: by plays descending
+        // https://stackoverflow.com/a/34555984
+        // https://stackoverflow.com/a/60916195
+        // and secondary sorting by name ascending
+        .sorted_unstable_by_key(|t| (Reverse(t.1), t.0.clone()))
+        .collect_vec();
     let length = music_vec.len();
-
-    // primary sorting: sort by plays
-    music_vec.sort_by(|a, b| b.1.cmp(&a.1));
-
-    // secondary sorting: if plays are equal -> sort A->Z
-    let mut alphabetical: Vec<(Asp, usize)> = Vec::with_capacity(length);
-    let mut same_plays: Vec<(Asp, usize)> = vec![music_vec.first().unwrap().to_owned()];
-    for el in music_vec {
-        let first = same_plays.first().unwrap();
-        // ignore first element of list (cause it's already in same_plays)
-        if el.0 == first.0 {
-            continue;
-        }
-
-        // if the plays of the new element are equal to the one(s) already
-        // in same_plays -> add element to same_plays
-        if el.1 == first.1 {
-            same_plays.push(el);
-        // if they're not equal, that means same_plays can be sorted alphabetically
-        // bc all elements have same num of plays
-        // and then added to the new vector
-        } else {
-            same_plays.sort_by(|a, b| a.0.cmp(&b.0));
-            alphabetical.append(&mut same_plays);
-            same_plays = vec![el];
-        }
-    }
-    // final step bc possible that last element has same num of plays
-    // as the second-to-last element
-    same_plays.sort_by(|a, b| a.0.cmp(&b.0));
-    alphabetical.append(&mut same_plays);
-
-    // something must have gone wrong if this fails
-    assert!(alphabetical.len() == length);
 
     // if the number of unique aspects is lower than the parsed num
     let max_num: usize = if length < num { length } else { num };
 
-    for (i, (asp, plays)) in alphabetical.iter().enumerate() {
+    for (i, (asp, plays)) in music_vec.iter().enumerate() {
         println!(
             "{}: {} | {} plays",
             leading_whitespace(i + 1, max_num),
@@ -209,19 +176,10 @@ pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
     match *asp {
         AspectFull::Artist(art) => {
             println!("{} | {} plays", art, gather::plays(entries, art));
-            // TODO! currently print_artist uses the whole time for num of plays!!!
-            // e.g. printing Alestorm between 2022-01-01 and 2022-07-01
-            // on only `endsong_0.json`
-            // will print:
-            // === Alestorm between 2022-01-01CET and 2022-07-01CEST | 1 plays ===
-            // --- Alestorm - Sunset On The Golden Age | 3 plays ---
-            // #1: Alestorm - Drink (Sunset On The Golden Age) | 3 plays
-
             artist(entries, &gather::albums_from_artist(entries, art));
         }
         AspectFull::Album(alb) => {
             println!("{} | {} plays", alb, gather::plays(entries, alb));
-            // TODO! currently print_album uses the whole time for num of plays!!!
             album(&gather::songs_from(entries, alb), 4);
         }
         AspectFull::Song(son) => {
