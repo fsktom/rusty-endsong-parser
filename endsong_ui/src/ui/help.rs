@@ -51,21 +51,28 @@ fn print(title: &str, commands: &[[&str; 3]]) {
     }
 }
 
-/// Gives a `phrase` an appropriate amount of preceding spaces so it's `new_length` long
+/// Gives a `phrase` an appropriate amount of preceding spaces so
+/// that it is at least `new_length` long
 ///
-/// DOESN'T work correctly if `phrase` has linebreaks (`\n`)!
+/// DOESN'T work correctly if `phrase` has linebreaks (`'\n'`)!
+/// Use [`prepend_spaces_for_newline()`] for the following
+/// lines instead
+///
+/// # Examples
+/// ```
+/// assert_eq!(
+///     adjust_length("print top artists", 20),
+///     "   print top artists"
+/// );
+/// ```
 fn adjust_length(phrase: &str, new_length: usize) -> String {
-    let ph = String::from(phrase);
-    if UnicodeWidthStr::width(phrase) >= new_length {
-        return ph;
+    let current_length = phrase.width();
+    if current_length >= new_length {
+        return String::from(phrase);
     }
 
-    // width_cjk bc Chinese/Japanese/Korean artist/album/song names
-    let missing_spaces = new_length - UnicodeWidthStr::width_cjk(phrase);
-    let mut spaces = String::with_capacity(missing_spaces);
-    for _ in 0..missing_spaces {
-        spaces.push(' ');
-    }
+    let missing_spaces = new_length - current_length;
+    let spaces = " ".repeat(missing_spaces);
 
     spaces + phrase
 }
@@ -75,29 +82,32 @@ fn adjust_length(phrase: &str, new_length: usize) -> String {
 /// First line is left as-is, but the following lines have `num` spaces
 /// preceding them
 fn prepend_spaces_for_newline(phrase: &str, num: usize) -> String {
-    let mut new_phrase = String::new();
+    let mut lines = phrase.lines();
+
     // leave first line as-is
+    let mut new_phrase = String::from(lines.next().unwrap());
+
     // prepend spaces to other lines
-    new_phrase.push_str(phrase.lines().next().unwrap());
-    for line in phrase.lines().skip(1) {
-        let mut spaces = String::with_capacity(num);
-        for _ in 0..num {
-            spaces.push(' ');
-        }
-        let temp = format!("\n{spaces}{line}");
-        new_phrase.push_str(temp.as_str());
+    let spaces = " ".repeat(num);
+    for line in lines {
+        let new_line = format!("\n{spaces}{line}");
+        new_phrase.push_str(&new_line);
     }
 
     new_phrase
 }
 
-/// Centers "`phrase` commands" around columns start and start+1
+/// Centers "`phrase` commands" around columns `start` and `start`+1
+/// by filling it with '=' on both sides (not evenly)
+///
+/// start and start+1 are positions of "=>"
+///
+/// end is column where the final '=' should be put
 fn center_phrase(phrase: &str, start: usize, end: usize) -> String {
-    // let mut new_phrase = String::with_capacity(end);
     let mut new_phrase = format!(" {phrase} commands ");
     loop {
         // not really sure if this actually centers it, but it's close enough, right? :(
-        let length = UnicodeWidthStr::width_cjk(new_phrase.as_str()) / 2 - 3;
+        let length = new_phrase.width() / 2 - 3;
 
         if length == start || length + 1 == start || length > end {
             break;
@@ -106,11 +116,9 @@ fn center_phrase(phrase: &str, start: usize, end: usize) -> String {
         new_phrase = format!("={new_phrase}=");
     }
 
-    while UnicodeWidthStr::width_cjk(new_phrase.as_str()) < end {
-        new_phrase.push('=');
-    }
+    let missing_symbols = "=".repeat(end - new_phrase.width());
 
-    new_phrase
+    new_phrase + &missing_symbols
 }
 
 /// Returns meta commands
@@ -249,6 +257,7 @@ mod tests {
             adjust_length("print top artists", 20),
             "   print top artists"
         );
+        assert_eq!(adjust_length("print top artists", 0), "print top artists");
         // adjust_length() doesn't work properly with newlines (yet)
         assert_ne!(adjust_length("t\nt", 2), " t\n t");
 
