@@ -208,7 +208,7 @@ fn top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
 pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
     match *asp {
         AspectFull::Artist(art) => {
-            println!("=== {} | {} plays ===", art, gather::plays(entries, art));
+            println!("{} | {} plays", art, gather::plays(entries, art));
             // TODO! currently print_artist uses the whole time for num of plays!!!
             // e.g. printing Alestorm between 2022-01-01 and 2022-07-01
             // on only `endsong_0.json`
@@ -220,9 +220,9 @@ pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
             artist(entries, &gather::albums_from_artist(entries, art));
         }
         AspectFull::Album(alb) => {
-            println!("=== {} | {} plays ===", alb, gather::plays(entries, alb));
+            println!("{} | {} plays", alb, gather::plays(entries, alb));
             // TODO! currently print_album uses the whole time for num of plays!!!
-            album(&gather::songs_from(entries, alb));
+            album(&gather::songs_from(entries, alb), 4);
         }
         AspectFull::Song(son) => {
             println!("{} | {} plays", son, gather::plays(entries, son));
@@ -241,24 +241,25 @@ fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>) {
         .collect_vec();
 
     for (alb, plays) in albums_vec {
-        println!("--- {alb} | {plays} plays ---");
-        album(&gather::songs_from(entries, alb));
+        println!("    {} | {plays} plays", alb.name);
+        album(&gather::songs_from(entries, alb), 8);
     }
 }
 
 /// Prints each [`Song`] of `songs` with the playcount
-fn album(songs: &HashMap<Song, usize>) {
+///
+/// Preferably `songs` contains only songs from one album
+fn album(songs: &HashMap<Song, usize>, indent: usize) {
     // songs sorted by their playcount
     let songs_vec: Vec<(&Song, &usize)> = songs
         .iter()
         .sorted_unstable_by(|a, b| b.1.cmp(a.1))
         .collect_vec();
 
-    for (i, (song, plays)) in songs_vec.iter().enumerate() {
-        println!(
-            "{}: {song} | {plays} plays",
-            leading_whitespace(i + 1, songs_vec.len())
-        );
+    let indent = " ".repeat(indent);
+
+    for (song, plays) in songs_vec {
+        println!("{indent}{} | {plays} plays", song.name);
     }
 }
 
@@ -281,10 +282,12 @@ pub fn aspect_date(
     assert!(start <= end, "Start date is after end date!");
     let entries_within_dates = entries.between(start, end);
 
+    let (start, end) = normalize_dates(entries_within_dates, start, end);
+
     match *asp {
         AspectFull::Artist(art) => {
             println!(
-                "=== {} between {} and {} | {} plays ===",
+                "{} | between {} and {} | {} plays",
                 art,
                 start.date_naive(),
                 end.date_naive(),
@@ -297,17 +300,17 @@ pub fn aspect_date(
         }
         AspectFull::Album(alb) => {
             println!(
-                "=== {} between {} and {} | {} plays ===",
+                "{} | between {} and {} | {} plays",
                 alb,
                 start.date_naive(),
                 end.date_naive(),
                 gather::plays(entries_within_dates, alb)
             );
-            album(&gather::songs_from(entries_within_dates, alb));
+            album(&gather::songs_from(entries_within_dates, alb), 4);
         }
         AspectFull::Song(son) => {
             println!(
-                "{} between {} and {} | {} plays",
+                "{} | between {} and {} | {} plays",
                 son,
                 start.date_naive(),
                 end.date_naive(),
@@ -340,6 +343,7 @@ pub fn time_played(entries: &[SongEntry]) {
 pub fn time_played_date(entries: &SongEntries, start: &DateTime<Tz>, end: &DateTime<Tz>) {
     assert!(start <= end, "Start date is after end date!");
     let duration = gather::listening_time(entries.between(start, end));
+    let (start, end) = normalize_dates(entries, start, end);
     let period = *end - *start;
 
     println!(
@@ -354,6 +358,35 @@ pub fn time_played_date(entries: &SongEntries, start: &DateTime<Tz>, end: &DateT
         gather::all_plays(entries.between(start, end)) as i64 / period.num_days(),
         duration.num_hours() / period.num_days(),
     );
+}
+
+/// Used by `*_date` functions to set the start date to
+/// the first entry's date and the end date to the last entry's date
+/// if the inputted dates are before/after those dates
+fn normalize_dates<'a>(
+    entries: &'a [SongEntry],
+    start: &'a DateTime<Tz>,
+    end: &'a DateTime<Tz>,
+) -> (&'a DateTime<Tz>, &'a DateTime<Tz>) {
+    // if inputted start date is before the actual first entry
+    // it should be changed to the first entry's date
+    let first = entries.first().unwrap();
+    let start = if &first.timestamp > start {
+        &first.timestamp
+    } else {
+        start
+    };
+
+    // if inputted end date is after the actual last entry
+    // it should be changed to the last entry's date
+    let last = entries.last().unwrap();
+    let end = if &last.timestamp < end {
+        &last.timestamp
+    } else {
+        end
+    };
+
+    (start, end)
 }
 
 /// Formats `1` to ` #1` if user wishes for Top 10
