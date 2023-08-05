@@ -4,6 +4,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::Path;
+use std::rc::Rc;
 
 use chrono::{DateTime, Duration};
 use chrono_tz::Tz;
@@ -30,11 +31,11 @@ pub struct SongEntry {
     /// for how long the song has been played
     pub time_played: Duration,
     /// name of the song
-    pub track: String,
+    pub track: Rc<str>,
     /// name of the album
-    pub album: String,
+    pub album: Rc<str>,
     /// name of the artist
-    pub artist: String,
+    pub artist: Rc<str>,
     /// Spotify URI
     pub id: String,
 }
@@ -183,7 +184,8 @@ impl SongEntries {
         self.iter()
             .map(|entry| entry.artist.clone())
             .unique()
-            .collect::<Vec<String>>()
+            .map(|e| e.to_string())
+            .collect_vec()
     }
 
     /// Returns a [`Vec<String>`] with the names of the [`Albums`][Album]
@@ -194,7 +196,8 @@ impl SongEntries {
             .filter(|entry| artist.is_entry(entry))
             .map(|entry| entry.album.clone())
             .unique()
-            .collect::<Vec<String>>()
+            .map(|e| e.to_string())
+            .collect_vec()
     }
 
     /// Returns a [`Vec<String>`] with the names of the [`Songs`][Song]
@@ -205,7 +208,8 @@ impl SongEntries {
             .filter(|entry| aspect.is_entry(entry))
             .map(|entry| entry.track.clone())
             .unique()
-            .collect::<Vec<String>>()
+            .map(|e| e.to_string())
+            .collect_vec()
     }
 
     /// Returns the length of the song

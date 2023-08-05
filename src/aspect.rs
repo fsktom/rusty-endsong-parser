@@ -42,9 +42,12 @@
 //!
 //! You can also freely create insances of e.g. [`Artist`] and [`Album`] from [`Song`] using its [`From`] impls.
 //! See the specific struct [`From`] and [`AsRef`] impls for more info.
+//!
+//! Cloning each aspect or using [`From`] another aspect is O(1) because they use [`Rc`] internally.
 
 use std::cmp::Ordering;
 use std::fmt::Display;
+use std::rc::Rc;
 
 use crate::entry::SongEntry;
 
@@ -56,8 +59,7 @@ pub trait Music: Display + Clone + Eq + Ord {
 
     /// Checks if a [`SongEntry`] is a [`Music`] but case insensitive
     ///
-    /// Performs `.to_lowercase()` ONLY on `entry`, NOT on [`self`].
-    /// Make sure in advance that [`self`] fields are lowercase.
+    /// Performs `.to_lowercase()` on both `entry` and on [`self`].
     fn is_entry_lowercase(&self, entry: &SongEntry) -> bool;
 }
 
@@ -65,16 +67,25 @@ pub trait Music: Display + Clone + Eq + Ord {
 pub trait HasSongs: Music {}
 
 /// Struct for representing an artist
-#[derive(PartialEq, Eq, Hash, Debug, Clone, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Hash, Debug, PartialOrd, Ord)]
 pub struct Artist {
     /// Name of the artist
-    pub name: String,
+    pub name: Rc<str>,
 }
 impl Artist {
     /// Creates an instance of Artist
-    pub fn new<S: Into<String>>(artist_name: S) -> Artist {
+    pub fn new<S: Into<Rc<str>>>(artist_name: S) -> Artist {
         Artist {
             name: artist_name.into(),
+        }
+    }
+}
+impl Clone for Artist {
+    /// Clones the artist
+    /// with an [`Rc`], so cost of clone is O(1)
+    fn clone(&self) -> Self {
+        Artist {
+            name: Rc::clone(&self.name),
         }
     }
 }
@@ -86,30 +97,21 @@ impl Display for Artist {
 }
 impl From<&Artist> for Artist {
     /// Clones the artist
+    /// with an [`Rc`], so cost of clone is O(1)
     fn from(artist: &Artist) -> Self {
         artist.clone()
     }
 }
-impl From<Album> for Artist {
-    /// Consumes `alb` and returns its artist
-    fn from(alb: Album) -> Self {
-        alb.artist
-    }
-}
 impl From<&Album> for Artist {
     /// Clones the artist of `alb`
+    /// with an [`Rc`], so cost of clone is O(1)
     fn from(alb: &Album) -> Self {
         alb.artist.clone()
     }
 }
-impl From<Song> for Artist {
-    /// Consumes `son` and returns its artist
-    fn from(son: Song) -> Self {
-        son.album.artist
-    }
-}
 impl From<&Song> for Artist {
     /// Clones the artist of `son`
+    /// with an [`Rc`], so cost of clone is O(1)
     fn from(son: &Song) -> Self {
         son.album.artist.clone()
     }
@@ -117,9 +119,12 @@ impl From<&Song> for Artist {
 impl From<&SongEntry> for Artist {
     /// Creates an instance of Artist from a ref to [`SongEntry`]
     ///
-    /// Clones the artist name from `entry`
+    /// Clones the artist name from `entry` with an [`Rc`],
+    /// so cost of clone is O(1)
     fn from(entry: &SongEntry) -> Self {
-        Artist::new(&entry.artist)
+        Artist {
+            name: Rc::clone(&entry.artist),
+        }
     }
 }
 impl AsRef<Artist> for Artist {
@@ -132,25 +137,35 @@ impl Music for Artist {
         entry.artist == self.name
     }
     fn is_entry_lowercase(&self, entry: &SongEntry) -> bool {
-        entry.artist.to_lowercase() == self.name
+        entry.artist.to_lowercase() == self.name.to_lowercase()
     }
 }
 impl HasSongs for Artist {}
 
 /// Struct for representing an album
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Album {
     /// Name of the album
-    pub name: String,
+    pub name: Rc<str>,
     /// Artist of the album
     pub artist: Artist,
 }
 impl Album {
     /// Creates an instance of Album
-    pub fn new<S: Into<String>>(album_name: S, artist_name: S) -> Album {
+    pub fn new<S: Into<Rc<str>>>(album_name: S, artist_name: S) -> Album {
         Album {
             name: album_name.into(),
             artist: Artist::new(artist_name),
+        }
+    }
+}
+impl Clone for Album {
+    /// Clones the album
+    /// with an [`Rc`], so cost of clone is O(1)
+    fn clone(&self) -> Self {
+        Album {
+            name: Rc::clone(&self.name),
+            artist: self.artist.clone(),
         }
     }
 }
@@ -181,19 +196,15 @@ impl Ord for Album {
     }
 }
 impl From<&Album> for Album {
-    /// Clones the album
+    /// Clones the album with an [`Rc`],
+    /// so cost of clone is O(1)
     fn from(album: &Album) -> Self {
         album.clone()
     }
 }
-impl From<Song> for Album {
-    /// Consumes `son` and returns its album
-    fn from(son: Song) -> Self {
-        son.album
-    }
-}
 impl From<&Song> for Album {
-    /// Clones the album of `son`
+    /// Clones the album of `son` with an [`Rc`],
+    /// so cost of clone is O(1)
     fn from(son: &Song) -> Self {
         son.album.clone()
     }
@@ -201,9 +212,13 @@ impl From<&Song> for Album {
 impl From<&SongEntry> for Album {
     /// Creates an instance of Album from a ref to [`SongEntry`]
     ///
-    /// Clones the album and artist name from `entry`
+    /// Clones the album and artist name from `entry` with an [`Rc`],
+    /// so cost of clone is O(1)
     fn from(entry: &SongEntry) -> Self {
-        Album::new(&entry.album, &entry.artist)
+        Album {
+            name: Rc::clone(&entry.album),
+            artist: Artist::from(entry),
+        }
     }
 }
 impl AsRef<Album> for Album {
@@ -221,26 +236,37 @@ impl Music for Album {
         entry.artist == self.artist.name && entry.album == self.name
     }
     fn is_entry_lowercase(&self, entry: &SongEntry) -> bool {
-        entry.artist.to_lowercase() == self.artist.name && entry.album.to_lowercase() == self.name
+        entry.artist.to_lowercase() == self.artist.name.to_lowercase()
+            && entry.album.to_lowercase() == self.name.to_lowercase()
     }
 }
 impl HasSongs for Album {}
 
 /// Struct for representing a song
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Song {
     /// Name of the song
-    pub name: String,
+    pub name: Rc<str>,
     /// The album this song is from
     pub album: Album,
     // pub id: String,
 }
 impl Song {
     /// Creates an instance of Song
-    pub fn new<S: Into<String>>(song_name: S, album_name: S, artist_name: S) -> Song {
+    pub fn new<S: Into<Rc<str>>>(song_name: S, album_name: S, artist_name: S) -> Song {
         Song {
             name: song_name.into(),
             album: Album::new(album_name, artist_name),
+        }
+    }
+}
+impl Clone for Song {
+    /// Clones the song
+    /// with an [`Rc`], so cost of clone is O(1)
+    fn clone(&self) -> Self {
+        Song {
+            name: Rc::clone(&self.name),
+            album: self.album.clone(),
         }
     }
 }
@@ -293,9 +319,13 @@ impl From<&Song> for Song {
 impl From<&SongEntry> for Song {
     /// Creates an instance of Song from a ref to [`SongEntry`]
     ///
-    /// Clones the song, album and artist name from `entry`
+    /// Clones the song, album and artist name from `entry` with an [`Rc`],
+    /// so cost of clone is O(1)
     fn from(entry: &SongEntry) -> Self {
-        Song::new(&entry.track, &entry.album, &entry.artist)
+        Song {
+            name: Rc::clone(&entry.track),
+            album: Album::from(entry),
+        }
     }
 }
 impl AsRef<Song> for Song {
@@ -320,9 +350,9 @@ impl Music for Song {
             && entry.track == self.name
     }
     fn is_entry_lowercase(&self, entry: &SongEntry) -> bool {
-        entry.artist.to_lowercase() == self.album.artist.name
-            && entry.album.to_lowercase() == self.album.name
-            && entry.track.to_lowercase() == self.name
+        entry.artist.to_lowercase() == self.album.artist.name.to_lowercase()
+            && entry.album.to_lowercase() == self.album.name.to_lowercase()
+            && entry.track.to_lowercase() == self.name.to_lowercase()
     }
 }
 
@@ -337,7 +367,7 @@ mod tests {
         assert_eq!(
             Artist::new("Sabaton"),
             Artist {
-                name: "Sabaton".to_string()
+                name: Rc::from("Sabaton")
             }
         );
 
@@ -348,7 +378,7 @@ mod tests {
         assert_eq!(
             Album::new("Coat of Arms", "Sabaton"),
             Album {
-                name: "Coat of Arms".to_string(),
+                name: Rc::from("Coat of Arms"),
                 artist: Artist::new("Sabaton")
             }
         );
@@ -364,7 +394,7 @@ mod tests {
         assert_eq!(
             Song::new("The Final Solution", "Coat of Arms", "Sabaton"),
             Song {
-                name: "The Final Solution".to_string(),
+                name: Rc::from("The Final Solution"),
                 album: Album::new("Coat of Arms", "Sabaton")
             }
         );
@@ -504,17 +534,5 @@ mod tests {
             .unwrap() // unwrap ok bc there is at least one entry
             .timestamp;
         assert_eq!(last, entries.last_date());
-    }
-
-    /// Checks whether a type is safe to send across threads
-    fn is_normal<T: Sized + Send + Sync + Unpin>() {}
-
-    #[test]
-    fn normal_types() {
-        // https://youtu.be/Nzclc6MswaI?t=338
-        // thx jonhoo !
-        is_normal::<Artist>();
-        is_normal::<Album>();
-        is_normal::<Song>();
     }
 }

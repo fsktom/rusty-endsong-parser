@@ -5,6 +5,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::rc::Rc;
 
 use chrono::{DateTime, Duration, TimeZone};
 use chrono_tz::Tz;
@@ -55,15 +56,15 @@ struct Entry {
     /// Name of the song
     ///
     /// Option because the field will be empty if it's a podcast
-    master_metadata_track_name: Option<String>,
+    master_metadata_track_name: Option<Rc<str>>,
     /// Name of the artist
     ///
     /// Option because the field will be empty if it's a podcast
-    master_metadata_album_artist_name: Option<String>,
+    master_metadata_album_artist_name: Option<Rc<str>>,
     /// Name of the album
     ///
     /// Option because the field will be empty if it's a podcast
-    master_metadata_album_album_name: Option<String>,
+    master_metadata_album_album_name: Option<Rc<str>>,
     /// Spotify URI (ID)
     spotify_track_uri: Option<String>,
     /// TBD: Podcast stuff

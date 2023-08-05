@@ -35,6 +35,7 @@
 //! ```
 
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use chrono::Duration;
 use itertools::Itertools;
@@ -67,7 +68,7 @@ pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> Ha
     // the plays from all albums
     // key: (song name, artist)
     // value: HashMap of albums with number of plays of the song in that album
-    let mut songs_albums: HashMap<(String, Artist), HashMap<Album, usize>> =
+    let mut songs_albums: HashMap<(Rc<str>, Artist), HashMap<Album, usize>> =
         HashMap::with_capacity(songs.len());
     for (song, plays_song) in songs {
         let song_just_artist = (song.name, song.album.artist.clone());

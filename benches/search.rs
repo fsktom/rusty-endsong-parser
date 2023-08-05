@@ -29,14 +29,13 @@ fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Tz>, chrono::forma
     LOCATION_TZ.datetime_from_str(&date_str, "%FT%TZ")
 }
 
-#[allow(dead_code)]
-fn lol(c: &mut Criterion) {
+fn paths() -> [String; 10] {
     let root = match std::env::consts::OS {
         "windows" => r"C:\\Temp\\Endsong\\",
         "macos" => "/Users/filip/Other/Endsong/",
         _ => "/mnt/c/temp/Endsong/",
     };
-    let paths = [
+    [
         format!("{root}endsong_0.json"),
         format!("{root}endsong_1.json"),
         format!("{root}endsong_2.json"),
@@ -47,9 +46,12 @@ fn lol(c: &mut Criterion) {
         format!("{root}endsong_7.json"),
         format!("{root}endsong_8.json"),
         format!("{root}endsong_9.json"),
-    ];
+    ]
+}
 
-    let entries = black_box(SongEntries::new(&paths[..=2]).unwrap());
+#[allow(dead_code)]
+fn lol(c: &mut Criterion) {
+    let entries = black_box(SongEntries::new(&paths()[..=2]).unwrap());
 
     c.bench_function("artists_vec", |c| {
         c.iter(|| {
@@ -93,25 +95,7 @@ fn lol(c: &mut Criterion) {
 
 #[allow(dead_code)]
 fn kekw(c: &mut Criterion) {
-    let root = match std::env::consts::OS {
-        "windows" => r"C:\\Temp\\Endsong\\",
-        "macos" => "/Users/filip/Other/Endsong/",
-        _ => "/mnt/c/temp/Endsong/",
-    };
-    let paths = [
-        format!("{root}endsong_0.json"),
-        format!("{root}endsong_1.json"),
-        format!("{root}endsong_2.json"),
-        format!("{root}endsong_3.json"),
-        format!("{root}endsong_4.json"),
-        format!("{root}endsong_5.json"),
-        format!("{root}endsong_6.json"),
-        format!("{root}endsong_7.json"),
-        format!("{root}endsong_8.json"),
-        format!("{root}endsong_9.json"),
-    ];
-
-    let entries = black_box(SongEntries::new(&paths[7..=9]).unwrap());
+    let entries = black_box(SongEntries::new(&paths()[7..=9]).unwrap());
 
     let lth = Song::new(
         "Last Train Home",
@@ -146,23 +130,7 @@ fn kekw(c: &mut Criterion) {
 
 #[allow(dead_code)]
 fn parse(c: &mut Criterion) {
-    let root = match std::env::consts::OS {
-        "windows" => r"C:\\Temp\\Endsong\\",
-        "macos" => "/Users/filip/Other/Endsong/",
-        _ => "/mnt/c/temp/Endsong/",
-    };
-    let paths = [
-        format!("{root}endsong_0.json"),
-        format!("{root}endsong_1.json"),
-        format!("{root}endsong_2.json"),
-        format!("{root}endsong_3.json"),
-        format!("{root}endsong_4.json"),
-        format!("{root}endsong_5.json"),
-        format!("{root}endsong_6.json"),
-        format!("{root}endsong_7.json"),
-        format!("{root}endsong_8.json"),
-        format!("{root}endsong_9.json"),
-    ];
+    let paths = paths();
 
     c.bench_function("parse", |c| {
         c.iter(|| {
@@ -252,8 +220,30 @@ fn unique_sum(c: &mut Criterion) {
     });
 }
 
+#[allow(dead_code)]
+fn gather(c: &mut Criterion) {
+    let entries = black_box(SongEntries::new(&paths()[..=0]).unwrap());
+
+    c.bench_function("gather artists", |c| {
+        c.iter(|| {
+            black_box(gather::artists(&entries));
+        })
+    });
+    c.bench_function("gather albums", |c| {
+        c.iter(|| {
+            black_box(gather::albums(&entries));
+        })
+    });
+    c.bench_function("gather songs", |c| {
+        c.iter(|| {
+            black_box(gather::songs(&entries, true));
+        })
+    });
+}
+
 // criterion_group!(benches, lol);
 // criterion_group!(benches, kekw);
 // criterion_group!(benches, parse);
-criterion_group!(benches, unique_sum);
+// criterion_group!(benches, unique_sum);
+criterion_group!(benches, gather);
 criterion_main!(benches);

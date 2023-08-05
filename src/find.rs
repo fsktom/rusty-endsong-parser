@@ -12,7 +12,7 @@ use crate::entry::SongEntry;
 ///
 /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
 pub fn artist(entries: &[SongEntry], artist_name: &str) -> Option<Artist> {
-    let usr_artist = Artist::new(artist_name.to_lowercase());
+    let usr_artist = Artist::new(artist_name);
 
     entries
         .iter()
@@ -27,7 +27,7 @@ pub fn artist(entries: &[SongEntry], artist_name: &str) -> Option<Artist> {
 ///
 /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
 pub fn album(entries: &[SongEntry], album_name: &str, artist_name: &str) -> Option<Album> {
-    let usr_album = Album::new(album_name.to_lowercase(), artist_name.to_lowercase());
+    let usr_album = Album::new(album_name, artist_name);
 
     entries
         .iter()
@@ -48,11 +48,7 @@ pub fn song_from_album(
     album_name: &str,
     artist_name: &str,
 ) -> Option<Song> {
-    let usr_song = Song::new(
-        song_name.to_lowercase(),
-        album_name.to_lowercase(),
-        artist_name.to_lowercase(),
-    );
+    let usr_song = Song::new(song_name, album_name, artist_name);
 
     entries
         .iter()
