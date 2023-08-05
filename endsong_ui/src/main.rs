@@ -53,7 +53,7 @@ fn main() {
     ];
 
     let mut entries = SongEntries::new(&paths[..=0]).unwrap();
-    entries.filter(30);
+    entries.filter(30, Duration::seconds(10));
 
     // test(&entries);
     // test_two(&mut entries);
@@ -166,7 +166,7 @@ fn test_two(entries: &mut SongEntries) {
     dbg!(alb_dur.display(), ct_songs.len());
 
     dbg!(entries.len());
-    entries.filter(30);
+    entries.filter(30, Duration::seconds(5));
     dbg!(entries.len());
 }
 
