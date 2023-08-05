@@ -144,6 +144,7 @@ fn kekw(c: &mut Criterion) {
     });
 }
 
+#[allow(dead_code)]
 fn parse(c: &mut Criterion) {
     let root = match std::env::consts::OS {
         "windows" => r"C:\\Temp\\Endsong\\",
@@ -178,7 +179,81 @@ fn parse(c: &mut Criterion) {
     });
 }
 
+// not related to this at all but just curious xd
+#[allow(dead_code)]
+fn unique_sum(c: &mut Criterion) {
+    use std::collections::HashSet;
+
+    use itertools::Itertools;
+    use rand::Rng;
+
+    let nums = black_box(
+        (0..100000)
+            .map(|_| rand::thread_rng().gen_range(0..1000))
+            .collect_vec(),
+    );
+
+    c.bench_function("naive sum", |c| {
+        c.iter(|| {
+            let mut sum = 0;
+            let mut seen = Vec::<i32>::new();
+            for n in nums.iter() {
+                if !seen.contains(n) {
+                    sum += n;
+                    seen.push(*n);
+                }
+            }
+        })
+    });
+
+    c.bench_function("ok sum", |c| {
+        c.iter(|| {
+            let mut sum = 0;
+            let mut seen = HashSet::<i32>::new();
+            for n in nums.iter() {
+                if seen.contains(n) {
+                    continue;
+                }
+                sum += n;
+                seen.insert(*n);
+            }
+        })
+    });
+
+    c.bench_function("idk sum", |c| {
+        c.iter(|| {
+            let mut sum = 0;
+            let mut seen = HashSet::<i32>::new();
+            for n in nums.iter() {
+                seen.insert(*n);
+            }
+            for n in seen.iter() {
+                sum += n;
+            }
+        })
+    });
+
+    c.bench_function("probs best sum", |c| {
+        c.iter(|| {
+            let mut sum = 0;
+            let mut seen = HashSet::<i32>::new();
+            for n in nums.iter() {
+                if seen.insert(*n) {
+                    sum += n;
+                }
+            }
+        })
+    });
+
+    c.bench_function("iter sum", |c| {
+        c.iter(|| {
+            nums.iter().unique().sum::<i32>();
+        })
+    });
+}
+
 // criterion_group!(benches, lol);
 // criterion_group!(benches, kekw);
-criterion_group!(benches, parse);
+// criterion_group!(benches, parse);
+criterion_group!(benches, unique_sum);
 criterion_main!(benches);
