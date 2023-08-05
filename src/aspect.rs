@@ -249,7 +249,7 @@ pub struct Song {
     pub name: Rc<str>,
     /// The album this song is from
     pub album: Album,
-    // pub id: String,
+    // pub id: Rc<str>,
 }
 impl Song {
     /// Creates an instance of Song

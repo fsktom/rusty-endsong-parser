@@ -5,8 +5,10 @@ mod help;
 use std::borrow::Cow;
 use std::error::Error;
 use std::fmt::Display;
+use std::rc::Rc;
 
 use endsong::prelude::*;
+use itertools::Itertools;
 use plotly::Trace;
 use rustyline::{completion::Completer, Helper, Hinter, Validator};
 use rustyline::{
@@ -81,7 +83,7 @@ impl Error for InvalidArgumentError {}
 #[derive(Helper, Hinter, Validator)]
 struct ShellHelper {
     /// List containing all the possible completes for Tab
-    completer_list: Vec<String>,
+    completer_list: Vec<Rc<str>>,
 }
 impl ShellHelper {
     /// Creates a new [`ShellHelper`]
@@ -126,7 +128,8 @@ impl ShellHelper {
     }
 
     /// Changes tab-complete to the given list of valid inputs - list should be unsorted
-    fn complete_list(&mut self, completer_list: Vec<String>) {
+    /// because it will be sorted here anyway
+    fn complete_list(&mut self, completer_list: Vec<Rc<str>>) {
         self.completer_list = completer_list;
         self.completer_list.sort_unstable();
     }
@@ -250,11 +253,8 @@ impl Display for NotFoundError {
 impl Error for NotFoundError {}
 
 /// Converts a collection of [`&str`][str]s into a [`Vec<String>`]
-fn string_vec(slice: &[&str]) -> Vec<String> {
-    slice
-        .iter()
-        .map(std::string::ToString::to_string)
-        .collect::<Vec<String>>()
+fn string_vec(slice: &[&str]) -> Vec<Rc<str>> {
+    slice.iter().map(|s| Rc::from(*s)).collect_vec()
 }
 
 /// Starts the CLI/shell instance
@@ -409,11 +409,13 @@ fn match_print_max_time(
     rl: &mut Editor<ShellHelper, FileHistory>,
 ) -> Result<(), Box<dyn Error>> {
     // 1st prompt: duration in days or weeks
-    let valid_inputs = vec!["days".to_string(), "weeks".to_string()];
-    rl.helper_mut().unwrap().complete_list(valid_inputs.clone());
+    let valid_inputs = ["days", "weeks"];
+    rl.helper_mut()
+        .unwrap()
+        .complete_list(string_vec(&valid_inputs));
     println!("Input time period in days or weeks?");
     let duration_type = rl.readline(PROMPT_SECONDARY)?;
-    if !valid_inputs.contains(&duration_type) {
+    if !valid_inputs.iter().any(|&s| s == duration_type) {
         return Err(Box::new(InvalidArgumentError::DurationType));
     };
 

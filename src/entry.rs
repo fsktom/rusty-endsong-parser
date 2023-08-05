@@ -37,7 +37,7 @@ pub struct SongEntry {
     /// name of the artist
     pub artist: Rc<str>,
     /// Spotify URI
-    pub id: String,
+    pub id: Rc<str>,
 }
 impl PartialEq for SongEntry {
     fn eq(&self, other: &Self) -> bool {
@@ -178,37 +178,34 @@ impl SongEntries {
         (highest, start_max, end_max)
     }
 
-    /// Returns a [`Vec<String>`] with the names of all [`Artists`][Artist] in the dataset
+    /// Returns a [`Vec`] with the names of all [`Artists`][Artist] in the dataset
     #[must_use]
-    pub fn artists(&self) -> Vec<String> {
+    pub fn artists(&self) -> Vec<Rc<str>> {
         self.iter()
-            .map(|entry| entry.artist.clone())
+            .map(|entry| Rc::clone(&entry.artist))
             .unique()
-            .map(|e| e.to_string())
             .collect_vec()
     }
 
-    /// Returns a [`Vec<String>`] with the names of the [`Albums`][Album]
+    /// Returns a [`Vec`] with the names of the [`Albums`][Album]
     /// corresponding to the `artist`
     #[must_use]
-    pub fn albums(&self, artist: &Artist) -> Vec<String> {
+    pub fn albums(&self, artist: &Artist) -> Vec<Rc<str>> {
         self.iter()
             .filter(|entry| artist.is_entry(entry))
-            .map(|entry| entry.album.clone())
+            .map(|entry| Rc::clone(&entry.album))
             .unique()
-            .map(|e| e.to_string())
             .collect_vec()
     }
 
-    /// Returns a [`Vec<String>`] with the names of the [`Songs`][Song]
+    /// Returns a [`Vec`] with the names of the [`Songs`][Song]
     /// corresponding to the `aspect`
     #[must_use]
-    pub fn songs<Asp: HasSongs>(&self, aspect: &Asp) -> Vec<String> {
+    pub fn songs<Asp: HasSongs>(&self, aspect: &Asp) -> Vec<Rc<str>> {
         self.iter()
             .filter(|entry| aspect.is_entry(entry))
-            .map(|entry| entry.track.clone())
+            .map(|entry| Rc::clone(&entry.track))
             .unique()
-            .map(|e| e.to_string())
             .collect_vec()
     }
 

@@ -56,15 +56,15 @@ struct Entry {
     /// Name of the song
     ///
     /// Option because the field will be empty if it's a podcast
-    master_metadata_track_name: Option<Rc<str>>,
+    master_metadata_track_name: Option<String>,
     /// Name of the artist
     ///
     /// Option because the field will be empty if it's a podcast
-    master_metadata_album_artist_name: Option<Rc<str>>,
+    master_metadata_album_artist_name: Option<String>,
     /// Name of the album
     ///
     /// Option because the field will be empty if it's a podcast
-    master_metadata_album_album_name: Option<Rc<str>>,
+    master_metadata_album_album_name: Option<String>,
     /// Spotify URI (ID)
     spotify_track_uri: Option<String>,
     /// TBD: Podcast stuff
@@ -149,10 +149,10 @@ fn entry_to_songentry(entry: Entry) -> Option<SongEntry> {
         time_played: Duration::milliseconds(entry.ms_played),
         // unwrap() ok because we already checked for track_name above
         // if trackname isn't null then these fields aren't either
-        track: entry.master_metadata_track_name.unwrap(),
-        album: entry.master_metadata_album_album_name.unwrap(),
-        artist: entry.master_metadata_album_artist_name.unwrap(),
-        id: entry.spotify_track_uri.unwrap(),
+        track: Rc::from(entry.master_metadata_track_name.unwrap()),
+        album: Rc::from(entry.master_metadata_album_album_name.unwrap()),
+        artist: Rc::from(entry.master_metadata_album_artist_name.unwrap()),
+        id: Rc::from(entry.spotify_track_uri.unwrap()),
     })
 }
 
