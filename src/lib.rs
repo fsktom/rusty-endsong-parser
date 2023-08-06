@@ -1,18 +1,18 @@
 //! Library for getting data from Spotify endsong.json files
 
+// unsafe code is bad
 #![deny(unsafe_code)]
-// To require working docs
-#![warn(
-    missing_docs,
-    clippy::missing_docs_in_private_items,
-    rustdoc::broken_intra_doc_links,
-    rustdoc::private_intra_doc_links,
-    rustdoc::missing_crate_level_docs,
-    rustdoc::invalid_codeblock_attributes,
-    rustdoc::invalid_rust_codeblocks,
-    rustdoc::bare_urls
-)]
+// can be a pain, but it's worth it
+// for stupid suggestions use #[allow(clippy::...)]
 #![warn(clippy::pedantic)]
+// because I want to be explicit when cloning is cheap
+#![warn(clippy::clone_on_ref_ptr)]
+// doc lints, checked when compiling/running clippy
+#![warn(missing_docs, clippy::missing_docs_in_private_items)]
+// other doc lints, only checked when building docs
+// https://doc.rust-lang.org/rustdoc/lints.html
+// other good ones are warn by default
+#![warn(rustdoc::missing_crate_level_docs, rustdoc::unescaped_backticks)]
 
 pub mod aspect;
 pub mod entry;

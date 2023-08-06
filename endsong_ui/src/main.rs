@@ -3,19 +3,20 @@
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //!
 //! CLI application with which you can analyze Spotify endsong.json files
+
+// unsafe code is bad
 #![deny(unsafe_code)]
-// To require working docs
-#![warn(
-    missing_docs,
-    clippy::missing_docs_in_private_items,
-    rustdoc::broken_intra_doc_links,
-    rustdoc::private_intra_doc_links,
-    rustdoc::missing_crate_level_docs,
-    rustdoc::invalid_codeblock_attributes,
-    rustdoc::invalid_rust_codeblocks,
-    rustdoc::bare_urls
-)]
+// can be a pain, but it's worth it
+// for stupid suggestions use #[allow(clippy::...)]
 #![warn(clippy::pedantic)]
+// because I want to be explicit when cloning is cheap
+#![warn(clippy::clone_on_ref_ptr)]
+// doc lints, checked when compiling/running clippy
+#![warn(missing_docs, clippy::missing_docs_in_private_items)]
+// other doc lints, only checked when building docs
+// https://doc.rust-lang.org/rustdoc/lints.html
+// other good ones are warn by default
+#![warn(rustdoc::missing_crate_level_docs, rustdoc::unescaped_backticks)]
 
 mod plot;
 mod print;
@@ -52,8 +53,11 @@ fn main() {
         format!("{root}endsong_9.json"),
     ];
 
-    let mut entries = SongEntries::new(&paths[..=0]).unwrap();
-    entries.filter(30, Duration::seconds(10));
+    let entries = SongEntries::new(&paths[..=0]).unwrap();
+    // entries.filter(30, Duration::seconds(10));
+
+    let a = std::rc::Rc::new(2);
+    let _ = std::rc::Rc::clone(&a);
 
     // test(&entries);
     // test_two(&mut entries);
