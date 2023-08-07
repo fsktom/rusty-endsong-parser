@@ -243,7 +243,7 @@ fn gather(c: &mut Criterion) {
 
 // criterion_group!(benches, lol);
 // criterion_group!(benches, kekw);
-// criterion_group!(benches, parse);
+criterion_group!(benches, parse);
 // criterion_group!(benches, unique_sum);
-criterion_group!(benches, gather);
+// criterion_group!(benches, gather);
 criterion_main!(benches);

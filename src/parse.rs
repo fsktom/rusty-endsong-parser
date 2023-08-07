@@ -1,6 +1,7 @@
 //! Module responsible for deserializing the endsong.json files
 //! into usable Rust data types
 
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::Read;
@@ -129,31 +130,53 @@ fn parse_single<P: AsRef<Path>>(path: P) -> Result<Vec<SongEntry>, Box<dyn Error
     File::open(path)?.read_to_string(&mut file_contents)?;
     let full_entries: Vec<Entry> = serde_json::from_str(&file_contents)?;
 
+    let mut song_names: HashMap<String, Rc<str>> = HashMap::with_capacity(10_000);
+    let mut album_names: HashMap<String, Rc<str>> = HashMap::with_capacity(10_000);
+    let mut artist_names: HashMap<String, Rc<str>> = HashMap::with_capacity(5_000);
+
     // convert each Entry to a SongEntry (ignoring podcast streams)
     let song_entries = full_entries
         .into_iter()
-        .filter_map(entry_to_songentry)
+        .filter_map(|entry| {
+            entry_to_songentry(entry, &mut song_names, &mut album_names, &mut artist_names)
+        })
         .collect_vec();
 
     Ok(song_entries)
 }
 
 /// Converts the genral [`Entry`] to a more specific [`SongEntry`]
-fn entry_to_songentry(entry: Entry) -> Option<SongEntry> {
-    // to remove podcast entries
+fn entry_to_songentry(
+    entry: Entry,
+    song_names: &mut HashMap<String, Rc<str>>,
+    album_names: &mut HashMap<String, Rc<str>>,
+    artist_names: &mut HashMap<String, Rc<str>>,
+) -> Option<SongEntry> {
+    // ? to remove podcast entries
     // if the track is None, so are album and artist
-    entry.master_metadata_track_name.as_ref()?;
+
+    let track = map_rc_name(song_names, &entry.master_metadata_track_name?);
+    let album = map_rc_name(album_names, &entry.master_metadata_album_album_name?);
+    let artist = map_rc_name(artist_names, &entry.master_metadata_album_artist_name?);
 
     Some(SongEntry {
         timestamp: parse_date(&entry.ts),
         time_played: Duration::milliseconds(entry.ms_played),
-        // unwrap() ok because we already checked for track_name above
-        // if trackname isn't null then these fields aren't either
-        track: Rc::from(entry.master_metadata_track_name.unwrap()),
-        album: Rc::from(entry.master_metadata_album_album_name.unwrap()),
-        artist: Rc::from(entry.master_metadata_album_artist_name.unwrap()),
-        id: Rc::from(entry.spotify_track_uri.unwrap()),
+        track,
+        album,
+        artist,
+        id: entry.spotify_track_uri?,
     })
+}
+
+///
+fn map_rc_name(map: &mut HashMap<String, Rc<str>>, name: &str) -> Rc<str> {
+    if let Some(name_rc) = map.get(name) {
+        Rc::clone(name_rc)
+    } else {
+        map.insert(name.to_string(), Rc::from(name));
+        Rc::clone(map.get(name).unwrap())
+    }
 }
 
 /// Used by [`entry_to_songentry()`]

@@ -37,7 +37,7 @@ pub struct SongEntry {
     /// name of the artist
     pub artist: Rc<str>,
     /// Spotify URI
-    pub id: Rc<str>,
+    pub id: String,
 }
 impl PartialEq for SongEntry {
     fn eq(&self, other: &Self) -> bool {
