@@ -112,8 +112,13 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Erro
     // at least for me: about 15.8k-15.95k entries per file
     // to prevent reallocations?
     let mut song_entries: Vec<SongEntry> = Vec::with_capacity(16_000 * paths.len());
+
+    let mut song_names: HashMap<String, Rc<str>> = HashMap::with_capacity(10_000);
+    let mut album_names: HashMap<String, Rc<str>> = HashMap::with_capacity(10_000);
+    let mut artist_names: HashMap<String, Rc<str>> = HashMap::with_capacity(5_000);
+
     for path in paths {
-        let mut one = parse_single(path)?;
+        let mut one = parse_single(path, &mut song_names, &mut album_names, &mut artist_names)?;
         song_entries.append(&mut one);
     }
 
@@ -124,22 +129,21 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Erro
 }
 
 /// Responsible for parsing the a single `endsong.json` file into a vector of [`SongEntry`]
-fn parse_single<P: AsRef<Path>>(path: P) -> Result<Vec<SongEntry>, Box<dyn Error>> {
+fn parse_single<P: AsRef<Path>>(
+    path: P,
+    song_names: &mut HashMap<String, Rc<str>>,
+    album_names: &mut HashMap<String, Rc<str>>,
+    artist_names: &mut HashMap<String, Rc<str>>,
+) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     // https://github.com/serde-rs/json/issues/160#issuecomment-253446892
     let mut file_contents = String::new();
     File::open(path)?.read_to_string(&mut file_contents)?;
     let full_entries: Vec<Entry> = serde_json::from_str(&file_contents)?;
 
-    let mut song_names: HashMap<String, Rc<str>> = HashMap::with_capacity(10_000);
-    let mut album_names: HashMap<String, Rc<str>> = HashMap::with_capacity(10_000);
-    let mut artist_names: HashMap<String, Rc<str>> = HashMap::with_capacity(5_000);
-
     // convert each Entry to a SongEntry (ignoring podcast streams)
     let song_entries = full_entries
         .into_iter()
-        .filter_map(|entry| {
-            entry_to_songentry(entry, &mut song_names, &mut album_names, &mut artist_names)
-        })
+        .filter_map(|entry| entry_to_songentry(entry, song_names, album_names, artist_names))
         .collect_vec();
 
     Ok(song_entries)
@@ -169,7 +173,10 @@ fn entry_to_songentry(
     })
 }
 
+/// Checks if the given `name` is in the `map` and does [`Rc::clone`] on it
 ///
+/// If it's not in the map, it clones the String value into an
+/// [`Rc`] and inserts it into the map
 fn map_rc_name(map: &mut HashMap<String, Rc<str>>, name: &str) -> Rc<str> {
     if let Some(name_rc) = map.get(name) {
         Rc::clone(name_rc)
