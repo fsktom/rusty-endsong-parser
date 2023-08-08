@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4"
-chrono-tz = "0.8"
 endsong = { path = ".." }
 rustyline = { version = "12.*", features = ["derive"] }
 unicode-width = "0.1.10"
