@@ -25,12 +25,8 @@
 //! let _ = gather::albums_from_artist(&entries, &artist);
 //!
 //! // get albums from the artist in a given time period
-//! let start_date = LOCATION_TZ
-//!     .datetime_from_str("2020-12-14T00:00:00Z", "%FT%TZ")
-//!     .unwrap();
-//! let end_date = LOCATION_TZ
-//!     .datetime_from_str("2021-03-01T00:00:00Z", "%FT%TZ")
-//!     .unwrap();
+//! let start_date = Local.with_ymd_and_hms(2020, 11, 14, 0, 0, 0).unwrap();
+//! let end_date = Local.with_ymd_and_hms(2021, 3, 1, 0, 0, 0).unwrap();
 //! let _ = gather::albums_from_artist(entries.between(&start_date, &end_date), &artist);
 //! ```
 

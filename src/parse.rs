@@ -8,21 +8,11 @@ use std::io::Read;
 use std::path::Path;
 use std::rc::Rc;
 
-use chrono::{DateTime, Duration, TimeZone};
-use chrono_tz::Tz;
+use chrono::{DateTime, Duration, Local, TimeZone};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::entry::SongEntry;
-
-/// responsible for time zone handling
-///
-/// see issue #4 <https://github.com/fsktom/rusty-endsong-parser/issues/4>
-///
-/// used for parsing the timestamp from `endsong.json` relative to the user's time zone
-///
-/// Currently hard-coded to Europe/Berlin
-pub const LOCATION_TZ: Tz = chrono_tz::Europe::Berlin;
 
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
 // null values are either skipped (defaulted to unit tuple or are an Option)
@@ -188,12 +178,10 @@ fn map_rc_name(map: &mut HashMap<String, Rc<str>>, name: &str) -> Rc<str> {
 
 /// Used by [`entry_to_songentry()`]
 /// for parsing the date from an entry in `endsong.json`
-/// and adjusting for time zone and dst
-///
-/// Relies on [`LOCATION_TZ`]
-fn parse_date(ts: &str) -> DateTime<Tz> {
+/// and adjusting for local time zone and dst
+fn parse_date(ts: &str) -> DateTime<Local> {
     // timestamp is in "2016-07-21T01:02:07Z" format
     // in UTC!!!!!!!!!
     let ts = DateTime::parse_from_rfc3339(ts).unwrap();
-    LOCATION_TZ.from_utc_datetime(&ts.naive_utc())
+    Local.from_utc_datetime(&ts.naive_utc())
 }

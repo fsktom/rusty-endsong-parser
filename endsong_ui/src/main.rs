@@ -53,11 +53,8 @@ fn main() {
         format!("{root}endsong_9.json"),
     ];
 
-    let entries = SongEntries::new(&paths[..=0]).unwrap();
-    // entries.filter(30, Duration::seconds(10));
-
-    let a = std::rc::Rc::new(2);
-    let _ = std::rc::Rc::clone(&a);
+    let mut entries = SongEntries::new(&paths[..=0]).unwrap();
+    entries.filter(30, Duration::seconds(10));
 
     // test(&entries);
     // test_two(&mut entries);
@@ -109,10 +106,10 @@ fn test(entries: &SongEntries) {
         .song("Frozen Winds Of Thyraxia", "Wizardthrone",)
         .unwrap());
 
-    let start_date = LOCATION_TZ
+    let start_date = Local
         .datetime_from_str("2020-01-01T01:01:01Z", "%Y-%m-%dT%H:%M:%SZ")
         .unwrap();
-    let end_date = LOCATION_TZ
+    let end_date = Local
         .datetime_from_str("2022-07-01T01:01:01Z", "%Y-%m-%dT%H:%M:%SZ")
         .unwrap();
 

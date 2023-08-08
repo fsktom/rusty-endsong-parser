@@ -5,7 +5,7 @@ use itertools::Itertools;
 use plotly::{Scatter, Trace};
 
 /// Returns the dates of all occurrences of the `aspect` in ascending order
-fn find_dates<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> Vec<DateTime<Tz>> {
+fn find_dates<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> Vec<DateTime<Local>> {
     entries
         .iter()
         .filter(|entry| aspect.is_entry(entry))
@@ -19,10 +19,10 @@ fn find_dates<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> Vec<DateTime<T
 /// Recommended `resolution` is `Duration::days(1)`
 fn generate_dates(
     entries: &[SongEntry],
-    first: DateTime<Tz>,
+    first: DateTime<Local>,
     resolution: Duration,
-) -> Vec<DateTime<Tz>> {
-    let mut dates = Vec::<DateTime<Tz>>::new();
+) -> Vec<DateTime<Local>> {
+    let mut dates = Vec::<DateTime<Local>>::new();
 
     let mut head = first + resolution;
     let last = entries.last().unwrap().timestamp;
@@ -37,7 +37,7 @@ fn generate_dates(
 /// Formats date for x-axis`%Y-%m-%d %H:%M`
 ///
 /// To something like "2016-09-01 15:06"
-fn format_date(date: &DateTime<Tz>) -> String {
+fn format_date(date: &DateTime<Local>) -> String {
     date.format("%Y-%m-%d %H:%M").to_string()
 }
 

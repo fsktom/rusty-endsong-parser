@@ -19,8 +19,6 @@ pub mod entry;
 pub mod find;
 pub mod gather;
 
-pub use parse::LOCATION_TZ;
-
 mod parse;
 
 /// Re-exports the most commonly used items from this crate
@@ -33,9 +31,6 @@ pub mod prelude {
     pub use crate::aspect::{Album, Artist, Song};
     pub use crate::aspect::{HasSongs, Music};
 
-    pub use crate::LOCATION_TZ;
-
     // time and date related
-    pub use chrono::{DateTime, Duration, TimeZone};
-    pub use chrono_tz::Tz;
+    pub use chrono::{DateTime, Duration, Local, TimeZone};
 }

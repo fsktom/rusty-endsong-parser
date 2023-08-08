@@ -6,8 +6,7 @@ use std::error::Error;
 use std::path::Path;
 use std::rc::Rc;
 
-use chrono::{DateTime, Duration};
-use chrono_tz::Tz;
+use chrono::{DateTime, Duration, Local};
 use itertools::Itertools;
 
 use crate::aspect;
@@ -27,7 +26,7 @@ use aspect::{Album, Artist, HasSongs, Music, Song};
 #[allow(clippy::module_name_repetitions)]
 pub struct SongEntry {
     /// the time at which the song has been played
-    pub timestamp: DateTime<Tz>,
+    pub timestamp: DateTime<Local>,
     /// for how long the song has been played
     pub time_played: Duration,
     /// name of the song
@@ -86,7 +85,11 @@ impl SongEntries {
     ///
     /// Panics if `start` is after or equal to `end`
     #[must_use]
-    pub fn between<'a>(&'a self, start: &DateTime<Tz>, end: &DateTime<Tz>) -> &'a [SongEntry] {
+    pub fn between<'a>(
+        &'a self,
+        start: &DateTime<Local>,
+        end: &DateTime<Local>,
+    ) -> &'a [SongEntry] {
         assert!(start <= end, "Start date is after end date!");
 
         let begin = match self.binary_search_by(|entry| entry.timestamp.cmp(start)) {
@@ -116,7 +119,7 @@ impl SongEntries {
     ///
     /// Panics if the dataset is empty (but that should never happen)
     #[must_use]
-    pub fn first_date(&self) -> DateTime<Tz> {
+    pub fn first_date(&self) -> DateTime<Local> {
         // bc it's sorted (see parse.rs) -> first entry is the earliest
         self.iter().next().unwrap().timestamp
     }
@@ -127,7 +130,7 @@ impl SongEntries {
     ///
     /// Panics if the dataset is empty (but that should never happen)
     #[must_use]
-    pub fn last_date(&self) -> DateTime<Tz> {
+    pub fn last_date(&self) -> DateTime<Local> {
         // bc it's sorted (see parse.rs) -> last entry is the latest
         self.iter().next_back().unwrap().timestamp
     }
@@ -143,7 +146,7 @@ impl SongEntries {
     pub fn max_listening_time(
         &self,
         time_span: Duration,
-    ) -> (Duration, DateTime<Tz>, DateTime<Tz>) {
+    ) -> (Duration, DateTime<Local>, DateTime<Local>) {
         let first = self.first_date();
         let last = self.last_date();
 

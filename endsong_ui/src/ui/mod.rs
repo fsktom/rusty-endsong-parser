@@ -856,17 +856,11 @@ fn match_plot_song_relative(
 ///
 /// # Arguments
 /// * `usr_input` - in YYYY-MM-DD format or 'now' or 'start'
-pub fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Tz>, chrono::format::ParseError> {
+pub fn user_input_date_parser(
+    usr_input: &str,
+) -> Result<DateTime<Local>, chrono::format::ParseError> {
     let date_str = match usr_input {
-        "now" => {
-            return Ok(LOCATION_TZ
-                .timestamp_millis_opt(chrono::offset::Local::now().timestamp_millis())
-                .unwrap())
-        }
-        // TODO! not hardcode this lol -> actual earlierst entry in endsong
-        // -> problem with that: would have to pass &entries to this function
-        // actually not big problem, I could even put LOCATION_TZ as a field of it
-        // and not a constant :O
+        "now" | "end" => return Ok(Local::now()),
         "start" => String::from("1980-01-01T00:00:00Z"),
         // usr_input should be in YYYY-MM-DD format
         _ => format!("{usr_input}T00:00:00Z"),
@@ -874,15 +868,15 @@ pub fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Tz>, chrono::f
 
     // "%FT%TZ" is equivalent to "%Y-%m-%dT%H:%M:%SZ"
     // see <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>
-    LOCATION_TZ.datetime_from_str(&date_str, "%FT%TZ")
+    Local.datetime_from_str(&date_str, "%FT%TZ")
 }
 
-/// Used by `*_date()` functions for reading start and end dates from user
+/// Used by `*_date` functions for reading start and end dates from user
 ///
 /// Returns `(start_date, end_date)`
 fn read_dates(
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(DateTime<Tz>, DateTime<Tz>), Box<dyn Error>> {
+) -> Result<(DateTime<Local>, DateTime<Local>), Box<dyn Error>> {
     // make sure no wrong autocompletes appear
     rl.helper_mut().unwrap().reset();
 
@@ -974,7 +968,7 @@ mod tests {
         // correctly formatted input date
         assert_eq!(
             user_input_date_parser("2020-06-06").unwrap(),
-            LOCATION_TZ
+            Local
                 .datetime_from_str("2020-06-06T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ")
                 .unwrap()
         );

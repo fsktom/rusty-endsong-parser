@@ -236,8 +236,8 @@ fn album(songs: &HashMap<Song, usize>, indent: usize) {
 pub fn aspect_date(
     entries: &SongEntries,
     asp: &AspectFull,
-    start: &DateTime<Tz>,
-    end: &DateTime<Tz>,
+    start: &DateTime<Local>,
+    end: &DateTime<Local>,
 ) {
     assert!(start <= end, "Start date is after end date!");
     let entries_within_dates = entries.between(start, end);
@@ -297,7 +297,7 @@ pub fn time_played(entries: &SongEntries) {
 ///
 /// Panics if `start` is after or equal to `end`
 #[allow(clippy::cast_precision_loss)]
-pub fn time_played_date(entries: &SongEntries, start: &DateTime<Tz>, end: &DateTime<Tz>) {
+pub fn time_played_date(entries: &SongEntries, start: &DateTime<Local>, end: &DateTime<Local>) {
     assert!(start <= end, "Start date is after end date!");
     let duration = gather::listening_time(entries.between(start, end));
     let (start, end) = normalize_dates(entries, start, end);
@@ -322,9 +322,9 @@ pub fn time_played_date(entries: &SongEntries, start: &DateTime<Tz>, end: &DateT
 /// if the inputted dates are before/after those dates
 fn normalize_dates<'a>(
     entries: &'a [SongEntry],
-    start: &'a DateTime<Tz>,
-    end: &'a DateTime<Tz>,
-) -> (&'a DateTime<Tz>, &'a DateTime<Tz>) {
+    start: &'a DateTime<Local>,
+    end: &'a DateTime<Local>,
+) -> (&'a DateTime<Local>, &'a DateTime<Local>) {
     // if inputted start date is before the actual first entry
     // it should be changed to the first entry's date
     let first = entries.first().unwrap();
