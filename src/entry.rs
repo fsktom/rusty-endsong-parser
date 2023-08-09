@@ -161,7 +161,7 @@ impl SongEntries {
             _ => time_span,
         };
 
-        let mut highest = Duration::seconds(0);
+        let mut highest = Duration::zero();
         let mut start_max = first;
         let mut end_max = first + actual_time_span;
 

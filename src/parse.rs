@@ -1,7 +1,7 @@
 //! Module responsible for deserializing the endsong.json files
 //! into usable Rust data types
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::File;
 use std::io::Read;
@@ -23,7 +23,7 @@ use crate::entry::SongEntry;
 ///
 /// These are later "converted" to [`SongEntry`] if they represent a song stream.
 /// Podcast streams are ignored.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct Entry {
     /// timestamp in `"YYY-MM-DD 13:30:30"` format
     ts: String,
@@ -107,8 +107,16 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Erro
     let mut album_names: HashMap<String, Rc<str>> = HashMap::with_capacity(10_000);
     let mut artist_names: HashMap<String, Rc<str>> = HashMap::with_capacity(5_000);
 
+    let mut timestamps: HashSet<DateTime<Local>> = HashSet::with_capacity(16_000 * paths.len());
+
     for path in paths {
-        let mut one = parse_single(path, &mut song_names, &mut album_names, &mut artist_names)?;
+        let mut one = parse_single(
+            path,
+            &mut song_names,
+            &mut album_names,
+            &mut artist_names,
+            &mut timestamps,
+        )?;
         song_entries.append(&mut one);
     }
 
@@ -124,6 +132,7 @@ fn parse_single<P: AsRef<Path>>(
     song_names: &mut HashMap<String, Rc<str>>,
     album_names: &mut HashMap<String, Rc<str>>,
     artist_names: &mut HashMap<String, Rc<str>>,
+    timestamps: &mut HashSet<DateTime<Local>>,
 ) -> Result<Vec<SongEntry>, Box<dyn Error>> {
     // https://github.com/serde-rs/json/issues/160#issuecomment-253446892
     let mut file_contents = String::new();
@@ -133,7 +142,9 @@ fn parse_single<P: AsRef<Path>>(
     // convert each Entry to a SongEntry (ignoring podcast streams)
     let song_entries = full_entries
         .into_iter()
-        .filter_map(|entry| entry_to_songentry(entry, song_names, album_names, artist_names))
+        .filter_map(|entry| {
+            entry_to_songentry(entry, song_names, album_names, artist_names, timestamps)
+        })
         .collect_vec();
 
     Ok(song_entries)
@@ -145,7 +156,15 @@ fn entry_to_songentry(
     song_names: &mut HashMap<String, Rc<str>>,
     album_names: &mut HashMap<String, Rc<str>>,
     artist_names: &mut HashMap<String, Rc<str>>,
+    timestamps: &mut HashSet<DateTime<Local>>,
 ) -> Option<SongEntry> {
+    let timestamp = parse_date(&entry.ts);
+    // to remove entries with duplicate timestamps
+    // (bc Spotify is stupid sometimes)
+    if !timestamps.insert(timestamp) {
+        return None;
+    }
+
     // ? to remove podcast entries
     // if the track is None, so are album and artist
 
@@ -154,7 +173,7 @@ fn entry_to_songentry(
     let artist = map_rc_name(artist_names, &entry.master_metadata_album_artist_name?);
 
     Some(SongEntry {
-        timestamp: parse_date(&entry.ts),
+        timestamp,
         time_played: Duration::milliseconds(entry.ms_played),
         track,
         album,

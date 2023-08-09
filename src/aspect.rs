@@ -132,6 +132,12 @@ impl AsRef<Artist> for Artist {
         self
     }
 }
+impl AsRef<str> for Artist {
+    /// returns the artist name
+    fn as_ref(&self) -> &str {
+        &self.name
+    }
+}
 impl Music for Artist {
     fn is_entry(&self, entry: &SongEntry) -> bool {
         entry.artist == self.name
@@ -229,6 +235,12 @@ impl AsRef<Album> for Album {
 impl AsRef<Artist> for Album {
     fn as_ref(&self) -> &Artist {
         &self.artist
+    }
+}
+impl AsRef<str> for Album {
+    /// returns just the album name
+    fn as_ref(&self) -> &str {
+        &self.name
     }
 }
 impl Music for Album {
@@ -341,6 +353,12 @@ impl AsRef<Artist> for Song {
 impl AsRef<Album> for Song {
     fn as_ref(&self) -> &Album {
         &self.album
+    }
+}
+impl AsRef<str> for Song {
+    /// returns just the song name
+    fn as_ref(&self) -> &str {
+        &self.name
     }
 }
 impl Music for Song {
