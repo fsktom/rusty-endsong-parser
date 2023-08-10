@@ -1,6 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-// use endsong::plot;
 #[allow(unused_imports)]
 use endsong::prelude::*;
 
@@ -55,24 +54,6 @@ fn lol(c: &mut Criterion) {
             black_box(entries.albums(&powerwolf));
         })
     });
-
-    // c.bench_function("absolute", |c| {
-    //     c.iter(|| {
-    //         plot::absolute::aspect(&entries, &powerwolf);
-    //     })
-    // });
-    // c.bench_function("relative", |c| {
-    //     c.iter(|| {
-    //         plot::relative::to_all(&entries, &powerwolf);
-    //     })
-    // });
-
-    // let coat = black_box(Album::new("Coat of Arms", "Sabaton"));
-    // c.bench_function("relative_to_artist", |c| {
-    //     c.iter(|| {
-    //         plot::relative::to_artist(&entries, &coat);
-    //     })
-    // });
 
     let start = user_input_date_parser("2020-01-01").unwrap();
     let end = user_input_date_parser("2021-01-01").unwrap();
