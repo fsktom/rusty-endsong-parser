@@ -12,8 +12,8 @@ fn format_date(date: &DateTime<Local>) -> String {
 
 /// Creates a trace of the absolute amount of plays
 pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
-    let mut times = Vec::<String>::new();
-    let mut plays = Vec::<usize>::new();
+    let mut times = Vec::<String>::with_capacity(entries.len());
+    let mut plays = Vec::<usize>::with_capacity(entries.len());
 
     // since each date represents a single listen, we can just count up
     let mut aspect_plays = 1;
@@ -41,9 +41,9 @@ pub mod relative {
 
     /// Creates a trace of the amount of plays of an [`Music`] relative to all plays
     pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
-        let mut times = Vec::<String>::new();
+        let mut times = Vec::<String>::with_capacity(entries.len());
         // percentages relative to the sum of all plays
-        let mut plays = Vec::<f64>::new();
+        let mut plays = Vec::<f64>::with_capacity(entries.len());
 
         let first_aspect = entries.iter().find(|entry| aspect.is_entry(entry)).unwrap();
         let first_aspect_occ = entries
@@ -76,15 +76,15 @@ pub mod relative {
         entries: &SongEntries,
         aspect: &Asp,
     ) -> (Box<dyn Trace>, String) {
-        let mut times = Vec::<String>::new();
-        // percentages relative to the sum of respective artist plays
-        let mut plays = Vec::<f64>::new();
-
         // since it's relative to the artist, going through artist entries is enough
         let artist_entries = entries
             .iter()
             .filter(|entry| aspect.as_ref().is_entry(entry))
             .collect_vec();
+
+        let mut times = Vec::<String>::with_capacity(artist_entries.len());
+        // percentages relative to the sum of respective artist plays
+        let mut plays = Vec::<f64>::with_capacity(artist_entries.len());
 
         let first_aspect = artist_entries
             .iter()
@@ -118,15 +118,15 @@ pub mod relative {
     /// Creates a plot of the amount of plays of a [`Song`]
     /// relative to total plays of the corresponding [`Album`]
     pub fn to_album(entries: &SongEntries, song: &Song) -> (Box<dyn Trace>, String) {
-        let mut times = Vec::<String>::new();
-        // percentages relative to the sum of respective album plays
-        let mut plays = Vec::<f64>::new();
-
         // since it's relative to the album, going through album entries is enough
         let album_entries = entries
             .iter()
             .filter(|entry| song.album.is_entry(entry))
             .collect_vec();
+
+        let mut times = Vec::<String>::with_capacity(album_entries.len());
+        // percentages relative to the sum of respective album plays
+        let mut plays = Vec::<f64>::with_capacity(album_entries.len());
 
         let first_song = album_entries
             .iter()
