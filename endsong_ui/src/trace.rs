@@ -1,38 +1,7 @@
 //! Module for creating traces used in [`plot`][crate::plot]
 
 use endsong::prelude::*;
-use itertools::Itertools;
 use plotly::{Scatter, Trace};
-
-/// Returns the dates of all occurrences of the `aspect` in ascending order
-fn find_dates<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> Vec<DateTime<Local>> {
-    entries
-        .iter()
-        .filter(|entry| aspect.is_entry(entry))
-        .map(|entry| entry.timestamp)
-        .collect_vec()
-}
-
-/// Generates a [`Vec`] of [`DateTime`]s `resolution` apart going from
-/// from `first` to the last entry in `entries` in ascending order
-///
-/// Recommended `resolution` is `Duration::days(1)`
-fn generate_dates(
-    entries: &[SongEntry],
-    first: DateTime<Local>,
-    resolution: Duration,
-) -> Vec<DateTime<Local>> {
-    let mut dates = Vec::<DateTime<Local>>::new();
-
-    let mut head = first + resolution;
-    let last = entries.last().unwrap().timestamp;
-    while head < last {
-        dates.push(head);
-        head += resolution;
-    }
-
-    dates
-}
 
 /// Formats date for x-axis`%Y-%m-%d %H:%M`
 ///
@@ -46,15 +15,13 @@ pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Tra
     let mut times = Vec::<String>::new();
     let mut plays = Vec::<usize>::new();
 
-    let dates = find_dates(entries, aspect);
-
     // since each date represents a single listen, we can just count up
-    let mut amount_of_plays = 1;
+    let mut aspect_plays = 1;
 
-    for date in &dates {
-        times.push(format_date(date));
-        plays.push(amount_of_plays);
-        amount_of_plays += 1;
+    for entry in entries.iter().filter(|entry| aspect.is_entry(entry)) {
+        times.push(format_date(&entry.timestamp));
+        plays.push(aspect_plays);
+        aspect_plays += 1;
     }
 
     let title = format!("{aspect}");
@@ -67,12 +34,10 @@ pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Tra
 /// Either to all plays, the artist or the album
 pub mod relative {
     use endsong::prelude::*;
-    use itertools::PeekingNext;
+    use itertools::Itertools;
     use plotly::{Scatter, Trace};
 
-    use super::find_dates;
     use super::format_date;
-    use super::generate_dates;
 
     /// Creates a trace of the amount of plays of an [`Music`] relative to all plays
     pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
@@ -80,30 +45,23 @@ pub mod relative {
         // percentages relative to the sum of all plays
         let mut plays = Vec::<f64>::new();
 
-        let dates = find_dates(entries, aspect);
-
-        // for more resolution, we add an entry for each day
-        let mut all_dates = generate_dates(entries, *dates.first().unwrap(), Duration::days(1));
-        all_dates.extend_from_slice(&dates);
-        all_dates.sort_unstable();
-
-        let mut dates_iter = dates.iter();
-        dates_iter.next();
-
-        let sum_start = &entries.first_date();
+        let first_aspect = entries.iter().find(|entry| aspect.is_entry(entry)).unwrap();
+        let first_aspect_occ = entries
+            .binary_search_by_key(&first_aspect.timestamp, |entry| entry.timestamp)
+            .unwrap();
 
         // since each date represents a single listen, we can just count up
-        let mut amount_of_plays = 1.0;
-
+        let mut aspect_plays = 1.0;
         #[allow(clippy::cast_precision_loss)]
-        for date in &all_dates {
-            times.push(format_date(date));
-            let sum_of_all_plays = gather::all_plays(entries.between(sum_start, date)) as f64;
-            // *100 so that the percentage is easier to read...
-            plays.push(100.0 * (amount_of_plays / sum_of_all_plays));
+        let mut all_plays = entries[..=first_aspect_occ].len() as f64;
 
-            if dates_iter.peeking_next(|d| *d == date).is_some() {
-                amount_of_plays += 1.0;
+        for entry in &entries[first_aspect_occ + 1..] {
+            times.push(format_date(&entry.timestamp));
+            // *100 so that the percentage is easier to read...
+            plays.push(100.0 * (aspect_plays / all_plays));
+            all_plays += 1.0;
+            if aspect.is_entry(entry) {
+                aspect_plays += 1.0;
             }
         }
 
@@ -122,33 +80,33 @@ pub mod relative {
         // percentages relative to the sum of respective artist plays
         let mut plays = Vec::<f64>::new();
 
-        let dates = find_dates(entries, aspect);
-        let artist_dates = find_dates(entries, aspect.as_ref());
+        // since it's relative to the artist, going through artist entries is enough
+        let artist_entries = entries
+            .iter()
+            .filter(|entry| aspect.as_ref().is_entry(entry))
+            .collect_vec();
 
-        // for highest resolution, we take each artist occurrence (since it's relative to the artist)
-        let first_occ = artist_dates.binary_search(dates.first().unwrap()).unwrap();
+        let first_aspect = artist_entries
+            .iter()
+            .find(|entry| aspect.is_entry(entry))
+            .unwrap();
+        let first_aspect_occ = artist_entries
+            .binary_search_by_key(&first_aspect.timestamp, |entry| entry.timestamp)
+            .unwrap();
 
-        let mut dates_iter = dates.iter();
-        dates_iter.next();
-
-        // since each date represents a single listen, we can just count up
-        let mut amount_of_plays = 1.0;
-
+        let mut aspect_plays = 1.0;
         #[allow(clippy::cast_precision_loss)]
-        for date in &artist_dates[first_occ..] {
-            times.push(format_date(date));
+        let mut artist_plays = artist_entries[..=first_aspect_occ].len() as f64;
 
-            let end = match artist_dates.binary_search(date) {
-                Ok(i) => i,
-                Err(i) => i - 1,
-            };
-            let sum_of_artist_plays = artist_dates[..=end].len() as f64;
+        for entry in &artist_entries[first_aspect_occ + 1..] {
+            times.push(format_date(&entry.timestamp));
 
             // *100 so that the percentage is easier to read...
-            plays.push(100.0 * (amount_of_plays / sum_of_artist_plays));
+            plays.push(100.0 * (aspect_plays / artist_plays));
 
-            if dates_iter.peeking_next(|d| *d == date).is_some() {
-                amount_of_plays += 1.0;
+            artist_plays += 1.0;
+            if aspect.is_entry(entry) {
+                aspect_plays += 1.0;
             }
         }
 
@@ -159,39 +117,43 @@ pub mod relative {
 
     /// Creates a plot of the amount of plays of a [`Song`]
     /// relative to total plays of the corresponding [`Album`]
-    pub fn to_album(entries: &SongEntries, aspect: &Song) -> (Box<dyn Trace>, String) {
+    pub fn to_album(entries: &SongEntries, song: &Song) -> (Box<dyn Trace>, String) {
         let mut times = Vec::<String>::new();
         // percentages relative to the sum of respective album plays
         let mut plays = Vec::<f64>::new();
 
-        let dates = find_dates(entries, aspect);
-        let album_dates = find_dates(entries, &aspect.album);
+        // since it's relative to the album, going through album entries is enough
+        let album_entries = entries
+            .iter()
+            .filter(|entry| song.album.is_entry(entry))
+            .collect_vec();
 
-        // for the highest resolution, we take each album occurrence (since it's relative to the album)
-        let first_occ = album_dates.binary_search(dates.first().unwrap()).unwrap();
-
-        let mut dates_iter = dates.iter();
-        dates_iter.next();
+        let first_song = album_entries
+            .iter()
+            .find(|entry| song.is_entry(entry))
+            .unwrap();
+        let first_song_occ = album_entries
+            .binary_search_by_key(&first_song.timestamp, |entry| entry.timestamp)
+            .unwrap();
 
         // since each date represents a single listen, we can just count up
-        let mut amount_of_plays = 1.0;
-
+        let mut song_plays = 1.0;
         #[allow(clippy::cast_precision_loss)]
-        for date in &album_dates[first_occ..] {
-            times.push(format_date(date));
+        let mut album_plays = album_entries[..=first_song_occ].len() as f64;
 
-            let end = album_dates.binary_search(date).unwrap();
-            let sum_of_album_plays = album_dates[..=end].len() as f64;
+        for entry in &album_entries[first_song_occ + 1..] {
+            times.push(format_date(&entry.timestamp));
 
             // *100 so that the percentage is easier to read...
-            plays.push(100.0 * (amount_of_plays / sum_of_album_plays));
+            plays.push(100.0 * (song_plays / album_plays));
 
-            if dates_iter.peeking_next(|d| *d == date).is_some() {
-                amount_of_plays += 1.0;
+            album_plays += 1.0;
+            if song.is_entry(entry) {
+                song_plays += 1.0;
             }
         }
 
-        let title = format!("{aspect} | relative to the album");
+        let title = format!("{song} | relative to the album");
         let trace = Scatter::new(times, plays).name(&title);
         (trace, title)
     }
