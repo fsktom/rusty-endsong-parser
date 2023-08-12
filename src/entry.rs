@@ -75,6 +75,167 @@ impl SongEntries {
         Ok(SongEntries(parse::parse(paths)?))
     }
 
+    /// <https://github.com/fsktom/rusty-endsong-parser/issues/65>
+    ///
+    /// # Panics
+    /// TODO!
+    #[must_use]
+    pub fn sum_different_capitalization(mut self) -> Self {
+        // 1st: Albums
+        // if it's from the same artist and has the same name
+        // but different capitalization it's the same album
+        let albums = self.iter().map(Album::from).unique().collect_vec();
+
+        // key: (artist, album), value: all albums
+        let mut album_versions: HashMap<(Rc<str>, String), Vec<Rc<str>>> = HashMap::new();
+
+        for alb in &albums {
+            let lowercase = alb.name.to_lowercase();
+            let artist_name = Rc::clone(&alb.artist.name);
+
+            match album_versions.get_mut(&(Rc::clone(&artist_name), lowercase.clone())) {
+                Some(vec) => vec.push(Rc::clone(&alb.name)),
+                None => {
+                    album_versions.insert((artist_name, lowercase), vec![Rc::clone(&alb.name)]);
+                }
+            }
+        }
+
+        // the last album in the vector is the one that will be kept
+        // cause it's the most recent one
+        // key: (artist, album), value: newest album
+        let mut album_mappings: HashMap<(Rc<str>, Rc<str>), Rc<str>> = HashMap::new();
+
+        for alb in &albums {
+            let a = album_versions
+                .get(&(Rc::clone(&alb.artist.name), alb.name.to_lowercase()))
+                .unwrap();
+
+            if a.len() < 2 {
+                continue;
+            }
+
+            album_mappings.insert(
+                (Rc::clone(&alb.artist.name), Rc::clone(&alb.name)),
+                Rc::clone(a.last().unwrap()),
+            );
+        }
+
+        for entry in self.iter_mut() {
+            if let Some(new_alb) =
+                album_mappings.get(&(Rc::clone(&entry.artist), Rc::clone(&entry.album)))
+            {
+                entry.album = Rc::clone(new_alb);
+            }
+        }
+
+        // 2nd: Songs
+        // if it's from the same artist, has the same album and has the same name
+        // but different capitalization it's the same song
+        // !! doing this after the iteration of changing album names !!
+        let songs = self.iter().map(Song::from).unique().collect_vec();
+
+        let mut song_versions: HashMap<(Rc<str>, Rc<str>, String), Vec<Rc<str>>> = HashMap::new();
+
+        for song in &songs {
+            let lowercase = song.name.to_lowercase();
+            let album_anme = Rc::clone(&song.album.name);
+            let artist_name = Rc::clone(&song.album.artist.name);
+
+            match song_versions.get_mut(&(
+                Rc::clone(&artist_name),
+                Rc::clone(&album_anme),
+                lowercase.clone(),
+            )) {
+                Some(vec) => vec.push(Rc::clone(&song.name)),
+                None => {
+                    song_versions.insert(
+                        (artist_name, album_anme, lowercase),
+                        vec![Rc::clone(&song.name)],
+                    );
+                }
+            }
+        }
+
+        // the last songs in the vector is the one that will be kept
+        // cause it's the most recent one
+        // key: (artist, album, song), value: newest song
+        let mut song_mappings: HashMap<(Rc<str>, Rc<str>, Rc<str>), Rc<str>> = HashMap::new();
+
+        for song in &songs {
+            let a = song_versions
+                .get(&(
+                    Rc::clone(&song.album.artist.name),
+                    Rc::clone(&song.album.name),
+                    song.name.to_lowercase(),
+                ))
+                .unwrap();
+
+            if a.len() < 2 {
+                continue;
+            }
+
+            song_mappings.insert(
+                (
+                    Rc::clone(&song.album.artist.name),
+                    Rc::clone(&song.album.name),
+                    Rc::clone(&song.name),
+                ),
+                Rc::clone(a.last().unwrap()),
+            );
+        }
+
+        for entry in self.iter_mut() {
+            if let Some(new_song) = song_mappings.get(&(
+                Rc::clone(&entry.artist),
+                Rc::clone(&entry.album),
+                Rc::clone(&entry.track),
+            )) {
+                entry.track = Rc::clone(new_song);
+            }
+        }
+
+        self
+    }
+
+    /// Filters out song entries that have been played
+    /// below a certain threshold of their duration
+    /// or below a certain absolute [`Duration`]
+    ///
+    /// # Arguments
+    ///
+    /// `percent_threshold` - a value between 0 and 100 (%); a good default is `30`
+    /// `absolute_threshold` - all songs below this [`Duration`]
+    /// will be filtered out; a good default is `Duration::seconds(10)`
+    ///
+    /// # Panics
+    ///
+    /// Will panic if `threshhold` is below 0 or above 100
+    #[must_use]
+    pub fn filter(mut self, percent_threshold: i32, absolute_threshold: Duration) -> Self {
+        assert!(
+            (0..=100).contains(&percent_threshold),
+            "Threshold has to be between 0 and 100"
+        );
+
+        let durations = self.song_durations();
+
+        // discards every entry whose time_played is below the
+        // threshhold percentage of its duration
+        self.retain(|entry| {
+            // retain is supposed to preserve the order so I don't have to sort again?
+            let (_, dur) = durations
+                .iter()
+                .find(|(son, _)| son.is_entry(entry))
+                .unwrap();
+
+            entry.time_played >= (*dur * percent_threshold) / 100
+                && entry.time_played >= absolute_threshold
+        });
+
+        self
+    }
+
     /// Returns a slice of [`SongEntry`]s between the given dates
     ///
     /// This slice can be used in functions in [`gather`] to gather data between the given dates
@@ -320,41 +481,6 @@ impl SongEntries {
                 (song.clone(), *dur)
             })
             .collect()
-    }
-
-    /// Filters out song entries that have been played
-    /// below a certain threshold of their duration
-    /// or below a certain absolute [`Duration`]
-    ///
-    /// # Arguments
-    ///
-    /// `percent_threshold` - a value between 0 and 100 (%); a good default is `30`
-    /// `absolute_threshold` - all songs below this [`Duration`]
-    /// will be filtered out; a good default is `Duration::seconds(10)`
-    ///
-    /// # Panics
-    ///
-    /// Will panic if `threshhold` is below 0 or above 100
-    pub fn filter(&mut self, percent_threshold: i32, absolute_threshold: Duration) {
-        assert!(
-            (0..=100).contains(&percent_threshold),
-            "Threshold has to be between 0 and 100"
-        );
-
-        let durations = self.song_durations();
-
-        // discards every entry whose time_played is below the
-        // threshhold percentage of its duration
-        self.retain(|entry| {
-            // retain is supposed to preserve the order so I don't have to sort again?
-            let (_, dur) = durations
-                .iter()
-                .find(|(son, _)| son.is_entry(entry))
-                .unwrap();
-
-            entry.time_played >= (*dur * percent_threshold) / 100
-                && entry.time_played >= absolute_threshold
-        });
     }
 }
 // https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2

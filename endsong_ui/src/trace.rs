@@ -72,14 +72,14 @@ pub mod relative {
 
     /// Creates a plot of the amount of plays of an [`Album`] or [`Song`]
     /// relative to total plays of the corresponding [`Artist`]
-    pub fn to_artist<Asp: AsRef<Artist> + Music>(
+    pub fn to_artist<Asp: AsRef<Album> + Music>(
         entries: &SongEntries,
         aspect: &Asp,
     ) -> (Box<dyn Trace>, String) {
         // since it's relative to the artist, going through artist entries is enough
         let artist_entries = entries
             .iter()
-            .filter(|entry| aspect.as_ref().is_entry(entry))
+            .filter(|entry| aspect.as_ref().artist.is_entry(entry))
             .collect_vec();
 
         let mut times = Vec::<String>::with_capacity(artist_entries.len());
