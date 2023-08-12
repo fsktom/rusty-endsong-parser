@@ -2,6 +2,8 @@
 //! and [`SongEntries`] which is a collection of [`SongEntry`]s
 //!
 //! ```
+//! use endsong::prelude::*;
+//!
 //! let paths = vec![format!(
 //!     "{}/stuff/example_endsong/endsong_0.json",
 //!     std::env::current_dir().unwrap().display()
