@@ -169,11 +169,12 @@ impl Completer for ShellHelper {
         _ctx: &rustyline::Context<'_>,
     ) -> rustyline::Result<(usize, Vec<Self::Candidate>)> {
         let word = &line[0..pos];
-        let mut possibilities = vec![];
-        self.completer_list
+        let possibilities = self
+            .completer_list
             .iter()
-            .filter(|compl| compl.starts_with(word))
-            .for_each(|w| possibilities.push(w.to_string()));
+            .filter(|possible| possible.to_lowercase().starts_with(&word.to_lowercase()))
+            .map(ToString::to_string)
+            .collect_vec();
         // assumes no escape characters...
         Ok((0, possibilities))
     }
