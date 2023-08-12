@@ -212,9 +212,23 @@ fn gather(c: &mut Criterion) {
     });
 }
 
+#[allow(dead_code)]
+fn capitalization(c: &mut Criterion) {
+    c.bench_function("parse and sum diff capitalization", |c| {
+        c.iter(|| {
+            black_box(
+                SongEntries::new(&paths()[..=0])
+                    .unwrap()
+                    .sum_different_capitalization(),
+            );
+        })
+    });
+}
+
 // criterion_group!(benches, lol);
 // criterion_group!(benches, kekw);
-criterion_group!(benches, parse);
+// criterion_group!(benches, parse);
 // criterion_group!(benches, unique_sum);
 // criterion_group!(benches, gather);
+criterion_group!(benches, capitalization);
 criterion_main!(benches);

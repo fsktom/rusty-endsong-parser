@@ -117,7 +117,7 @@ impl From<&Song> for Artist {
     }
 }
 impl From<&SongEntry> for Artist {
-    /// Creates an instance of Artist from a ref to [`SongEntry`]
+    /// Creates an instance of [`Artist`] from a ref to [`SongEntry`]
     ///
     /// Clones the artist name from `entry` with an [`Rc`],
     /// so cost of clone is O(1)
@@ -216,7 +216,7 @@ impl From<&Song> for Album {
     }
 }
 impl From<&SongEntry> for Album {
-    /// Creates an instance of Album from a ref to [`SongEntry`]
+    /// Creates an instance of [`Album`] from a ref to [`SongEntry`]
     ///
     /// Clones the album and artist name from `entry` with an [`Rc`],
     /// so cost of clone is O(1)
@@ -329,7 +329,7 @@ impl From<&Song> for Song {
     }
 }
 impl From<&SongEntry> for Song {
-    /// Creates an instance of Song from a ref to [`SongEntry`]
+    /// Creates an instance of [`Song`] from a ref to [`SongEntry`]
     ///
     /// Clones the song, album and artist name from `entry` with an [`Rc`],
     /// so cost of clone is O(1)

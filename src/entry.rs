@@ -1,5 +1,17 @@
 //! Module containing representation of a single song stream in endsong.json [`SongEntry`]
 //! and [`SongEntries`] which is a collection of [`SongEntry`]s
+//!
+//! ```
+//! let paths = vec![format!(
+//!     "{}/stuff/example_endsong/endsong_0.json",
+//!     std::env::current_dir().unwrap().display()
+//! )];
+//!
+//! let entries = SongEntries::new(&paths)
+//!     .unwrap()
+//!     .sum_different_capitalization()
+//!     .filter(30, Duration::seconds(10));
+//! ```
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -75,56 +87,64 @@ impl SongEntries {
         Ok(SongEntries(parse::parse(paths)?))
     }
 
-    /// <https://github.com/fsktom/rusty-endsong-parser/issues/65>
+    /// Sometimes an artist changes the capitalization of their album
+    /// or song names. Using this function will change the capitalization
+    /// of the album and song names to the most recent ones.
     ///
-    /// # Panics
-    /// TODO!
+    /// So that you don't have separate albums listed if they're basically
+    /// the same, just with different capitalization.
+    ///
+    /// E.g. if you have albums called "Fixed" and "FIXED" from the same artist,
+    /// it would change all the occurrences of "Fixed" to "FIXED"
+    /// (if "FIXED" were the most recent one)
+    ///
+    /// See [issue #65] for details
+    ///
+    /// [issue #65]: https://github.com/fsktom/rusty-endsong-parser/issues/65
     #[must_use]
+    #[allow(clippy::missing_panics_doc)]
     pub fn sum_different_capitalization(mut self) -> Self {
         // 1st: Albums
         // if it's from the same artist and has the same name
         // but different capitalization it's the same album
         let albums = self.iter().map(Album::from).unique().collect_vec();
 
-        // key: (artist, album), value: all albums
-        let mut album_versions: HashMap<(Rc<str>, String), Vec<Rc<str>>> = HashMap::new();
+        // key: (artist, lowercase album name), value: all album names
+        let mut album_versions: HashMap<(Artist, String), Vec<Rc<str>>> = HashMap::new();
 
         for alb in &albums {
             let lowercase = alb.name.to_lowercase();
-            let artist_name = Rc::clone(&alb.artist.name);
+            let artist = Artist::from(alb);
 
-            match album_versions.get_mut(&(Rc::clone(&artist_name), lowercase.clone())) {
+            match album_versions.get_mut(&(artist.clone(), lowercase.clone())) {
                 Some(vec) => vec.push(Rc::clone(&alb.name)),
                 None => {
-                    album_versions.insert((artist_name, lowercase), vec![Rc::clone(&alb.name)]);
+                    album_versions.insert((artist, lowercase), vec![Rc::clone(&alb.name)]);
                 }
             }
         }
 
         // the last album in the vector is the one that will be kept
         // cause it's the most recent one
-        // key: (artist, album), value: newest album
-        let mut album_mappings: HashMap<(Rc<str>, Rc<str>), Rc<str>> = HashMap::new();
+        // key: albym, value: newest album name
+        let mut album_mappings: HashMap<Album, Rc<str>> = HashMap::new();
 
-        for alb in &albums {
-            let a = album_versions
-                .get(&(Rc::clone(&alb.artist.name), alb.name.to_lowercase()))
+        for alb in albums {
+            let artist = Artist::from(&alb);
+            let versions = album_versions
+                .get(&(artist, alb.name.to_lowercase()))
                 .unwrap();
 
-            if a.len() < 2 {
+            if versions.len() < 2 {
                 continue;
             }
 
-            album_mappings.insert(
-                (Rc::clone(&alb.artist.name), Rc::clone(&alb.name)),
-                Rc::clone(a.last().unwrap()),
-            );
+            album_mappings.insert(alb, Rc::clone(versions.last().unwrap()));
         }
 
         for entry in self.iter_mut() {
-            if let Some(new_alb) =
-                album_mappings.get(&(Rc::clone(&entry.artist), Rc::clone(&entry.album)))
-            {
+            let album = Album::from(&entry.clone());
+            if let Some(new_alb) = album_mappings.get(&(album)) {
                 entry.album = Rc::clone(new_alb);
             }
         }
@@ -135,62 +155,42 @@ impl SongEntries {
         // !! doing this after the iteration of changing album names !!
         let songs = self.iter().map(Song::from).unique().collect_vec();
 
-        let mut song_versions: HashMap<(Rc<str>, Rc<str>, String), Vec<Rc<str>>> = HashMap::new();
+        // key: (album, lowercase song name), value: all song names
+        let mut song_versions: HashMap<(Album, String), Vec<Rc<str>>> = HashMap::new();
 
         for song in &songs {
             let lowercase = song.name.to_lowercase();
-            let album_anme = Rc::clone(&song.album.name);
-            let artist_name = Rc::clone(&song.album.artist.name);
+            let album = Album::from(song);
 
-            match song_versions.get_mut(&(
-                Rc::clone(&artist_name),
-                Rc::clone(&album_anme),
-                lowercase.clone(),
-            )) {
+            match song_versions.get_mut(&(album.clone(), lowercase.clone())) {
                 Some(vec) => vec.push(Rc::clone(&song.name)),
                 None => {
-                    song_versions.insert(
-                        (artist_name, album_anme, lowercase),
-                        vec![Rc::clone(&song.name)],
-                    );
+                    song_versions.insert((album, lowercase), vec![Rc::clone(&song.name)]);
                 }
             }
         }
 
         // the last songs in the vector is the one that will be kept
         // cause it's the most recent one
-        // key: (artist, album, song), value: newest song
-        let mut song_mappings: HashMap<(Rc<str>, Rc<str>, Rc<str>), Rc<str>> = HashMap::new();
+        // key: song, value: newest song name
+        let mut song_mappings: HashMap<Song, Rc<str>> = HashMap::new();
 
-        for song in &songs {
-            let a = song_versions
-                .get(&(
-                    Rc::clone(&song.album.artist.name),
-                    Rc::clone(&song.album.name),
-                    song.name.to_lowercase(),
-                ))
+        for song in songs {
+            let album = Album::from(&song);
+            let versions = song_versions
+                .get(&(album, song.name.to_lowercase()))
                 .unwrap();
 
-            if a.len() < 2 {
+            if versions.len() < 2 {
                 continue;
             }
 
-            song_mappings.insert(
-                (
-                    Rc::clone(&song.album.artist.name),
-                    Rc::clone(&song.album.name),
-                    Rc::clone(&song.name),
-                ),
-                Rc::clone(a.last().unwrap()),
-            );
+            song_mappings.insert(song, Rc::clone(versions.last().unwrap()));
         }
 
         for entry in self.iter_mut() {
-            if let Some(new_song) = song_mappings.get(&(
-                Rc::clone(&entry.artist),
-                Rc::clone(&entry.album),
-                Rc::clone(&entry.track),
-            )) {
+            let song = Song::from(&entry.clone());
+            if let Some(new_song) = song_mappings.get(&song) {
                 entry.track = Rc::clone(new_song);
             }
         }
