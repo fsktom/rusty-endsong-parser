@@ -11,6 +11,7 @@ fn format_date(date: &DateTime<Local>) -> String {
 }
 
 /// Creates a trace of the absolute amount of plays
+#[must_use]
 pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
     let mut times = Vec::<String>::with_capacity(entries.len());
     let mut plays = Vec::<usize>::with_capacity(entries.len());
@@ -40,6 +41,12 @@ pub mod relative {
     use super::format_date;
 
     /// Creates a trace of the amount of plays of an [`Music`] relative to all plays
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the given `aspect` is not in `entries`.
+    /// Use [`endsong::find`] beforehand to make sure it's there
+    #[must_use]
     pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
         let mut times = Vec::<String>::with_capacity(entries.len());
         // percentages relative to the sum of all plays
@@ -72,6 +79,12 @@ pub mod relative {
 
     /// Creates a plot of the amount of plays of an [`Album`] or [`Song`]
     /// relative to total plays of the corresponding [`Artist`]
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the given `aspect` is not in `entries`.
+    /// Use [`endsong::find`] beforehand to make sure it's there
+    #[must_use]
     pub fn to_artist<Asp: AsRef<Album> + Music>(
         entries: &SongEntries,
         aspect: &Asp,
@@ -117,6 +130,12 @@ pub mod relative {
 
     /// Creates a plot of the amount of plays of a [`Song`]
     /// relative to total plays of the corresponding [`Album`]
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the given `song` is not in `entries`.
+    /// Use [`endsong::find`] beforehand to make sure it's there
+    #[must_use]
     pub fn to_album(entries: &SongEntries, song: &Song) -> (Box<dyn Trace>, String) {
         // since it's relative to the album, going through album entries is enough
         let album_entries = entries

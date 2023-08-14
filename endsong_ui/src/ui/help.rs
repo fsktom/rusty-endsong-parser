@@ -59,7 +59,7 @@ fn print(title: &str, commands: &[[&str; 3]]) {
 /// lines instead
 ///
 /// # Examples
-/// ```
+/// ```ignore
 /// assert_eq!(
 ///     adjust_length("print top artists", 20),
 ///     "   print top artists"

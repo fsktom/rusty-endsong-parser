@@ -4,5 +4,38 @@
 //!
 //! CLI application with which you can analyze Spotify endsong.json files
 
-// only exposing trace to benchmark it
+// unsafe code is bad
+#![deny(unsafe_code)]
+// can be a pain, but it's worth it
+// for stupid suggestions use #[allow(clippy::...)]
+#![warn(clippy::pedantic)]
+// because I want to be explicit when cloning is cheap
+#![warn(clippy::clone_on_ref_ptr)]
+// doc lints, checked when compiling/running clippy
+#![warn(missing_docs, clippy::missing_docs_in_private_items)]
+// other doc lints, only checked when building docs
+// https://doc.rust-lang.org/rustdoc/lints.html
+// other good ones are warn by default
+#![warn(rustdoc::missing_crate_level_docs, rustdoc::unescaped_backticks)]
+
+pub mod plot;
+pub mod print;
 pub mod trace;
+pub mod ui;
+
+/// Prelude containing all the modules,
+/// a function for parsing dates, some structs used for printing,
+/// and a trait to add a method to [`Duration`][endsong::prelude::Duration]
+pub mod prelude {
+    pub use crate::plot;
+    pub use crate::print;
+    pub use crate::trace;
+    pub use crate::ui;
+
+    pub use ui::user_input_date_parser as parse_date;
+
+    pub use print::Aspect;
+    pub use print::AspectFull;
+    pub use print::DurationUtils;
+    pub use print::Mode;
+}

@@ -281,6 +281,7 @@ pub fn aspect_date(
 }
 
 /// Prints the total time played
+#[allow(clippy::missing_panics_doc)]
 pub fn time_played(entries: &SongEntries) {
     time_played_date(
         entries,
@@ -359,7 +360,7 @@ fn normalize_dates<'a>(
 /// Panics if `num` or `max_num` is 0
 ///
 /// # Examples
-/// ```
+/// ```ignore
 /// assert_eq!(leading_whitespace(7usize, 100usize), "  #7");
 /// assert_eq!(leading_whitespace(7usize, 1000usize), "   #7");
 /// ```

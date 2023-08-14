@@ -512,6 +512,8 @@ impl<P: AsRef<Path>> TryFrom<&[P]> for SongEntries {
 }
 
 /// Used by [`SongEntries`] as a wrapper for [`find`] methods
+///
+/// Created with [`SongEntries::find`]
 pub struct Find<'a>(&'a SongEntries);
 impl<'a> Find<'a> {
     /// Searches the entries for if the given artist exists in the dataset

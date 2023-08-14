@@ -32,24 +32,24 @@ fn traces(c: &mut Criterion) {
 
     c.bench_function("absolute", |c| {
         c.iter(|| {
-            trace::absolute(&entries, &powerwolf);
+            black_box(trace::absolute(&entries, &powerwolf));
         })
     });
     c.bench_function("relative", |c| {
         c.iter(|| {
-            trace::relative::to_all(&entries, &powerwolf);
+            black_box(trace::relative::to_all(&entries, &powerwolf));
         })
     });
 
     c.bench_function("relative_to_artist", |c| {
         c.iter(|| {
-            trace::relative::to_artist(&entries, &coat);
+            black_box(trace::relative::to_artist(&entries, &coat));
         })
     });
 
     c.bench_function("relative_to_album", |c| {
         c.iter(|| {
-            trace::relative::to_album(&entries, &spart);
+            black_box(trace::relative::to_album(&entries, &spart));
         })
     });
 }

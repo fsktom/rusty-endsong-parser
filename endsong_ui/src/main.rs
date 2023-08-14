@@ -18,17 +18,8 @@
 // other good ones are warn by default
 #![warn(rustdoc::missing_crate_level_docs, rustdoc::unescaped_backticks)]
 
-mod plot;
-mod print;
-mod trace;
-mod ui;
-
 use endsong::prelude::*;
-
-use print::Aspect;
-use print::AspectFull;
-use print::DurationUtils;
-use print::Mode;
+use endsong_ui::prelude::*;
 
 /// Intializes the data,
 /// tests some functions using [`test()`] and

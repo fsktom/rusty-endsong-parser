@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fmt::Display;
 use std::rc::Rc;
 
+use chrono::NaiveDateTime;
 use endsong::prelude::*;
 use itertools::Itertools;
 use plotly::Trace;
@@ -87,6 +88,7 @@ struct ShellHelper {
 }
 impl ShellHelper {
     /// Creates a new [`ShellHelper`]
+    /// with an empty tab auto-complete list
     fn new() -> Self {
         Self {
             completer_list: vec![],
@@ -172,6 +174,7 @@ impl Completer for ShellHelper {
         let possibilities = self
             .completer_list
             .iter()
+            // to make the tab-complete case-insensitive
             .filter(|possible| possible.to_lowercase().starts_with(&word.to_lowercase()))
             .map(Rc::clone)
             .collect_vec();
@@ -213,7 +216,7 @@ impl Display for Color {
 /// Errors if [`Artist`], [`Album`] or [`Song`] are not found
 /// with custom error messages
 #[derive(Debug)]
-pub enum NotFoundError {
+enum NotFoundError {
     /// Artist with that name was not found
     ///
     /// Error message: "Sorry, I couldn't find any artist with that name!"
@@ -253,12 +256,15 @@ impl Display for NotFoundError {
 }
 impl Error for NotFoundError {}
 
-/// Converts a collection of [`&str`][str]s into a [`Vec<String>`]
+/// Converts a collection of [`&str`][str]s into a [`Vec<Rc<str>>`]
+/// to be later used in [`ShellHelper::complete_list`]
+/// for tab auto-completion
 fn string_vec(slice: &[&str]) -> Vec<Rc<str>> {
     slice.iter().map(|s| Rc::from(*s)).collect_vec()
 }
 
 /// Starts the CLI/shell instance
+#[allow(clippy::missing_panics_doc)]
 pub fn start(entries: &SongEntries) {
     println!("=== INTERACTIVE MODE ACTIVATED ===");
     println!("PRESS 'CTRL+C' TO EXIT THE PROGRAM");
@@ -359,7 +365,7 @@ fn match_input(
 ) -> Result<(), Box<dyn Error>> {
     match inp {
         // every new command added has to have an entry in `help`!
-        // and in Shellhelper.compete_commands()
+        // and in Shellhelper::complete_commands()
         "help" | "h" => help::help(),
         "print time" | "pt" => print::time_played(entries),
         "print time date" | "ptd" => match_print_time_date(entries, rl)?,
@@ -853,16 +859,55 @@ fn match_plot_song_relative(
     }
 }
 
-/// used by `*_date` functions in this module for when the user inputs a date
+/// Converts a 'YYYY-MM-DD' string to a [`DateTime<Local>`]
+/// in the context of the [`Local`] timezone
+///
+/// If you want more control (i.e. a certain hour/minute of the day)
+/// use something like this instead:
+/// ```
+/// use endsong::prelude::*;
+/// let date: DateTime<Local> = Local
+///     .datetime_from_str("2020-06-03T01:01:01Z", "%FT%TZ")
+///     .unwrap();
+/// ```
+/// See [`chrono::format::strftime`] for formatting details
 ///
 /// # Arguments
-/// * `usr_input` - in YYYY-MM-DD format or 'now' or 'start'
+///
+/// `usr_input` - in YYYY-MM-DD format or 'now'/'end' or 'start'
+/// - 'now'/'end' return the current time
+/// - 'start' returns the start of UNIX epoch
+///
+/// # Examples
+/// ```
+/// use endsong::prelude::*;
+/// use endsong_ui::prelude::*;
+///
+/// let date: DateTime<Local> = parse_date("2020-06-03").unwrap();
+/// assert_eq!(
+///     date,
+///     Local
+///         .datetime_from_str("2020-06-03T00:00:00Z", "%FT%TZ")
+///         .unwrap()
+/// );
+/// let unix_epoch: DateTime<Local> = parse_date("start").unwrap();
+/// let now: DateTime<Local> = parse_date("now").unwrap();
+/// ```
+/// # Errors
+///
+/// Returns a [`ParseError`][chrono::format::ParseError]
+/// if the `usr_input` cannot be parsed into a [`DateTime<Local>`]
+#[allow(clippy::missing_panics_doc)]
 pub fn user_input_date_parser(
     usr_input: &str,
 ) -> Result<DateTime<Local>, chrono::format::ParseError> {
     let date_str = match usr_input {
         "now" | "end" => return Ok(Local::now()),
-        "start" => String::from("1980-01-01T00:00:00Z"),
+        "start" => {
+            return Ok(Local
+                .from_local_datetime(&NaiveDateTime::from_timestamp_millis(0).unwrap())
+                .unwrap());
+        }
         // usr_input should be in YYYY-MM-DD format
         _ => format!("{usr_input}T00:00:00Z"),
     };
