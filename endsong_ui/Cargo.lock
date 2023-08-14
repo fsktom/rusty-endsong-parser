@@ -929,7 +929,7 @@ dependencies = [
 [[package]]
 name = "rustyline"
 version = "12.0.0"
-source = "git+https://github.com/fsktom/rustyline.git#8d0da0386c6711387ae302a858a0ca195c494462"
+source = "git+https://github.com/kkawakam/rustyline.git#35ea49aa459f48dd206d0bd714686074c6231469"
 dependencies = [
  "bitflags 2.4.0",
  "cfg-if",
@@ -953,7 +953,7 @@ dependencies = [
 [[package]]
 name = "rustyline-derive"
 version = "0.9.0"
-source = "git+https://github.com/fsktom/rustyline.git#8d0da0386c6711387ae302a858a0ca195c494462"
+source = "git+https://github.com/kkawakam/rustyline.git#35ea49aa459f48dd206d0bd714686074c6231469"
 dependencies = [
  "proc-macro2",
  "quote",

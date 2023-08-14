@@ -298,7 +298,7 @@ pub fn start(entries: &SongEntries) {
         let line = rl.readline(PROMPT_COMMAND);
         match line {
             Ok(usr_input) => {
-                if &usr_input == "exit" || &usr_input == "quit" {
+                if matches!(usr_input.as_str(), "exit" | "quit" | "q") {
                     break;
                 }
                 match_input(&usr_input, entries, &mut rl).unwrap_or_else(|e| handle_error(&e));
