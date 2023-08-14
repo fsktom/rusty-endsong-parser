@@ -160,7 +160,7 @@ impl Highlighter for ShellHelper {
     }
 }
 impl Completer for ShellHelper {
-    type Candidate = String;
+    type Candidate = Rc<str>;
 
     fn complete(
         &self,
@@ -173,7 +173,7 @@ impl Completer for ShellHelper {
             .completer_list
             .iter()
             .filter(|possible| possible.to_lowercase().starts_with(&word.to_lowercase()))
-            .map(ToString::to_string)
+            .map(Rc::clone)
             .collect_vec();
         // assumes no escape characters...
         Ok((0, possibilities))

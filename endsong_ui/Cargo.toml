@@ -8,7 +8,8 @@ edition = "2021"
 [dependencies]
 chrono = "0.4"
 endsong = { path = ".." }
-rustyline = { version = "12.*", features = ["derive"] }
+rustyline = {git = "https://github.com/fsktom/rustyline.git", features = ["derive"]}
+# rustyline = { version = "12.*", features = ["derive"] }
 unicode-width = "0.1.10"
 # plotly = "0.8"
 plotly = { git = "https://github.com/fsktom/plotly.git", branch = "from" }
