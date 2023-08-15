@@ -3,11 +3,11 @@
 mod help;
 
 use std::borrow::Cow;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
 use std::rc::Rc;
 
-use chrono::NaiveDateTime;
 use endsong::prelude::*;
 use itertools::Itertools;
 use plotly::Trace;
@@ -121,6 +121,7 @@ impl ShellHelper {
             "plot rel",
             "plot compare",
             "plot compare rel",
+            "plot top",
         ]);
     }
 
@@ -385,6 +386,7 @@ fn match_input(
         "plot rel" | "gr" => match_plot_relative(entries, rl)?,
         "plot compare" | "gc" => match_plot_compare(entries, rl)?,
         "plot compare rel" | "gcr" => match_plot_compare_relative(entries, rl)?,
+        "plot top" | "gt" => match_plot_top(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -723,6 +725,55 @@ fn match_plot_compare_relative(
     Ok(())
 }
 
+/// Used by [`match_input()`] for `plot top *` commands
+fn match_plot_top(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), Box<dyn Error>> {
+    // prompt: what to plot
+    rl.helper_mut().unwrap().complete_aspects();
+    println!("What do you want to plot? Top artists, albums or songs?");
+    let usr_input_asp = rl.readline(PROMPT_MAIN)?;
+    let aspect_temp: Result<Aspect, ()> = usr_input_asp.parse();
+    let Ok(aspect) = aspect_temp else { return Err(Box::new(InvalidArgumentError::Aspect)) };
+    // TODO: if tryerror added, use a custom error type for FromStr Aspect
+    // and add a From impl for InvalidArgumentError::Aspect
+
+    // prompt: top n
+    rl.helper_mut().unwrap().reset();
+    println!("How many top {aspect} to plot? (recommended: ~5)");
+    let usr_input_n = rl.readline(PROMPT_SECONDARY)?;
+    let num: usize = usr_input_n.parse()?;
+
+    // TODO prompt: sum songs from different albums?
+
+    let traces = match aspect {
+        Aspect::Artists => get_traces(entries, &gather::artists(entries), num),
+        Aspect::Albums => get_traces(entries, &gather::albums(entries), num),
+        Aspect::Songs => get_traces(entries, &gather::songs(entries, true), num),
+    };
+
+    plot::multiple(traces, &format!("Top {aspect}"));
+
+    Ok(())
+}
+
+/// Returns the traces for the top `num` artists, albums or songs
+///
+/// Helper function for [`match_plot_top`]
+fn get_traces<Asp: Music>(
+    entries: &SongEntries,
+    music_map: &HashMap<Asp, usize>,
+    num: usize,
+) -> Vec<Box<dyn Trace>> {
+    music_map
+        .iter()
+        .sorted_unstable_by_key(|t| (std::cmp::Reverse(t.1), t.0))
+        .take(num)
+        .map(|(aspect, _)| trace::absolute(entries, aspect).0)
+        .collect_vec()
+}
+
 /// Used to get traces of absolute plots
 fn get_absolute_trace(
     entries: &SongEntries,
@@ -904,9 +955,8 @@ pub fn user_input_date_parser(
     let date_str = match usr_input {
         "now" | "end" => return Ok(Local::now()),
         "start" => {
-            return Ok(Local
-                .from_local_datetime(&NaiveDateTime::from_timestamp_millis(0).unwrap())
-                .unwrap());
+            let epoch = chrono::NaiveDateTime::from_timestamp_millis(0).unwrap();
+            return Ok(Local.from_local_datetime(&epoch).unwrap());
         }
         // usr_input should be in YYYY-MM-DD format
         _ => format!("{usr_input}T00:00:00Z"),

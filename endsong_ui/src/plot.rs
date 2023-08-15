@@ -14,7 +14,7 @@ pub fn single(trace: (Box<dyn Trace>, String)) {
     let layout = Layout::new().title(format!("<b>{title}</b>"));
     plot.set_layout(layout);
 
-    write_and_open_plot(&plot, title);
+    write_and_open_plot(&plot, &title);
 }
 
 /// Compares two traces in a single plot in the `plots/` folder
@@ -30,15 +30,32 @@ pub fn compare(trace_one: (Box<dyn Trace>, String), trace_two: (Box<dyn Trace>, 
     let layout = Layout::new().title(format!("<b>{title}</b>"));
     plot.set_layout(layout);
 
+    write_and_open_plot(&plot, &title);
+}
+
+/// Plots multiple traces in a single plot in the `plots/` folder
+///
+/// Then opens it in the browser
+pub fn multiple(traces: Vec<Box<dyn Trace>>, title: &str) {
+    let mut plot = Plot::new();
+
+    for trace in traces {
+        plot.add_trace(trace);
+    }
+
+    // sets the title of the plot
+    let layout = Layout::new().title(format!("<b>{title}</b>"));
+    plot.set_layout(layout);
+
     write_and_open_plot(&plot, title);
 }
 
 /// Creates the plot .html in the plots/ folder and opens it in the browser
-fn write_and_open_plot(plot: &Plot, mut title: String) {
+fn write_and_open_plot(plot: &Plot, title: &str) {
     // creates plots/ folder
     std::fs::create_dir_all("plots").unwrap();
 
-    title = normalize_path(title.as_str());
+    let title = normalize_path(title);
 
     // opens the plot in the browser
     match std::env::consts::OS {
@@ -92,9 +109,13 @@ fn write_and_open_plot(plot: &Plot, mut title: String) {
 }
 
 /// Replaces Windows forbidden symbols in path with a '_'
+///
+/// Also removes whitespace and replaces empty
+/// strings with "_"
 fn normalize_path(path: &str) -> String {
     // https://stackoverflow.com/a/31976060
-    let forbidden_characters = ['<', '>', ':', '"', '/', '\\', '|', '?', '*'];
+    // would do a HashSet if it was longer but an array is faster for just 10 elements
+    let forbidden_characters = [' ', '<', '>', ':', '"', '/', '\\', '|', '?', '*'];
     let mut new_path = String::with_capacity(path.len());
 
     for ch in path.chars() {
@@ -106,5 +127,41 @@ fn normalize_path(path: &str) -> String {
         }
     }
 
+    // https://stackoverflow.com/a/1976050
+    if new_path.is_empty() {
+        new_path.push('_');
+    }
+
     new_path
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalize_paths() {
+        // should change the forbidden symbols to '_' in these
+        assert_eq!(normalize_path("A|B"), "A_B");
+        assert_eq!(normalize_path("A>B<C"), "A_B_C");
+        assert_eq!(normalize_path(":A\"B"), "_A_B");
+        assert_eq!(normalize_path("A/B"), normalize_path("A\\B"));
+        assert_eq!(normalize_path("?A?"), "_A_");
+        assert_eq!(normalize_path("A*B"), "A_B");
+
+        // whitespace should be removed
+        assert_eq!(normalize_path(" A"), "_A");
+        assert_eq!(normalize_path("A "), "A_");
+        assert_eq!(normalize_path(" "), "_");
+        assert_eq!(normalize_path("   "), "___");
+
+        // empty should be changed
+        assert_eq!(normalize_path(""), "_");
+
+        assert_eq!(normalize_path(" A|B<>B? "), "_A_B__B__");
+
+        // shouldn't change anything about these
+        assert_eq!(normalize_path("A_B"), "A_B");
+        assert_eq!(normalize_path("AB"), "AB");
+    }
 }

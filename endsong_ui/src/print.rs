@@ -5,6 +5,7 @@
 use std::cmp::Reverse;
 use std::collections::HashMap;
 use std::fmt::Display;
+use std::str::FromStr;
 
 use itertools::Itertools;
 
@@ -32,6 +33,18 @@ impl Display for Aspect {
             Aspect::Artists => write!(f, "artists"),
             Aspect::Albums => write!(f, "albums"),
             Aspect::Songs => write!(f, "songs"),
+        }
+    }
+}
+impl FromStr for Aspect {
+    // temporary, if tryerror addded adapt this
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "artist" | "artists" => Ok(Aspect::Artists),
+            "album" | "albums" => Ok(Aspect::Albums),
+            "song" | "songs" => Ok(Aspect::Songs),
+            _ => Err(()),
         }
     }
 }

@@ -244,6 +244,12 @@ const fn plot_commands<'a>() -> &'a [[&'a str; 3]] {
             "creates a plot of two relative traces - see `plot rel`
         and opens it in the web browser",
         ],
+        [
+            "plot top",
+            "gt",
+            "creates a plot of the absolute traces of top n aspects
+        and opens it in the web browser",
+        ],
     ]
 }
 
