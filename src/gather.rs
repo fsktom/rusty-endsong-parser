@@ -21,12 +21,12 @@
 //! // example artist
 //! let artist = Artist::new("Sabaton");
 //!
-//! // get all albums from the artist
+//! // get all albums from the artist with their plays
 //! let _ = gather::albums_from_artist(&entries, &artist);
 //!
 //! // get albums from the artist in a given time period
-//! let start_date = Local.with_ymd_and_hms(2020, 11, 14, 0, 0, 0).unwrap();
-//! let end_date = Local.with_ymd_and_hms(2021, 3, 1, 0, 0, 0).unwrap();
+//! let start_date = parse_date("2020-11-14").unwrap();
+//! let end_date = parse_date("now").unwrap();
 //! let _ = gather::albums_from_artist(entries.between(&start_date, &end_date), &artist);
 //! ```
 

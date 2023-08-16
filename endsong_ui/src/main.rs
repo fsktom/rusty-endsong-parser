@@ -99,12 +99,8 @@ fn test(entries: &SongEntries) {
         .song("Frozen Winds Of Thyraxia", "Wizardthrone",)
         .unwrap());
 
-    let start_date = Local
-        .datetime_from_str("2020-01-01T01:01:01Z", "%Y-%m-%dT%H:%M:%SZ")
-        .unwrap();
-    let end_date = Local
-        .datetime_from_str("2022-07-01T01:01:01Z", "%Y-%m-%dT%H:%M:%SZ")
-        .unwrap();
+    let start_date = parse_date("2020-01-01").unwrap();
+    let end_date = parse_date("2022-07-01").unwrap();
 
     print::aspect_date(
         entries,

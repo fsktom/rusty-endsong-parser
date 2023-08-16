@@ -32,8 +32,6 @@ pub mod prelude {
     pub use crate::trace;
     pub use crate::ui;
 
-    pub use ui::user_input_date_parser as parse_date;
-
     pub use print::Aspect;
     pub use print::AspectFull;
     pub use print::DurationUtils;
