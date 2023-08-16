@@ -38,7 +38,7 @@ pub mod prelude {
 }
 
 use chrono::{DateTime, Local, TimeZone};
-/// Converts a 'YYYY-MM-DD' string to a [`DateTime<Local>`]
+/// Converts a `YYYY-MM-DD` string to a [`DateTime<Local>`]
 /// in the context of the [`Local`] timezone
 ///
 /// If you want more control (i.e. a certain hour/minute of the day)
@@ -46,14 +46,14 @@ use chrono::{DateTime, Local, TimeZone};
 /// ```
 /// use endsong::prelude::*;
 /// let date: DateTime<Local> = Local
-///     .datetime_from_str("2020-06-03T01:01:01Z", "%FT%TZ")
-///     .unwrap();
+///     .datetime_from_str("2020-06-03T01:01:01Z", "%FT%TZ")?;
+/// # Ok::<(), chrono::format::ParseError>(())
 /// ```
 /// See [`chrono::format::strftime`] for formatting details
 ///
 /// # Arguments
 ///
-/// `usr_input` - in YYYY-MM-DD format or 'now'/'end' or 'start'
+/// `date` - in YYYY-MM-DD format or 'now'/'end' or 'start'
 /// - 'now'/'end' return the current time
 /// - 'start' returns the start of UNIX epoch
 ///
@@ -61,30 +61,35 @@ use chrono::{DateTime, Local, TimeZone};
 /// ```
 /// use endsong::prelude::*;
 ///
-/// let date: DateTime<Local> = parse_date("2020-06-03").unwrap();
+/// let date: DateTime<Local> = parse_date("2020-06-03")?;
 /// assert_eq!(
 ///     date,
-///     Local
-///         .datetime_from_str("2020-06-03T00:00:00Z", "%FT%TZ")
-///         .unwrap()
+///     Local.datetime_from_str("2020-06-03T00:00:00Z", "%FT%TZ")?
 /// );
-/// let unix_epoch: DateTime<Local> = parse_date("start").unwrap();
-/// let now: DateTime<Local> = parse_date("now").unwrap();
+///
+/// let unix_epoch: DateTime<Local> = parse_date("start")?;
+/// assert_eq!(
+///     unix_epoch,
+///     chrono::Utc.datetime_from_str("1970-01-01T00:00:00Z", "%FT%TZ")?
+/// );
+///
+/// let now: DateTime<Local> = parse_date("now")?;
+/// # Ok::<(), chrono::format::ParseError>(())
 /// ```
 /// # Errors
 ///
 /// Returns a [`ParseError`][chrono::format::ParseError]
-/// if the `usr_input` cannot be parsed into a [`DateTime<Local>`]
-#[allow(clippy::missing_panics_doc)]
-pub fn parse_date(usr_input: &str) -> Result<DateTime<Local>, chrono::format::ParseError> {
-    let date_str = match usr_input {
+/// if the `date` does not follow the format `YYYY-MM-DD`
+/// and is not 'now'/'end'/'start'
+pub fn parse_date(date: &str) -> Result<DateTime<Local>, chrono::format::ParseError> {
+    let date_str = match date {
         "now" | "end" => return Ok(Local::now()),
         "start" => {
-            let epoch = chrono::NaiveDateTime::from_timestamp_millis(0).unwrap();
-            return Ok(Local.from_local_datetime(&epoch).unwrap());
+            let epoch = chrono::Utc.datetime_from_str("1970-01-01T00:00:00Z", "%FT%TZ")?;
+            return Ok(Local.from_utc_datetime(&epoch.naive_utc()));
         }
         // usr_input should be in YYYY-MM-DD format
-        _ => format!("{usr_input}T00:00:00Z"),
+        _ => format!("{date}T00:00:00Z"),
     };
 
     // "%FT%TZ" is equivalent to "%Y-%m-%dT%H:%M:%SZ"
