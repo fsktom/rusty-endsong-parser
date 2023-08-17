@@ -114,7 +114,7 @@ fn write_and_open_plot(plot: &Plot, title: &str) {
 /// strings with "_"
 fn normalize_path(path: &str) -> String {
     // https://stackoverflow.com/a/31976060
-    // would do a HashSet if it was longer but an array is faster for just 10 elements
+    // Array > HashSet bc of overhead
     let forbidden_characters = [' ', '<', '>', ':', '"', '/', '\\', '|', '?', '*'];
     let mut new_path = String::with_capacity(path.len());
 

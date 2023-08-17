@@ -4,7 +4,6 @@ mod help;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::error::Error;
 use std::fmt::Display;
 use std::rc::Rc;
 
@@ -15,6 +14,7 @@ use rustyline::{completion::Completer, Helper, Hinter, Validator};
 use rustyline::{
     error::ReadlineError, highlight::Highlighter, history::FileHistory, ColorMode, Config, Editor,
 };
+use thiserror::Error;
 
 use crate::plot;
 use crate::print;
@@ -36,49 +36,31 @@ const PROMPT_MAIN: &str = "  >> ";
 /// red `   >` with [`ShellHelper`]
 const PROMPT_SECONDARY: &str = "   > ";
 
-/// Errors raised by [`match_plot_album_relative()`] and
-/// [`match_plot_song_relative`]
-///
-/// when user argument for relative to what is invalid
-#[derive(Debug)]
-enum InvalidArgumentError {
-    /// Error message: Invalid argument! Try using 'all' or 'artist' next time
-    Artist,
-    /// Error message: Invalid argument! Try using 'all', 'artist' or 'album' next time
-    Album,
-    /// Error message: Invalid argument! Try using 'artist', 'album' or 'song' next time
-    Aspect,
-    /// Error message: Date range is in wrong order - start date is after end date!
+/// Error type for all errors here
+#[derive(Error, Debug)]
+enum UiError {
+    /// Used when [`parse_date`] fails
+    #[error("Invalid date! It has to be in the YYYY-MM-DD format.")]
+    ParseDate(#[from] chrono::ParseError),
+    /// Used when parsing user input to a number fails
+    #[error("Invalid number!")]
+    ParseNum(#[from] std::num::ParseIntError),
+    /// Used when parsing user input to an [`Aspect`] fails
+    #[error("Invalid aspect! Valid inputs: artist/s, album/s, song/s")]
+    ParseAspect(#[from] print::AspectParseError),
+    /// CTRL+C or similar in a main/secondary prompt, should go back to command prompt
+    #[error("")]
+    Readline(#[from] ReadlineError),
+    /// Used when [`find`] functions return `None`
+    #[error("Sorry, I couldn't find this {0} in the dataset!")]
+    NotFound(&'static str),
+    /// Used when user input doesn't match any comamnd
+    #[error("Invalid argument! Valid inputs: {0}")]
+    InvalidArgument(&'static str),
+    /// Used when the end date is before the start date
+    #[error("Date range is in wrong order - end date is before start date!")]
     DateWrongOrder,
-    /// Error message: Invalid argument! Try using 'weeks' or 'days' next time
-    DurationType,
 }
-impl Display for InvalidArgumentError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            InvalidArgumentError::Artist => {
-                write!(f, "Invalid argument! Try using 'all' or 'artist' next time")
-            }
-            InvalidArgumentError::Album => write!(
-                f,
-                "Invalid argument! Try using 'all', 'artist' or 'album' next time"
-            ),
-            InvalidArgumentError::Aspect => write!(
-                f,
-                "Invalid argument! Try using 'artist', 'album' or 'song' next time"
-            ),
-            InvalidArgumentError::DateWrongOrder => write!(
-                f,
-                "Date range is in wrong order - start date is after end date!"
-            ),
-            InvalidArgumentError::DurationType => write!(
-                f,
-                " Invalid argument! Try using 'weeks' or 'days' next time"
-            ),
-        }
-    }
-}
-impl Error for InvalidArgumentError {}
 
 /// Helper for [`Editor`]
 #[derive(Helper, Hinter, Validator)]
@@ -214,49 +196,6 @@ impl Display for Color {
     }
 }
 
-/// Errors if [`Artist`], [`Album`] or [`Song`] are not found
-/// with custom error messages
-#[derive(Debug)]
-enum NotFoundError {
-    /// Artist with that name was not found
-    ///
-    /// Error message: "Sorry, I couldn't find any artist with that name!"
-    Artist,
-    /// Album with that name from that artist was not found
-    ///
-    /// Error message: "Sorry, I couldn't find any album with that name
-    /// from that artist!"
-    Album,
-    /// Song with that name from that album and artist was not found
-    ///
-    /// Error message:
-    /// "Sorry, I couldn't find any song with
-    /// that name from that album and artist!"
-    Song,
-}
-impl Display for NotFoundError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            NotFoundError::Artist => {
-                write!(f, "Sorry, I couldn't find any artist with that name!")
-            }
-            NotFoundError::Album => {
-                write!(
-                    f,
-                    "Sorry, I couldn't find any album with that name from that artist!"
-                )
-            }
-            NotFoundError::Song => {
-                write!(
-                    f,
-                    "Sorry, I couldn't find any song with that name from that album and artist!"
-                )
-            }
-        }
-    }
-}
-impl Error for NotFoundError {}
-
 /// Converts a collection of [`&str`][str]s into a [`Vec<Rc<str>>`]
 /// to be later used in [`ShellHelper::complete_list`]
 /// for tab auto-completion
@@ -308,7 +247,10 @@ pub fn start(entries: &SongEntries) {
                 if matches!(usr_input.as_str(), "exit" | "quit" | "q") {
                     break;
                 }
-                match_input(&usr_input, entries, &mut rl).unwrap_or_else(|e| handle_error(&e));
+                match match_input(&usr_input, entries, &mut rl) {
+                    Ok(_) | Err(UiError::Readline(_)) => continue,
+                    Err(e) => eprintln!("{e}"),
+                }
             }
             Err(ReadlineError::Interrupted) => {
                 eprintln!("Ctrl+C - execution has stopped!");
@@ -334,36 +276,12 @@ pub fn start(entries: &SongEntries) {
     }
 }
 
-/// Handles errors thrown by [`match_input()`] in [`start()`]
-///
-/// Prints error messages for
-/// [`NotFoundError`], [`InvalidArgumentError`]
-/// [`ParseError`][`chrono::format::ParseError`],
-/// and [`ParseIntError`][`std::num::ParseIntError`]
-#[allow(clippy::borrowed_box)]
-fn handle_error(err: &Box<dyn Error>) {
-    // https://users.rust-lang.org/t/matching-errorkind-from-boxed-error/30667/3
-    // also thx ChatGPT
-    match err.as_ref() {
-        not_found if not_found.is::<NotFoundError>() => eprintln!("{not_found}"),
-        invalid_arg if invalid_arg.is::<InvalidArgumentError>() => eprintln!("{invalid_arg}"),
-        date if date.is::<chrono::format::ParseError>() => {
-            eprintln!("Invalid date! Make sure you input the date in YYYY-MM-DD format.");
-        }
-        num_parse if num_parse.is::<std::num::ParseIntError>() => eprintln!("Incorrect number!"),
-        // e.g. if user presses CTRl+C/+D/.. in a main or secondary prompt,
-        // it should just stop the command and go back to command prompt
-        read_error if read_error.is::<ReadlineError>() => (),
-        _ => eprintln!("An error has occured! - {err}",),
-    }
-}
-
 /// Decides what to do with user input
 fn match_input(
     inp: &str,
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     match inp {
         // every new command added has to have an entry in `help`!
         // and in Shellhelper::complete_commands()
@@ -404,7 +322,7 @@ fn match_input(
 fn match_print_time_date(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // 1st + 2nd prompt: start + end date
     let (start_date, end_date) = read_dates(rl)?;
 
@@ -416,7 +334,7 @@ fn match_print_time_date(
 fn match_print_max_time(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // 1st prompt: duration in days or weeks
     let valid_inputs = ["days", "weeks"];
     rl.helper_mut()
@@ -425,7 +343,7 @@ fn match_print_max_time(
     println!("Input time period in days or weeks?");
     let duration_type = rl.readline(PROMPT_SECONDARY)?;
     if !valid_inputs.iter().any(|&s| s == duration_type) {
-        return Err(Box::new(InvalidArgumentError::DurationType));
+        return Err(UiError::InvalidArgument("days, weeks"));
     };
 
     rl.helper_mut().unwrap().reset();
@@ -451,7 +369,7 @@ fn match_print_max_time(
 fn match_print_artist(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -465,7 +383,7 @@ fn match_print_artist(
 fn match_print_artist_date(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -480,7 +398,7 @@ fn match_print_artist_date(
 fn match_print_album(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -497,7 +415,7 @@ fn match_print_album(
 fn match_print_album_date(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -515,7 +433,7 @@ fn match_print_album_date(
 fn match_print_song(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -535,7 +453,7 @@ fn match_print_song(
 fn match_print_song_date(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -556,7 +474,7 @@ fn match_print_song_date(
 fn match_print_songs(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -583,7 +501,7 @@ fn match_print_songs(
 fn match_print_songs_date(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -616,7 +534,7 @@ fn match_print_top(
     rl: &mut Editor<ShellHelper, FileHistory>,
     asp: Aspect,
     ask_for_sum: bool,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     rl.helper_mut().unwrap().reset();
     // prompt: top n
     println!("How many Top {asp}?");
@@ -649,7 +567,7 @@ fn match_print_top(
 fn match_plot(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // prompt: what to plot
     rl.helper_mut().unwrap().complete_aspects();
     println!("What do you want to plot? artist, album or song?");
@@ -667,7 +585,7 @@ fn match_plot(
 fn match_plot_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // prompt: what to plot
     rl.helper_mut().unwrap().complete_aspects();
     println!("What do you want to plot? artist, album or song?");
@@ -685,7 +603,7 @@ fn match_plot_relative(
 fn match_plot_compare(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // first trace
     rl.helper_mut().unwrap().complete_aspects();
     println!("1st trace: artist, album or song?");
@@ -707,7 +625,7 @@ fn match_plot_compare(
 fn match_plot_compare_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // first trace
     rl.helper_mut().unwrap().complete_aspects();
     println!("1st trace: artist, album or song?");
@@ -729,15 +647,12 @@ fn match_plot_compare_relative(
 fn match_plot_top(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), UiError> {
     // prompt: what to plot
     rl.helper_mut().unwrap().complete_aspects();
     println!("What do you want to plot? Top artists, albums or songs?");
     let usr_input_asp = rl.readline(PROMPT_MAIN)?;
-    let aspect_temp: Result<Aspect, ()> = usr_input_asp.parse();
-    let Ok(aspect) = aspect_temp else { return Err(Box::new(InvalidArgumentError::Aspect)) };
-    // TODO: if tryerror added, use a custom error type for FromStr Aspect
-    // and add a From impl for InvalidArgumentError::Aspect
+    let aspect: Aspect = usr_input_asp.parse()?;
 
     // prompt: top n
     rl.helper_mut().unwrap().reset();
@@ -779,12 +694,12 @@ fn get_absolute_trace(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
     usr_input: &str,
-) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), UiError> {
     match usr_input {
         "artist" => match_plot_artist(entries, rl),
         "album" => match_plot_album(entries, rl),
         "song" => match_plot_song(entries, rl),
-        _ => Err(Box::new(InvalidArgumentError::Aspect)),
+        _ => Err(UiError::InvalidArgument("artist, album, song")),
     }
 }
 
@@ -793,12 +708,12 @@ fn get_relative_trace(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
     usr_input: &str,
-) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), UiError> {
     match usr_input {
         "artist" => match_plot_artist_relative(entries, rl),
         "album" => match_plot_album_relative(entries, rl),
         "song" => match_plot_song_relative(entries, rl),
-        _ => Err(Box::new(InvalidArgumentError::Aspect)),
+        _ => Err(UiError::InvalidArgument("artist, album, song")),
     }
 }
 
@@ -806,7 +721,7 @@ fn get_relative_trace(
 fn match_plot_artist(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -817,7 +732,7 @@ fn match_plot_artist(
 fn match_plot_album(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -831,7 +746,7 @@ fn match_plot_album(
 fn match_plot_song(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -848,7 +763,7 @@ fn match_plot_song(
 fn match_plot_artist_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -859,7 +774,7 @@ fn match_plot_artist_relative(
 fn match_plot_album_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -876,7 +791,7 @@ fn match_plot_album_relative(
     match usr_input_rel.as_str() {
         "all" => Ok(trace::relative::to_all(entries, &alb)),
         "artist" => Ok(trace::relative::to_artist(entries, &alb)),
-        _ => Err(Box::new(InvalidArgumentError::Artist)),
+        _ => Err(UiError::InvalidArgument("all, artist")),
     }
 }
 
@@ -884,7 +799,7 @@ fn match_plot_album_relative(
 fn match_plot_song_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), Box<dyn Error>> {
+) -> Result<(Box<dyn Trace>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -906,7 +821,7 @@ fn match_plot_song_relative(
         "all" => Ok(trace::relative::to_all(entries, &son)),
         "artist" => Ok(trace::relative::to_artist(entries, &son)),
         "album" => Ok(trace::relative::to_album(entries, &son)),
-        _ => Err(Box::new(InvalidArgumentError::Album)),
+        _ => Err(UiError::InvalidArgument("all, artist, album")),
     }
 }
 
@@ -915,7 +830,7 @@ fn match_plot_song_relative(
 /// Returns `(start_date, end_date)`
 fn read_dates(
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(DateTime<Local>, DateTime<Local>), Box<dyn Error>> {
+) -> Result<(DateTime<Local>, DateTime<Local>), UiError> {
     // make sure no wrong autocompletes appear
     rl.helper_mut().unwrap().reset();
 
@@ -930,7 +845,7 @@ fn read_dates(
     let end_date = parse_date(&usr_input_end_date)?;
 
     if start_date >= end_date {
-        return Err(Box::new(InvalidArgumentError::DateWrongOrder));
+        return Err(UiError::DateWrongOrder);
     }
     Ok((start_date, end_date))
 }
@@ -939,7 +854,7 @@ fn read_dates(
 fn read_artist(
     rl: &mut Editor<ShellHelper, FileHistory>,
     entries: &SongEntries,
-) -> Result<Artist, Box<dyn Error>> {
+) -> Result<Artist, UiError> {
     // prompt: artist name
     rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
@@ -947,7 +862,7 @@ fn read_artist(
     entries
         .find()
         .artist(&usr_input_art)
-        .ok_or(Box::new(NotFoundError::Artist))
+        .ok_or(UiError::NotFound("artist"))
 }
 
 /// Used by `match_*` functions for finding [`Album`] from user input
@@ -955,7 +870,7 @@ fn read_album(
     rl: &mut Editor<ShellHelper, FileHistory>,
     entries: &SongEntries,
     art: &Artist,
-) -> Result<Album, Box<dyn Error>> {
+) -> Result<Album, UiError> {
     // prompt: album name
     rl.helper_mut().unwrap().complete_list(entries.albums(art));
     println!("Album name?");
@@ -963,7 +878,7 @@ fn read_album(
     entries
         .find()
         .album(&usr_input_alb, &art.name)
-        .ok_or(Box::new(NotFoundError::Album))
+        .ok_or(UiError::NotFound("album from this artist"))
 }
 
 /// Used by `match_*` functions for finding [`Song`] from user input
@@ -971,7 +886,7 @@ fn read_song(
     rl: &mut Editor<ShellHelper, FileHistory>,
     entries: &SongEntries,
     alb: &Album,
-) -> Result<Song, Box<dyn Error>> {
+) -> Result<Song, UiError> {
     // prompt: song name
     rl.helper_mut().unwrap().complete_list(entries.songs(alb));
     println!("Song name?");
@@ -979,7 +894,7 @@ fn read_song(
     entries
         .find()
         .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)
-        .ok_or(Box::new(NotFoundError::Song))
+        .ok_or(UiError::NotFound("song from this album"))
 }
 
 /// Used by `match_*` functions for finding [`Vec<Song>`] from user input
@@ -987,7 +902,7 @@ fn read_songs(
     rl: &mut Editor<ShellHelper, FileHistory>,
     entries: &SongEntries,
     art: &Artist,
-) -> Result<Vec<Song>, Box<dyn Error>> {
+) -> Result<Vec<Song>, UiError> {
     // prompt: song name
     rl.helper_mut().unwrap().complete_list(entries.songs(art));
     println!("Song name?");
@@ -995,5 +910,5 @@ fn read_songs(
     entries
         .find()
         .song(&usr_input_son, &art.name)
-        .ok_or(Box::new(NotFoundError::Song))
+        .ok_or(UiError::NotFound("song from this artist"))
 }

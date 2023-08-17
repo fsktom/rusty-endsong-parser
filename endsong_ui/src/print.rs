@@ -7,9 +7,9 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::str::FromStr;
 
-use itertools::Itertools;
-
 use endsong::prelude::*;
+use itertools::Itertools;
+use thiserror::Error;
 
 /// An enum that is among other things used by functions such as
 /// [`top()`] and its derivatives to know whether
@@ -37,17 +37,23 @@ impl Display for Aspect {
     }
 }
 impl FromStr for Aspect {
-    // temporary, if tryerror addded adapt this
-    type Err = ();
+    type Err = AspectParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "artist" | "artists" => Ok(Aspect::Artists),
             "album" | "albums" => Ok(Aspect::Albums),
             "song" | "songs" => Ok(Aspect::Songs),
-            _ => Err(()),
+            _ => Err(AspectParseError),
         }
     }
 }
+
+/// Error for when the [`FromStr`] impl of [`Aspect`] fails
+#[derive(Debug, Error)]
+#[error(
+    "only \"artist\", \"artists\", \"album\", \"albums\", \"song\" and \"songs\" are valid aspects"
+)]
+pub struct AspectParseError;
 
 /// Algebraic data type similar to [`Aspect`]
 /// but used by functions such as [`crate::print::aspect()`]
