@@ -105,15 +105,17 @@ fn parse(c: &mut Criterion) {
 
     c.bench_function("parse", |c| {
         c.iter(|| {
-            black_box(SongEntries::new(&paths[..=1]).unwrap());
+            black_box(SongEntries::new(&paths[..=0]).unwrap());
         })
     });
 
-    let entries = black_box(SongEntries::new(&paths[..=1]).unwrap());
-
-    c.bench_function("songs", |c| {
+    c.bench_function("parse and filter", |c| {
         c.iter(|| {
-            black_box(gather::songs(&entries, true));
+            black_box(
+                SongEntries::new(&paths[..=0])
+                    .unwrap()
+                    .filter(30, Duration::seconds(10)),
+            );
         })
     });
 }
@@ -227,8 +229,8 @@ fn capitalization(c: &mut Criterion) {
 
 // criterion_group!(benches, lol);
 // criterion_group!(benches, kekw);
-// criterion_group!(benches, parse);
+criterion_group!(benches, parse);
 // criterion_group!(benches, unique_sum);
 // criterion_group!(benches, gather);
-criterion_group!(benches, capitalization);
+// criterion_group!(benches, capitalization);
 criterion_main!(benches);

@@ -226,10 +226,8 @@ impl SongEntries {
         // threshhold percentage of its duration
         self.retain(|entry| {
             // retain is supposed to preserve the order so I don't have to sort again?
-            let (_, dur) = durations
-                .iter()
-                .find(|(son, _)| son.is_entry(entry))
-                .unwrap();
+            let song = Song::from(entry);
+            let dur = durations.get(&song).unwrap();
 
             entry.time_played >= (*dur * percent_threshold) / 100
                 && entry.time_played >= absolute_threshold
