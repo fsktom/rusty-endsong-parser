@@ -50,7 +50,7 @@ fn main() {
         .filter(30, Duration::seconds(10));
 
     // test(&entries);
-    // test_two(&mut entries);
+    // test_two(&entries);
     // test_plot(&entries);
 
     ui::start(&entries);
@@ -136,13 +136,13 @@ fn test(entries: &SongEntries) {
 
 /// another test function
 #[allow(dead_code)]
-fn test_two(entries: &mut SongEntries) {
+fn test_two(entries: &SongEntries) {
     let s = Song::new("STYX HELIX", "eYe's", "MYTH & ROID");
     assert!(entries
         .find()
         .song_from_album("STYX HELIX", "eYe's", "MYTH & ROID")
         .is_some());
-    let a = entries.song_length(&s);
+    let a = entries.durations.get(&s).unwrap();
     dbg!(a.num_minutes(), a.num_seconds() - a.num_minutes() * 60);
     dbg!(a.display());
 
@@ -150,14 +150,18 @@ fn test_two(entries: &mut SongEntries) {
     let mut alb_dur = Duration::seconds(0);
     let ct_songs = entries.find().songs_from_album(&ct);
     for song in &ct_songs {
-        println!("{} - {}", song.name, entries.song_length(song).display());
-        alb_dur = alb_dur + entries.song_length(song);
+        println!(
+            "{} - {}",
+            song.name,
+            entries.durations.get(song).unwrap().display()
+        );
+        alb_dur = alb_dur + *entries.durations.get(song).unwrap();
     }
     dbg!(alb_dur.display(), ct_songs.len());
 
-    dbg!(entries.len());
+    // dbg!(entries.len());
     // entries.filter(30, Duration::seconds(5));
-    dbg!(entries.len());
+    // dbg!(entries.len());
 }
 
 /// tests various [`plot`] functions

@@ -75,15 +75,10 @@ fn kekw(c: &mut Criterion) {
     );
     c.bench_function("song_length", |c| {
         c.iter(|| {
-            black_box(entries.song_length(&lth));
+            black_box(entries.durations.get(&lth).unwrap());
         })
     });
 
-    c.bench_function("song_durations", |c| {
-        c.iter(|| {
-            black_box(entries.song_durations());
-        })
-    });
     c.bench_function("find song", |c| {
         c.iter(|| {
             black_box(

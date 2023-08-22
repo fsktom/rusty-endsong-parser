@@ -53,6 +53,7 @@ pub struct SongEntry {
     pub id: String,
 }
 impl PartialEq for SongEntry {
+    /// Equality for a [`SongEntry`] is when the artist, album, and track name is the same
     fn eq(&self, other: &Self) -> bool {
         // self.id.eq == other.id
         // ^decided not to use that cause it lead to duplicate songs with songs_from_album()
@@ -70,23 +71,49 @@ impl std::hash::Hash for SongEntry {
     }
 }
 
-/// Struct containing a vector of [`SongEntry`]
+/// Struct containing a vector of [`SongEntry`]s and a map of [`Song`]s with their [`Duration`]s
 ///
 /// Fundamental for the use of this program
-pub struct SongEntries(Vec<SongEntry>);
+///
+/// It implements [`Deref`][std::ops::Deref], so using `&` will refer to the vector of [`SongEntry`]s.
+///
+/// ```ignore
+/// use endsong::prelude::*;
+///
+/// let entries = SongEntries::new(&paths);
+///
+/// // .iter() takes in an immutable refrence to the underlying Vec<SongEntry>
+/// for entry in entries.iter() {
+///     // entry is a &SongEntry
+///     println!("{entry:?}");
+/// }
+///
+/// // entries.durations is a HashMap<Song, Duration>
+/// let song = Song::new("STYX HELIX", "eYe's", "MYTH & ROID");
+/// let duration: Duration = entries.durations.get(&song).unwrap();
+/// ```
+pub struct SongEntries {
+    /// Vector of [`SongEntry`]s
+    entries: Vec<SongEntry>,
+    /// Map of [`Song`]s with their [`Duration`]s
+    pub durations: HashMap<Song, Duration>,
+}
 impl SongEntries {
     /// Creates an instance of [`SongEntries`]
     ///
     /// # Arguments
     ///
     /// * `paths` - a slice of [`Paths`][`Path`] to each `endsong.json` file.
-    /// Those can be [`Strings`][String], [`strs`][str], [`PathBufs`][std::path::PathBuf] or whatever implements [`AsRef<Path>`]
+    /// Those can be [`Strings`][String], [`strs`][str], [`PathBufs`][std::path::PathBuf]
+    /// or whatever implements [`AsRef<Path>`]
     ///
     /// # Errors
     ///
     /// Will return an error if any of the files can't be opened or read
     pub fn new<P: AsRef<Path>>(paths: &[P]) -> Result<SongEntries, Box<dyn Error>> {
-        Ok(SongEntries(parse::parse(paths)?))
+        let entries = parse::parse(paths)?;
+        let durations = song_durations(&entries);
+        Ok(SongEntries { entries, durations })
     }
 
     /// Sometimes an artist changes the capitalization of their album
@@ -197,6 +224,9 @@ impl SongEntries {
             }
         }
 
+        // has to be done because some songs change album capitalization
+        self.durations = song_durations(&self);
+
         self
     }
 
@@ -220,16 +250,14 @@ impl SongEntries {
             "Threshold has to be between 0 and 100"
         );
 
-        let durations = self.song_durations();
-
         // discards every entry whose time_played is below the
         // threshhold percentage of its duration
-        self.retain(|entry| {
+        self.entries.retain(|entry| {
             // retain is supposed to preserve the order so I don't have to sort again?
             let song = Song::from(entry);
-            let dur = durations.get(&song).unwrap();
+            let duration = *self.durations.get(&song).unwrap();
 
-            entry.time_played >= (*dur * percent_threshold) / 100
+            entry.time_played >= (duration * percent_threshold) / 100
                 && entry.time_played >= absolute_threshold
         });
 
@@ -373,56 +401,6 @@ impl SongEntries {
             .collect_vec()
     }
 
-    /// Returns the length of the song
-    ///
-    /// `song` has to be a valid entry in the dataset
-    ///
-    /// Assuming the length of the song is the most common playime of a song.
-    /// Not the highest, because skipping through a song while playing it can
-    /// make the `ms_played` value of the entry higher than the actual
-    /// length of the song.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `song` is not a valid entry in the dataset
-    #[must_use]
-    pub fn song_length(&self, song: &Song) -> Duration {
-        // map of durations with their amount of occurences
-        let mut durations = HashMap::<Duration, usize>::with_capacity(10);
-
-        for dur in self
-            .iter()
-            .filter(|entry| song.is_entry(entry))
-            .map(|entry| entry.time_played)
-        {
-            durations
-                .entry(dur)
-                .and_modify(|count| *count += 1)
-                .or_insert(1);
-        }
-
-        if durations.len() == 1 {
-            return *durations.keys().next().unwrap();
-        }
-
-        // has to be done because possible that multiple durations
-        // have the same amount of occurences
-        // -> from max_by_key docs:
-        // "If several elements are equally maximum, the last element is returned"
-        // but I need the one with the max occurrence AND the max duration
-        // otherwise it's not deterministic
-        // notice the non-determinism while doing SongEntries.filter() xd
-        let max_occurrence = *durations.iter().max_by_key(|(_, count)| *count).unwrap().1;
-
-        durations
-            .into_iter()
-            .filter(|(_, count)| *count == max_occurrence)
-            .max_by_key(|(dur, _)| *dur)
-            // unwrap() ok because assumption is that `song` exists in dataset
-            .unwrap()
-            .0
-    }
-
     /// Counts up the plays of all [`Music`] in a collection
     #[must_use]
     pub fn gather_plays_of_many<Asp: Music>(&self, aspects: &[Asp]) -> usize {
@@ -437,63 +415,18 @@ impl SongEntries {
     pub fn find(&self) -> Find {
         Find(self)
     }
-
-    /// Returns a [`HashMap`] with the [`Songs`][Song] as keys and
-    /// their [`Durations`][Duration] as values
-    ///
-    /// # Panics
-    ///
-    /// Panics if the dataset is empty? (but that should never happen)
-    #[must_use]
-    pub fn song_durations(&self) -> HashMap<Song, Duration> {
-        // 10k is just a guess for amount of unique songs
-        let mut big_boy = HashMap::<Song, HashMap<Duration, usize>>::with_capacity(10_000);
-
-        for entry in self.iter() {
-            let song = Song::from(entry);
-            let dur = entry.time_played;
-
-            // see .song_length() for explanation
-            if let Some(durations) = big_boy.get_mut(&song) {
-                durations
-                    .entry(dur)
-                    .and_modify(|count| *count += 1)
-                    .or_insert(1);
-            } else {
-                let mut durations = HashMap::<Duration, usize>::with_capacity(10);
-                durations.insert(dur, 1);
-                big_boy.insert(song, durations);
-            }
-        }
-
-        big_boy
-            .iter()
-            .map(|(song, durations)| {
-                let max_occurrence = durations.iter().max_by_key(|(_, count)| *count).unwrap().1;
-
-                let dur = durations
-                    .iter()
-                    .filter(|(_, count)| *count == max_occurrence)
-                    .max_by_key(|(dur, _)| *dur)
-                    .unwrap()
-                    .0;
-
-                (song.clone(), *dur)
-            })
-            .collect()
-    }
 }
 // https://users.rust-lang.org/t/how-can-i-return-reference-of-the-struct-field/36325/2
 // so that when you use &self it refers to &self.0 (Vec<SongEntry>)
 impl std::ops::Deref for SongEntries {
     type Target = Vec<SongEntry>;
     fn deref(&self) -> &Vec<SongEntry> {
-        &self.0
+        &self.entries
     }
 }
 impl std::ops::DerefMut for SongEntries {
     fn deref_mut(&mut self) -> &mut Vec<SongEntry> {
-        &mut self.0
+        &mut self.entries
     }
 }
 // TryFrom because of ergonomic API design -> into() etc.
@@ -507,6 +440,45 @@ impl<P: AsRef<Path>> TryFrom<&[P]> for SongEntries {
     fn try_from(path: &[P]) -> Result<Self, Self::Error> {
         SongEntries::new(path)
     }
+}
+
+/// Returns a [`HashMap`] with the [`Songs`][Song] as keys and
+/// their [`Durations`][Duration] as values
+fn song_durations(entries: &Vec<SongEntry>) -> HashMap<Song, Duration> {
+    // 10k is just a guess for amount of unique songs
+    let mut big_boy: HashMap<Song, HashMap<Duration, usize>> = HashMap::with_capacity(10_000);
+
+    for entry in entries {
+        let song = Song::from(entry);
+        let duration = entry.time_played;
+
+        if let Some(durations) = big_boy.get_mut(&song) {
+            *durations.entry(duration).or_insert(0) += 1;
+        } else {
+            big_boy.insert(song, HashMap::from([(duration, 1)]));
+        }
+    }
+
+    big_boy
+        .into_iter()
+        .map(|(song, durations)| {
+            // because the longest duration is not necessarily the correct one
+            // e.g. if you skip through the song `ms_played` will be longer than the actual song length
+            // so we take the most common duration
+            let max_occurrence = durations.iter().max_by_key(|(_, count)| *count).unwrap().1;
+
+            let duration = *durations
+                .iter()
+                // but multiple durations can have the same maximum occurrence
+                .filter(|(_, count)| *count == max_occurrence)
+                // so we then take the longest maximum duration
+                .max_by_key(|(dur, _)| *dur)
+                .unwrap()
+                .0;
+
+            (song, duration)
+        })
+        .collect()
 }
 
 /// Used by [`SongEntries`] as a wrapper for [`find`] methods
