@@ -25,6 +25,8 @@ use endsong_ui::prelude::*;
 /// tests some functions using [`test()`] and
 /// starts the shell instance
 fn main() {
+    tracing_subscriber::fmt::init();
+
     // different root path depending on my OS
     let root = match std::env::consts::OS {
         "windows" => r"C:\\Temp\\Endsong\\",
@@ -44,7 +46,7 @@ fn main() {
         format!("{root}endsong_9.json"),
     ];
 
-    let entries = SongEntries::new(&paths[..=0])
+    let entries = SongEntries::new(&paths[..=9])
         .unwrap()
         .sum_different_capitalization()
         .filter(30, Duration::seconds(10));

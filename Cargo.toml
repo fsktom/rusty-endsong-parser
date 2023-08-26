@@ -3,7 +3,7 @@ name = "endsong"
 version = "0.2.0"
 authors = ["Filip Tomaśko <shader301270@gmail.com>"]
 edition = "2021"
-rust-version = "1.71.1"
+rust-version = "1.72"
 description = "Library for getting data from Spotify endsong.json files"
 readme = "README.md"
 
@@ -14,6 +14,7 @@ serde = { version = "1.0.*", features = ["derive"] }
 serde_json = "1.0.*"
 chrono = "0.4"
 itertools = "0.11"
+tracing = "0.1"
 
 [dev-dependencies]
 criterion = "0.5"

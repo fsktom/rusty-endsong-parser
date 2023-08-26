@@ -11,6 +11,7 @@ use std::rc::Rc;
 use chrono::{DateTime, Duration, Local, TimeZone};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use tracing::info;
 
 use crate::entry::SongEntry;
 
@@ -99,6 +100,7 @@ struct Entry {
 ///
 /// Will return an error if any of the files can't be opened or read
 pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Error>> {
+    info!("Parsing files...");
     // at least for me: about 15.8k-15.95k entries per file
     // to prevent reallocations?
     let mut song_entries: Vec<SongEntry> = Vec::with_capacity(16_000 * paths.len());
@@ -110,6 +112,7 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Erro
     let mut timestamps: HashSet<DateTime<Local>> = HashSet::with_capacity(16_000 * paths.len());
 
     for path in paths {
+        info!("Parsing {:?}", path.as_ref());
         let mut one = parse_single(
             path,
             &mut song_names,

@@ -22,6 +22,7 @@ use std::rc::Rc;
 
 use chrono::{DateTime, Duration, Local};
 use itertools::Itertools;
+use tracing::info;
 
 use crate::aspect;
 use crate::find;
@@ -133,6 +134,7 @@ impl SongEntries {
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
     pub fn sum_different_capitalization(mut self) -> Self {
+        info!("Summing up different capitalization...");
         // 1st: Albums
         // if it's from the same artist and has the same name
         // but different capitalization it's the same album
@@ -245,6 +247,7 @@ impl SongEntries {
     /// Will panic if `threshhold` is below 0 or above 100
     #[must_use]
     pub fn filter(mut self, percent_threshold: i32, absolute_threshold: Duration) -> Self {
+        info!("Filtering out songs...");
         assert!(
             (0..=100).contains(&percent_threshold),
             "Threshold has to be between 0 and 100"
@@ -445,6 +448,7 @@ impl<P: AsRef<Path>> TryFrom<&[P]> for SongEntries {
 /// Returns a [`HashMap`] with the [`Songs`][Song] as keys and
 /// their [`Durations`][Duration] as values
 fn song_durations(entries: &Vec<SongEntry>) -> HashMap<Song, Duration> {
+    info!("Calculating song durations...");
     // 10k is just a guess for amount of unique songs
     let mut big_boy: HashMap<Song, HashMap<Duration, usize>> = HashMap::with_capacity(10_000);
 

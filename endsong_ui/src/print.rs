@@ -316,7 +316,7 @@ pub fn time_played(entries: &SongEntries) {
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
-#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_precision_loss, clippy::cast_possible_wrap)]
 pub fn time_played_date(entries: &SongEntries, start: &DateTime<Local>, end: &DateTime<Local>) {
     assert!(start <= end, "Start date is after end date!");
     let duration = gather::listening_time(entries.between(start, end));
