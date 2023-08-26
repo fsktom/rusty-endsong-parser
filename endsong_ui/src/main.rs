@@ -33,20 +33,12 @@ fn main() {
         "macos" => "/Users/filip/Other/Endsong/",
         _ => "/mnt/c/temp/Endsong/",
     };
-    let paths = [
-        format!("{root}endsong_0.json"),
-        format!("{root}endsong_1.json"),
-        format!("{root}endsong_2.json"),
-        format!("{root}endsong_3.json"),
-        format!("{root}endsong_4.json"),
-        format!("{root}endsong_5.json"),
-        format!("{root}endsong_6.json"),
-        format!("{root}endsong_7.json"),
-        format!("{root}endsong_8.json"),
-        format!("{root}endsong_9.json"),
-    ];
+    let last: u8 = 0;
+    let paths: Vec<String> = (0..=last)
+        .map(|i| format!("{root}endsong_{i}.json"))
+        .collect();
 
-    let entries = SongEntries::new(&paths[..=9])
+    let entries = SongEntries::new(&paths)
         .unwrap()
         .sum_different_capitalization()
         .filter(30, Duration::seconds(10));
