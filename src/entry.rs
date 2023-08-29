@@ -239,6 +239,7 @@ impl SongEntries {
     /// # Arguments
     ///
     /// `percent_threshold` - a value between 0 and 100 (%); a good default is `30`
+    ///
     /// `absolute_threshold` - all songs below this [`Duration`]
     /// will be filtered out; a good default is `Duration::seconds(10)`
     ///

@@ -3,26 +3,28 @@
 use endsong::prelude::*;
 use plotly::{Scatter, Trace};
 
-/// Formats date for x-axis`%Y-%m-%d %H:%M`
+/// Formats date for x-axis to `%Y-%m-%d %H:%M`
 ///
-/// To something like "2016-09-01 15:06"
+/// I.e. "2016-09-01 15:06"
 fn format_date(date: &DateTime<Local>) -> String {
     date.format("%Y-%m-%d %H:%M").to_string()
 }
 
 /// Creates a trace of the absolute amount of plays
+///
+/// Creates an empty trace if `aspect` is not in `entries`
 #[must_use]
 pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
     let mut times = Vec::<String>::with_capacity(entries.len());
     let mut plays = Vec::<usize>::with_capacity(entries.len());
 
     // since each date represents a single listen, we can just count up
-    let mut aspect_plays = 1;
+    let mut aspect_plays = 0;
 
     for entry in entries.iter().filter(|entry| aspect.is_entry(entry)) {
+        aspect_plays += 1;
         times.push(format_date(&entry.timestamp));
         plays.push(aspect_plays);
-        aspect_plays += 1;
     }
 
     let title = format!("{aspect}");
@@ -35,40 +37,36 @@ pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Tra
 /// Either to all plays, the artist or the album
 pub mod relative {
     use endsong::prelude::*;
-    use itertools::Itertools;
     use plotly::{Scatter, Trace};
 
     use super::format_date;
 
     /// Creates a trace of the amount of plays of an [`Music`] relative to all plays
     ///
-    /// # Panics
-    ///
-    /// Will panic if the given `aspect` is not in `entries`.
-    /// Use [`endsong::find`] beforehand to make sure it's there
+    /// Creates an empty trace if `aspect` is not in `entries`
     #[must_use]
     pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
         let mut times = Vec::<String>::with_capacity(entries.len());
         // percentages relative to the sum of all plays
         let mut plays = Vec::<f64>::with_capacity(entries.len());
 
-        let first_aspect = entries.iter().find(|entry| aspect.is_entry(entry)).unwrap();
-        let first_aspect_occ = entries
-            .binary_search_by_key(&first_aspect.timestamp, |entry| entry.timestamp)
-            .unwrap();
+        let mut aspect_plays = 0.0;
+        let mut all_plays = 0.0;
 
-        // since each date represents a single listen, we can just count up
-        let mut aspect_plays = 1.0;
-        #[allow(clippy::cast_precision_loss)]
-        let mut all_plays = entries[..=first_aspect_occ].len() as f64;
+        // the plot should start at the first time the aspect is played
+        let mut aspect_found = false;
 
-        for entry in &entries[first_aspect_occ + 1..] {
-            times.push(format_date(&entry.timestamp));
-            // *100 so that the percentage is easier to read...
-            plays.push(100.0 * (aspect_plays / all_plays));
+        for entry in entries.iter() {
             all_plays += 1.0;
+
             if aspect.is_entry(entry) {
+                aspect_found = true;
                 aspect_plays += 1.0;
+            }
+            if aspect_found {
+                times.push(format_date(&entry.timestamp));
+                // *100 so that the percentage is easier to read...
+                plays.push(100.0 * (aspect_plays / all_plays));
             }
         }
 
@@ -80,46 +78,36 @@ pub mod relative {
     /// Creates a plot of the amount of plays of an [`Album`] or [`Song`]
     /// relative to total plays of the corresponding [`Artist`]
     ///
-    /// # Panics
-    ///
-    /// Will panic if the given `aspect` is not in `entries`.
-    /// Use [`endsong::find`] beforehand to make sure it's there
+    /// Creates an empty trace if `aspect` is not in `entries`
     #[must_use]
     pub fn to_artist<Asp: AsRef<Album> + Music>(
         entries: &SongEntries,
         aspect: &Asp,
     ) -> (Box<dyn Trace>, String) {
-        // since it's relative to the artist, going through artist entries is enough
-        let artist_entries = entries
-            .iter()
-            .filter(|entry| aspect.as_ref().artist.is_entry(entry))
-            .collect_vec();
+        let artist = &aspect.as_ref().artist;
 
-        let mut times = Vec::<String>::with_capacity(artist_entries.len());
+        let mut times = Vec::<String>::new();
         // percentages relative to the sum of respective artist plays
-        let mut plays = Vec::<f64>::with_capacity(artist_entries.len());
+        let mut plays = Vec::<f64>::new();
 
-        let first_aspect = artist_entries
-            .iter()
-            .find(|entry| aspect.is_entry(entry))
-            .unwrap();
-        let first_aspect_occ = artist_entries
-            .binary_search_by_key(&first_aspect.timestamp, |entry| entry.timestamp)
-            .unwrap();
+        let mut aspect_plays = 0.0;
+        let mut artist_plays = 0.0;
 
-        let mut aspect_plays = 1.0;
-        #[allow(clippy::cast_precision_loss)]
-        let mut artist_plays = artist_entries[..=first_aspect_occ].len() as f64;
+        // the plot should start at the first time the aspect is played
+        let mut aspect_found = false;
 
-        for entry in &artist_entries[first_aspect_occ + 1..] {
-            times.push(format_date(&entry.timestamp));
-
-            // *100 so that the percentage is easier to read...
-            plays.push(100.0 * (aspect_plays / artist_plays));
-
+        for entry in entries.iter().filter(|entry| artist.is_entry(entry)) {
             artist_plays += 1.0;
+
             if aspect.is_entry(entry) {
+                aspect_found = true;
                 aspect_plays += 1.0;
+            }
+
+            if aspect_found {
+                times.push(format_date(&entry.timestamp));
+                // *100 so that the percentage is easier to read...
+                plays.push(100.0 * (aspect_plays / artist_plays));
             }
         }
 
@@ -131,44 +119,33 @@ pub mod relative {
     /// Creates a plot of the amount of plays of a [`Song`]
     /// relative to total plays of the corresponding [`Album`]
     ///
-    /// # Panics
-    ///
-    /// Will panic if the given `song` is not in `entries`.
-    /// Use [`endsong::find`] beforehand to make sure it's there
+    /// Creates an empty trace if `song` is not in `entries`
     #[must_use]
     pub fn to_album(entries: &SongEntries, song: &Song) -> (Box<dyn Trace>, String) {
-        // since it's relative to the album, going through album entries is enough
-        let album_entries = entries
-            .iter()
-            .filter(|entry| song.album.is_entry(entry))
-            .collect_vec();
+        let album = &song.album;
 
-        let mut times = Vec::<String>::with_capacity(album_entries.len());
+        let mut times = Vec::<String>::new();
         // percentages relative to the sum of respective album plays
-        let mut plays = Vec::<f64>::with_capacity(album_entries.len());
+        let mut plays = Vec::<f64>::new();
 
-        let first_song = album_entries
-            .iter()
-            .find(|entry| song.is_entry(entry))
-            .unwrap();
-        let first_song_occ = album_entries
-            .binary_search_by_key(&first_song.timestamp, |entry| entry.timestamp)
-            .unwrap();
+        let mut song_plays = 0.0;
+        let mut album_plays = 0.0;
 
-        // since each date represents a single listen, we can just count up
-        let mut song_plays = 1.0;
-        #[allow(clippy::cast_precision_loss)]
-        let mut album_plays = album_entries[..=first_song_occ].len() as f64;
+        // the plot should start at the first time the aspect is played
+        let mut song_found = false;
 
-        for entry in &album_entries[first_song_occ + 1..] {
-            times.push(format_date(&entry.timestamp));
-
-            // *100 so that the percentage is easier to read...
-            plays.push(100.0 * (song_plays / album_plays));
-
+        for entry in entries.iter().filter(|entry| album.is_entry(entry)) {
             album_plays += 1.0;
+
             if song.is_entry(entry) {
+                song_found = true;
                 song_plays += 1.0;
+            }
+
+            if song_found {
+                times.push(format_date(&entry.timestamp));
+                // *100 so that the percentage is easier to read...
+                plays.push(100.0 * (song_plays / album_plays));
             }
         }
 
