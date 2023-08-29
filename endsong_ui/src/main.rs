@@ -20,16 +20,20 @@
 
 use endsong::prelude::*;
 use endsong_ui::prelude::*;
+use tracing_subscriber::filter::{EnvFilter, LevelFilter};
 
 /// Intializes the data,
 /// tests some functions using [`test()`] and
 /// starts the shell instance
 fn main() {
-    tracing_subscriber::fmt::init();
+    let env = EnvFilter::builder()
+        .with_default_directive(LevelFilter::ERROR.into())
+        .from_env_lossy();
+    tracing_subscriber::fmt().with_env_filter(env).init();
 
     // different root path depending on my OS
     let root = match std::env::consts::OS {
-        "windows" => r"C:\\Temp\\Endsong\\",
+        "windows" => r"C:\Temp\Endsong\",
         "macos" => "/Users/filip/Other/Endsong/",
         _ => "/mnt/c/temp/Endsong/",
     };
