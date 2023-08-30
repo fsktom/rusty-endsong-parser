@@ -53,6 +53,7 @@ pub struct SongEntry {
     /// Spotify URI
     pub id: String,
 }
+/// Equal if `artist`, `album` and `track` name are the same
 impl PartialEq for SongEntry {
     /// Equality for a [`SongEntry`] is when the artist, album, and track name is the same
     fn eq(&self, other: &Self) -> bool {
@@ -65,10 +66,26 @@ impl PartialEq for SongEntry {
     }
 }
 impl Eq for SongEntry {}
+/// Hash is the hash of the concatenation of `artist`, `album` and `track`
 impl std::hash::Hash for SongEntry {
+    /// Hash is the hash of the concatenation of `artist`, `album` and `track`
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         let str_to_be_hashed = format!("{}{}{}", self.artist, self.album, self.track);
         str_to_be_hashed.hash(state);
+    }
+}
+/// Ordered by `timestamp`
+impl Ord for SongEntry {
+    /// Ordered by `timestamp`
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.timestamp.cmp(&other.timestamp)
+    }
+}
+/// Ordered by `timestamp`
+impl PartialOrd for SongEntry {
+    /// Ordered by `timestamp`
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }
 

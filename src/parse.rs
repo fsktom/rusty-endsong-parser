@@ -9,7 +9,7 @@ use std::rc::Rc;
 
 use chrono::{DateTime, Duration, Local, TimeZone};
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use thiserror::Error;
 use tracing::{error, info};
 
@@ -47,27 +47,27 @@ pub enum ParseError {
 ///
 /// These are later "converted" to [`SongEntry`] if they represent a song stream.
 /// Podcast streams are ignored.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone)]
 struct Entry {
     /// timestamp in `"YYY-MM-DD 13:30:30"` format
     ts: String,
     /// Skipped
     #[serde(skip_deserializing)]
-    username: (),
+    _username: (),
     /// Skipped for now: maybe use it for sth
     #[serde(skip_deserializing)]
-    platform: String,
+    _platform: String,
     /// Miliseconds the song has been played for
     ms_played: i64,
     /// Skipped
     #[serde(skip_deserializing)]
-    conn_country: (),
+    _conn_country: (),
     /// Skipped
     #[serde(skip_deserializing)]
-    ip_addr_decrypted: (),
+    _ip_addr_decrypted: (),
     /// Skipped
     #[serde(skip_deserializing)]
-    user_agent_decrypted: (),
+    _user_agent_decrypted: (),
     /// Name of the song
     ///
     /// Option because the field will be empty if it's a podcast
@@ -84,35 +84,35 @@ struct Entry {
     spotify_track_uri: Option<String>,
     /// TBD: Podcast stuff
     #[serde(skip_deserializing)]
-    episode_name: (),
+    _episode_name: (),
     /// TBD: Podcast stuff
     #[serde(skip_deserializing)]
     /// TBD: Podcast stuff
-    episode_show_name: (),
+    _episode_show_name: (),
     #[serde(skip_deserializing)]
     /// TBD: Podcast stuff
-    spotify_episode_uri: (),
+    _spotify_episode_uri: (),
     /// Skipped for now: maybe use it for sth
     #[serde(skip_deserializing)]
-    reason_start: String,
+    _reason_start: String,
     /// Skipped for now: maybe use it for sth
     #[serde(skip_deserializing)]
-    reason_end: String,
+    _reason_end: String,
     /// Skipped for now: maybe use it for sth
     #[serde(skip_deserializing)]
-    shuffle: bool,
+    _shuffle: bool,
     /// Skipped for now: maybe use it for sth
     #[serde(skip_deserializing)]
-    skipped: Option<bool>,
+    _skipped: Option<bool>,
     /// Skipped
     #[serde(skip_deserializing)]
-    offline: (),
+    _offline: (),
     /// Skipped
     #[serde(skip_deserializing)]
-    offline_timestamp: (),
+    _offline_timestamp: (),
     /// Skipped
     #[serde(skip_deserializing)]
-    incognito_mode: (),
+    _incognito_mode: (),
 }
 
 /// Main parsing function that parses many `endsong.json` files
@@ -157,8 +157,10 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, ParseError> 
         song_entries.append(&mut one);
     }
 
-    // sort by timestamp (oldest streams are first, newest are last)
-    song_entries.sort_unstable_by(|a, b| a.timestamp.cmp(&b.timestamp));
+    // stable sort because newer endsong files should already be sorted
+    // by timestamp (oldest streams are first, newest are last)
+    // but sorting, just in case you're using older (pre-2023) files
+    song_entries.sort();
 
     Ok(song_entries)
 }
