@@ -11,7 +11,7 @@ use chrono::{DateTime, Duration, Local, TimeZone};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tracing::info;
+use tracing::{error, info};
 
 use crate::entry::SongEntry;
 
@@ -135,7 +135,8 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, ParseError> 
     let mut timestamps: HashSet<DateTime<Local>> = HashSet::with_capacity(16_000 * paths.len());
 
     for path in paths {
-        info!("Parsing {:?}", path.as_ref());
+        let p = path.as_ref();
+        info!("Parsing {:?}", p);
         let mut one = match parse_single(
             path,
             &mut song_names,
@@ -145,10 +146,12 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, ParseError> 
         ) {
             Ok(parsed) => parsed,
             Err(SingleParseError::Io(e)) => {
-                return Err(ParseError::Io(e, path.as_ref().into()));
+                error!("{:?} failed to open", p);
+                return Err(ParseError::Io(e, p.into()));
             }
             Err(SingleParseError::Serde(e)) => {
-                return Err(ParseError::Serde(e, path.as_ref().into()));
+                error!("{:?} failed to parse", p);
+                return Err(ParseError::Serde(e, p.into()));
             }
         };
         song_entries.append(&mut one);
