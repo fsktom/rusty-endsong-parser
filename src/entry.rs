@@ -16,7 +16,6 @@
 //! ```
 
 use std::collections::HashMap;
-use std::error::Error;
 use std::path::Path;
 use std::rc::Rc;
 
@@ -30,6 +29,7 @@ use crate::gather;
 use crate::parse;
 
 use aspect::{Album, Artist, HasSongs, Music, Song};
+use parse::{parse, ParseError};
 
 /// A representation of a single song stream in endsong.json
 /// utilized by many functions here.
@@ -81,7 +81,7 @@ impl std::hash::Hash for SongEntry {
 /// ```ignore
 /// use endsong::prelude::*;
 ///
-/// let entries = SongEntries::new(&paths);
+/// let entries = SongEntries::new(&paths)?;
 ///
 /// // .iter() takes in an immutable refrence to the underlying Vec<SongEntry>
 /// for entry in entries.iter() {
@@ -91,7 +91,7 @@ impl std::hash::Hash for SongEntry {
 ///
 /// // entries.durations is a HashMap<Song, Duration>
 /// let song = Song::new("STYX HELIX", "eYe's", "MYTH & ROID");
-/// let duration: Duration = entries.durations.get(&song).unwrap();
+/// let duration: Duration = entries.durations.get(&song)?;
 /// ```
 pub struct SongEntries {
     /// Vector of [`SongEntry`]s
@@ -111,8 +111,8 @@ impl SongEntries {
     /// # Errors
     ///
     /// Will return an error if any of the files can't be opened or read
-    pub fn new<P: AsRef<Path>>(paths: &[P]) -> Result<SongEntries, Box<dyn Error>> {
-        let entries = parse::parse(paths)?;
+    pub fn new<P: AsRef<Path>>(paths: &[P]) -> Result<SongEntries, ParseError> {
+        let entries = parse(paths)?;
         let durations = song_durations(&entries);
         Ok(SongEntries { entries, durations })
     }
@@ -436,7 +436,7 @@ impl std::ops::DerefMut for SongEntries {
 // TryFrom because of ergonomic API design -> into() etc.
 // see https://youtu.be/0zOg8_B71gE?t=922
 impl<P: AsRef<Path>> TryFrom<&[P]> for SongEntries {
-    type Error = Box<dyn Error>;
+    type Error = ParseError;
 
     /// Creates an instance of [`SongEntries`] from a slice of [`Path`][`Path`]s
     ///

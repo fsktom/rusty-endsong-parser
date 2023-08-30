@@ -2,7 +2,6 @@
 //! into usable Rust data types
 
 use std::collections::{HashMap, HashSet};
-use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -11,9 +10,33 @@ use std::rc::Rc;
 use chrono::{DateTime, Duration, Local, TimeZone};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 use tracing::info;
 
 use crate::entry::SongEntry;
+
+/// Errors that can occur when parsing an endsong.json file
+#[derive(Error, Debug)]
+enum SingleParseError {
+    /// Used when serde deserialization fails
+    #[error("Error while parsing the file: {0}")]
+    Serde(#[from] serde_json::Error),
+    /// Used when reading the file fails
+    #[error("Error while opening the file: {0}")]
+    Io(#[from] std::io::Error),
+}
+
+/// Errors that can occur when parsing the endsong.json files
+#[derive(Error, Debug)]
+#[allow(clippy::module_name_repetitions)]
+pub enum ParseError {
+    /// Used when serde deserialization fails
+    #[error("Error while parsing {1}: {0}")]
+    Serde(serde_json::Error, Box<Path>),
+    /// Used when reading the file fails
+    #[error("Error while opening {1}: {0}")]
+    Io(std::io::Error, Box<Path>),
+}
 
 // https://stackoverflow.com/questions/44205435/how-to-deserialize-a-json-file-which-contains-null-values-using-serde
 // null values are either skipped (defaulted to unit tuple or are an Option)
@@ -99,7 +122,7 @@ struct Entry {
 /// # Errors
 ///
 /// Will return an error if any of the files can't be opened or read
-pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Error>> {
+pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, ParseError> {
     info!("Parsing files...");
     // at least for me: about 15.8k-15.95k entries per file
     // to prevent reallocations?
@@ -113,13 +136,21 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, Box<dyn Erro
 
     for path in paths {
         info!("Parsing {:?}", path.as_ref());
-        let mut one = parse_single(
+        let mut one = match parse_single(
             path,
             &mut song_names,
             &mut album_names,
             &mut artist_names,
             &mut timestamps,
-        )?;
+        ) {
+            Ok(parsed) => parsed,
+            Err(SingleParseError::Io(e)) => {
+                return Err(ParseError::Io(e, path.as_ref().into()));
+            }
+            Err(SingleParseError::Serde(e)) => {
+                return Err(ParseError::Serde(e, path.as_ref().into()));
+            }
+        };
         song_entries.append(&mut one);
     }
 
@@ -136,7 +167,7 @@ fn parse_single<P: AsRef<Path>>(
     album_names: &mut HashMap<String, Rc<str>>,
     artist_names: &mut HashMap<String, Rc<str>>,
     timestamps: &mut HashSet<DateTime<Local>>,
-) -> Result<Vec<SongEntry>, Box<dyn Error>> {
+) -> Result<Vec<SongEntry>, SingleParseError> {
     // https://github.com/serde-rs/json/issues/160#issuecomment-253446892
     let mut file_contents = String::new();
     File::open(path)?.read_to_string(&mut file_contents)?;

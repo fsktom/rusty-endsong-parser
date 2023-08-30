@@ -43,7 +43,7 @@ fn main() {
         .collect();
 
     let entries = SongEntries::new(&paths)
-        .unwrap()
+        .unwrap_or_else(|e| panic!("{e}"))
         .sum_different_capitalization()
         .filter(30, Duration::seconds(10));
 
