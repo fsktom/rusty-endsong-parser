@@ -169,6 +169,7 @@ impl Completer for ShellHelper {
 /// ANSI Colors
 ///
 /// See <https://bixense.com/clicolors>
+#[derive(Debug, Copy, Clone)]
 enum Color {
     /// Resets the following text with `\x1b[0m`
     Reset,
