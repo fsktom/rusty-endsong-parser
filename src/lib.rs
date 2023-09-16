@@ -56,6 +56,8 @@ use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
 /// - 'now'/'end' return the current time
 /// - 'start' returns the start of UNIX epoch
 ///
+/// whitespace is trimmed
+///
 /// # Examples
 /// ```
 /// use endsong::prelude::*;
@@ -73,6 +75,9 @@ use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
 /// );
 ///
 /// let now: DateTime<Local> = parse_date("now")?;
+///
+/// // whitespace is trimmed!
+/// assert_eq!(parse_date("2019-01-01"), parse_date("   2019-01-01 "));
 /// # Ok::<(), chrono::format::ParseError>(())
 /// ```
 /// # Errors
@@ -81,6 +86,7 @@ use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
 /// if the `date` does not follow the format `YYYY-MM-DD`
 /// and is not 'now'/'end'/'start'
 pub fn parse_date(date: &str) -> Result<DateTime<Local>, chrono::format::ParseError> {
+    let date = date.trim();
     match date {
         "now" | "end" => Ok(Local::now()),
         "start" => {
@@ -138,10 +144,10 @@ mod tests {
         assert!(parse_date("2011-13-12").is_err());
         assert!(parse_date("2023-02-29").is_err());
 
-        // for some reason, the chrono parser accepts leading whitespace
-        // but not trailing whitespace...
+        // whitespace around the input is trimmed
         assert!(parse_date("  2011-01-01").is_ok());
-        assert!(parse_date("2011-01-01 ").is_err());
-        assert!(parse_date(" 2011-01-01 ").is_err());
+        assert!(parse_date("2011-01-01 ").is_ok());
+        assert!(parse_date(" 2011-01-01 ").is_ok());
+        assert_eq!(parse_date("2011-01-01"), parse_date("     2011-01-01  "));
     }
 }
