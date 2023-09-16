@@ -172,11 +172,17 @@ fn test_plot(entries: &SongEntries) {
     // plot::relative::to_artist(entries, &coat);
 
     // plot::single(plot::absolute::aspect(entries, &stand));
-    plot::single(trace::absolute(entries, &stand));
+    plot::single((trace::absolute(entries, &stand), String::from("test")));
 
     let eminem = Artist::new("Eminem");
     plot::compare(
-        trace::relative::to_artist(entries, &stand),
-        trace::relative::to_all(entries, &eminem),
+        (
+            trace::relative::to_artist(entries, &stand),
+            String::from("test"),
+        ),
+        (
+            trace::relative::to_all(entries, &eminem),
+            String::from("test"),
+        ),
     );
 }

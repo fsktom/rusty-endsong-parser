@@ -9,7 +9,7 @@ use std::rc::Rc;
 
 use endsong::prelude::*;
 use itertools::Itertools;
-use plotly::Trace;
+use plotly::Scatter;
 use rustyline::{completion::Completer, Helper, Hinter, Validator};
 use rustyline::{
     error::ReadlineError, highlight::Highlighter, history::FileHistory, ColorMode, Config, Editor,
@@ -20,6 +20,7 @@ use crate::plot;
 use crate::print;
 use crate::trace;
 use print::{Aspect, AspectFull};
+use trace::TraceType;
 
 /// Prompt used for top-level shell commands
 ///
@@ -104,6 +105,7 @@ impl ShellHelper {
             "plot compare",
             "plot compare rel",
             "plot top",
+            "plot artist",
         ]);
     }
 
@@ -306,6 +308,7 @@ fn match_input(
         "plot compare" | "gc" => match_plot_compare(entries, rl)?,
         "plot compare rel" | "gcr" => match_plot_compare_relative(entries, rl)?,
         "plot top" | "gt" => match_plot_top(entries, rl)?,
+        "plot artist albums" | "gaa" => match_plot_artist_albums(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -575,9 +578,9 @@ fn match_plot(
     let usr_input_asp = rl.readline(PROMPT_SECONDARY)?;
 
     // other prompts
-    let trace = get_absolute_trace(entries, rl, usr_input_asp.as_str())?;
+    let (trace, title) = get_absolute_trace(entries, rl, usr_input_asp.as_str())?;
 
-    plot::single(trace);
+    plot::single((TraceType::Absolute(trace), title));
 
     Ok(())
 }
@@ -593,9 +596,9 @@ fn match_plot_relative(
     let usr_input_asp = rl.readline(PROMPT_SECONDARY)?;
 
     // other prompts
-    let trace = get_relative_trace(entries, rl, usr_input_asp.as_str())?;
+    let (trace, title) = get_relative_trace(entries, rl, usr_input_asp.as_str())?;
 
-    plot::single(trace);
+    plot::single((TraceType::Relative(trace), title));
 
     Ok(())
 }
@@ -609,15 +612,18 @@ fn match_plot_compare(
     rl.helper_mut().unwrap().complete_aspects();
     println!("1st trace: artist, album or song?");
     let usr_input_asp_one = rl.readline(PROMPT_SECONDARY)?;
-    let trace_one = get_absolute_trace(entries, rl, usr_input_asp_one.as_str())?;
+    let (trace_one, title_one) = get_absolute_trace(entries, rl, usr_input_asp_one.as_str())?;
 
     // second trace
     rl.helper_mut().unwrap().complete_aspects();
     println!("2nd trace: artist, album or song?");
     let usr_input_asp_two = rl.readline(PROMPT_SECONDARY)?;
-    let trace_two = get_absolute_trace(entries, rl, usr_input_asp_two.as_str())?;
+    let (trace_two, title_two) = get_absolute_trace(entries, rl, usr_input_asp_two.as_str())?;
 
-    plot::compare(trace_one, trace_two);
+    plot::compare(
+        (TraceType::Absolute(trace_one), title_one),
+        (TraceType::Absolute(trace_two), title_two),
+    );
 
     Ok(())
 }
@@ -631,20 +637,23 @@ fn match_plot_compare_relative(
     rl.helper_mut().unwrap().complete_aspects();
     println!("1st trace: artist, album or song?");
     let usr_input_asp_one = rl.readline(PROMPT_SECONDARY)?;
-    let trace_one = get_relative_trace(entries, rl, usr_input_asp_one.as_str())?;
+    let (trace_one, title_one) = get_relative_trace(entries, rl, usr_input_asp_one.as_str())?;
 
     // second trace
     rl.helper_mut().unwrap().complete_aspects();
     println!("2nd trace: artist, album or song?");
     let usr_input_asp_two = rl.readline(PROMPT_SECONDARY)?;
-    let trace_two = get_relative_trace(entries, rl, usr_input_asp_two.as_str())?;
+    let (trace_two, title_two) = get_relative_trace(entries, rl, usr_input_asp_two.as_str())?;
 
-    plot::compare(trace_one, trace_two);
+    plot::compare(
+        (TraceType::Relative(trace_one), title_one),
+        (TraceType::Relative(trace_two), title_two),
+    );
 
     Ok(())
 }
 
-/// Used by [`match_input()`] for `plot top *` commands
+/// Used by [`match_input()`] for `plot top` command
 fn match_plot_top(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
@@ -674,6 +683,49 @@ fn match_plot_top(
     Ok(())
 }
 
+/// Used by [`match_input()`] for `plot artist albums` command
+fn match_plot_artist_albums(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), UiError> {
+    // prompt: artist name
+    let art = read_artist(rl, entries)?;
+
+    let albums_map = gather::albums_from_artist(entries, &art);
+    let albums = albums_map
+        .iter()
+        .sorted_unstable_by_key(|t| (std::cmp::Reverse(t.1), t.0))
+        .map(|(aspect, _)| aspect)
+        .collect_vec();
+
+    let mut traces = vec![];
+    for (count, alb) in albums.into_iter().enumerate() {
+        let TraceType::Absolute(trace) = trace::absolute(entries, alb) else {
+            unreachable!()
+        };
+
+        let trace = trace
+            .legend_group_title(art.name.to_string())
+            .name(&alb.name);
+
+        // only the traces for the 3 albums with most plays are shown by default
+        let trace = if count < 3 {
+            trace
+        } else {
+            // others are hidden and have to be enabled manually
+            trace.visible(plotly::common::Visible::LegendOnly)
+        };
+
+        traces.push(TraceType::Absolute(trace));
+    }
+
+    let title = format!("{art} albums");
+
+    plot::multiple(traces, &title);
+
+    Ok(())
+}
+
 /// Returns the traces for the top `num` artists, albums or songs
 ///
 /// Helper function for [`match_plot_top`]
@@ -681,12 +733,12 @@ fn get_traces<Asp: Music>(
     entries: &SongEntries,
     music_map: &HashMap<Asp, usize>,
     num: usize,
-) -> Vec<Box<dyn Trace>> {
+) -> Vec<TraceType> {
     music_map
         .iter()
         .sorted_unstable_by_key(|t| (std::cmp::Reverse(t.1), t.0))
         .take(num)
-        .map(|(aspect, _)| trace::absolute(entries, aspect).0)
+        .map(|(aspect, _)| trace::absolute(entries, aspect))
         .collect_vec()
 }
 
@@ -695,7 +747,7 @@ fn get_absolute_trace(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
     usr_input: &str,
-) -> Result<(Box<dyn Trace>, String), UiError> {
+) -> Result<(Box<Scatter<String, usize>>, String), UiError> {
     match usr_input {
         "artist" => match_plot_artist(entries, rl),
         "album" => match_plot_album(entries, rl),
@@ -709,7 +761,7 @@ fn get_relative_trace(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
     usr_input: &str,
-) -> Result<(Box<dyn Trace>, String), UiError> {
+) -> Result<(Box<Scatter<String, f64>>, String), UiError> {
     match usr_input {
         "artist" => match_plot_artist_relative(entries, rl),
         "album" => match_plot_album_relative(entries, rl),
@@ -722,32 +774,40 @@ fn get_relative_trace(
 fn match_plot_artist(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), UiError> {
+) -> Result<(Box<Scatter<String, usize>>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
-    Ok(trace::absolute(entries, &art))
+    if let TraceType::Absolute(trace) = trace::absolute(entries, &art) {
+        Ok((trace, art.to_string()))
+    } else {
+        unreachable!()
+    }
 }
 
 /// Used by [`match_plot()`] for plotting absolute plays of album
 fn match_plot_album(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), UiError> {
+) -> Result<(Box<Scatter<String, usize>>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
     // 2nd prompt: album name
     let alb = read_album(rl, entries, &art)?;
 
-    Ok(trace::absolute(entries, &alb))
+    if let TraceType::Absolute(trace) = trace::absolute(entries, &alb) {
+        Ok((trace, alb.to_string()))
+    } else {
+        unreachable!()
+    }
 }
 
 /// Used by [`match_plot()`] for plotting absolute plays of song
 fn match_plot_song(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), UiError> {
+) -> Result<(Box<Scatter<String, usize>>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -757,25 +817,35 @@ fn match_plot_song(
     // 3rd prompt: song name
     let son = read_song(rl, entries, &alb)?;
 
-    Ok(trace::absolute(entries, &son))
+    if let TraceType::Absolute(trace) = trace::absolute(entries, &son) {
+        Ok((trace, son.to_string()))
+    } else {
+        unreachable!()
+    }
 }
 
 /// Used by [`match_plot_relative()`] for plotting relative plots of artist
 fn match_plot_artist_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), UiError> {
+) -> Result<(Box<Scatter<String, f64>>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
-    Ok(trace::relative::to_all(entries, &art))
+    let trace = trace::relative::to_all(entries, &art);
+
+    if let TraceType::Relative(trace) = trace {
+        Ok((trace, art.to_string()))
+    } else {
+        unreachable!()
+    }
 }
 
 /// Used by [`match_plot_relative()`] for plotting relative plots of album
 fn match_plot_album_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), UiError> {
+) -> Result<(Box<Scatter<String, f64>>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -789,10 +859,16 @@ fn match_plot_album_relative(
     println!("Relative to all or artist?");
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
-    match usr_input_rel.as_str() {
-        "all" => Ok(trace::relative::to_all(entries, &alb)),
-        "artist" => Ok(trace::relative::to_artist(entries, &alb)),
-        _ => Err(UiError::InvalidArgument("all, artist")),
+    let trace = match usr_input_rel.as_str() {
+        "all" => trace::relative::to_all(entries, &alb),
+        "artist" => trace::relative::to_artist(entries, &alb),
+        _ => return Err(UiError::InvalidArgument("all, artist")),
+    };
+
+    if let TraceType::Relative(trace) = trace {
+        Ok((trace, alb.to_string()))
+    } else {
+        unreachable!()
     }
 }
 
@@ -800,7 +876,7 @@ fn match_plot_album_relative(
 fn match_plot_song_relative(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
-) -> Result<(Box<dyn Trace>, String), UiError> {
+) -> Result<(Box<Scatter<String, f64>>, String), UiError> {
     // 1st prompt: artist name
     let art = read_artist(rl, entries)?;
 
@@ -818,11 +894,17 @@ fn match_plot_song_relative(
     println!("Relative to all, artist or album?");
     let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
 
-    match usr_input_rel.as_str() {
-        "all" => Ok(trace::relative::to_all(entries, &son)),
-        "artist" => Ok(trace::relative::to_artist(entries, &son)),
-        "album" => Ok(trace::relative::to_album(entries, &son)),
-        _ => Err(UiError::InvalidArgument("all, artist, album")),
+    let trace = match usr_input_rel.as_str() {
+        "all" => trace::relative::to_all(entries, &son),
+        "artist" => trace::relative::to_artist(entries, &son),
+        "album" => trace::relative::to_album(entries, &son),
+        _ => return Err(UiError::InvalidArgument("all, artist, album")),
+    };
+
+    if let TraceType::Relative(trace) = trace {
+        Ok((trace, son.to_string()))
+    } else {
+        unreachable!()
     }
 }
 

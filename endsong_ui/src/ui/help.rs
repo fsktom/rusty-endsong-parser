@@ -259,6 +259,13 @@ const fn plot_commands() -> &'static [Command] {
             "creates a plot of the absolute traces of top n aspects
             and opens it in the web browser",
         ),
+        Command(
+            "plot artist albums",
+            "gaa",
+            "creates a plot of the absolute traces of all albums
+            of the given artist
+            and opens it in the web browser",
+        ),
     ]
 }
 

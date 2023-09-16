@@ -3,6 +3,26 @@
 use endsong::prelude::*;
 use plotly::{Scatter, Trace};
 
+/// Wrapper to use instead of [`Box<dyn Trace>`][plotly::Trace]
+/// to access internal methods
+#[allow(clippy::module_name_repetitions)]
+pub enum TraceType {
+    /// trace of absolute amount of plays
+    Absolute(Box<Scatter<String, usize>>),
+    /// trace of relative amount of plays
+    Relative(Box<Scatter<String, f64>>),
+}
+impl TraceType {
+    /// Returns the inner trace that can be added to the [`Plot`][plotly::Plot]
+    #[must_use]
+    pub fn get_inner(self) -> Box<dyn Trace> {
+        match self {
+            TraceType::Absolute(trace) => trace,
+            TraceType::Relative(trace) => trace,
+        }
+    }
+}
+
 /// Formats date for x-axis to `%Y-%m-%d %H:%M`
 ///
 /// I.e. "2016-09-01 15:06"
@@ -14,7 +34,7 @@ fn format_date(date: &DateTime<Local>) -> String {
 ///
 /// Creates an empty trace if `aspect` is not in `entries`
 #[must_use]
-pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
+pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> TraceType {
     let mut times = Vec::<String>::with_capacity(entries.len());
     let mut plays = Vec::<usize>::with_capacity(entries.len());
 
@@ -28,8 +48,9 @@ pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Tra
     }
 
     let title = format!("{aspect}");
-    let trace = Scatter::new(times, plays).name(&title);
-    (trace, title)
+    let trace = Scatter::new(times, plays).name(title);
+
+    TraceType::Absolute(trace)
 }
 
 /// Module for relative traces
@@ -37,15 +58,15 @@ pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Tra
 /// Either to all plays, the artist or the album
 pub mod relative {
     use endsong::prelude::*;
-    use plotly::{Scatter, Trace};
+    use plotly::Scatter;
 
-    use super::format_date;
+    use super::{format_date, TraceType};
 
     /// Creates a trace of the amount of plays of an [`Music`] relative to all plays
     ///
     /// Creates an empty trace if `aspect` is not in `entries`
     #[must_use]
-    pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> (Box<dyn Trace>, String) {
+    pub fn to_all<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> TraceType {
         let mut times = Vec::<String>::with_capacity(entries.len());
         // percentages relative to the sum of all plays
         let mut plays = Vec::<f64>::with_capacity(entries.len());
@@ -71,8 +92,9 @@ pub mod relative {
         }
 
         let title = format!("{aspect} | relative to all plays");
-        let trace = Scatter::new(times, plays).name(&title);
-        (trace, title)
+        let trace = Scatter::new(times, plays).name(title);
+
+        TraceType::Relative(trace)
     }
 
     /// Creates a plot of the amount of plays of an [`Album`] or [`Song`]
@@ -80,10 +102,7 @@ pub mod relative {
     ///
     /// Creates an empty trace if `aspect` is not in `entries`
     #[must_use]
-    pub fn to_artist<Asp: AsRef<Album> + Music>(
-        entries: &SongEntries,
-        aspect: &Asp,
-    ) -> (Box<dyn Trace>, String) {
+    pub fn to_artist<Asp: AsRef<Album> + Music>(entries: &SongEntries, aspect: &Asp) -> TraceType {
         let artist = &aspect.as_ref().artist;
 
         let mut times = Vec::<String>::new();
@@ -112,8 +131,9 @@ pub mod relative {
         }
 
         let title = format!("{aspect} | relative to the artist");
-        let trace = Scatter::new(times, plays).name(&title);
-        (trace, title)
+        let trace = Scatter::new(times, plays).name(title);
+
+        TraceType::Relative(trace)
     }
 
     /// Creates a plot of the amount of plays of a [`Song`]
@@ -121,7 +141,7 @@ pub mod relative {
     ///
     /// Creates an empty trace if `song` is not in `entries`
     #[must_use]
-    pub fn to_album(entries: &SongEntries, song: &Song) -> (Box<dyn Trace>, String) {
+    pub fn to_album(entries: &SongEntries, song: &Song) -> TraceType {
         let album = &song.album;
 
         let mut times = Vec::<String>::new();
@@ -150,7 +170,8 @@ pub mod relative {
         }
 
         let title = format!("{song} | relative to the album");
-        let trace = Scatter::new(times, plays).name(&title);
-        (trace, title)
+        let trace = Scatter::new(times, plays).name(title);
+
+        TraceType::Relative(trace)
     }
 }

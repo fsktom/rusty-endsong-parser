@@ -1,14 +1,16 @@
 //! Module responsible for plotting/charts
 
-use plotly::{Layout, Plot, Trace};
+use plotly::{Layout, Plot};
+
+use crate::trace::TraceType;
 
 /// Creates a plot in the `plots/` folder
 ///
 /// Then opens it in the browser
-pub fn single(trace: (Box<dyn Trace>, String)) {
+pub fn single(trace: (TraceType, String)) {
     let title = trace.1;
     let mut plot = Plot::new();
-    plot.add_trace(trace.0);
+    plot.add_trace(trace.0.get_inner());
 
     // sets the title of the plot
     let layout = Layout::new().title(format!("<b>{title}</b>"));
@@ -20,11 +22,11 @@ pub fn single(trace: (Box<dyn Trace>, String)) {
 /// Compares two traces in a single plot in the `plots/` folder
 ///
 /// Then opens it in the browser
-pub fn compare(trace_one: (Box<dyn Trace>, String), trace_two: (Box<dyn Trace>, String)) {
+pub fn compare(trace_one: (TraceType, String), trace_two: (TraceType, String)) {
     let title = format!("{} vs {}", trace_one.1, trace_two.1);
     let mut plot = Plot::new();
-    plot.add_trace(trace_one.0);
-    plot.add_trace(trace_two.0);
+    plot.add_trace(trace_one.0.get_inner());
+    plot.add_trace(trace_two.0.get_inner());
 
     // sets the title of the plot
     let layout = Layout::new().title(format!("<b>{title}</b>"));
@@ -36,11 +38,11 @@ pub fn compare(trace_one: (Box<dyn Trace>, String), trace_two: (Box<dyn Trace>, 
 /// Plots multiple traces in a single plot in the `plots/` folder
 ///
 /// Then opens it in the browser
-pub fn multiple(traces: Vec<Box<dyn Trace>>, title: &str) {
+pub fn multiple(traces: Vec<TraceType>, title: &str) {
     let mut plot = Plot::new();
 
     for trace in traces {
-        plot.add_trace(trace);
+        plot.add_trace(trace.get_inner());
     }
 
     // sets the title of the plot
