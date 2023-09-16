@@ -34,24 +34,17 @@ pub mod prelude {
     pub use crate::parse_date;
 
     // time and date related
-    pub use chrono::{DateTime, Duration, Local, TimeZone};
+    pub use chrono::{DateTime, Duration, Local, NaiveDateTime, TimeZone};
 }
 
-use chrono::{DateTime, Local, TimeZone};
+use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
 /// Converts a `YYYY-MM-DD` string to a [`DateTime<Local>`]
 /// in the context of the [`Local`] timezone
 ///
 /// If you want more control (i.e. a certain hour/minute of the day)
-/// use something like this instead:
-/// ```
-/// use endsong::prelude::*;
-/// let date: DateTime<Local> = Local
-///     .datetime_from_str("2020-06-03T01:01:01Z", "%FT%TZ")?;
-/// # Ok::<(), chrono::format::ParseError>(())
-/// ```
-/// See [`chrono::format::strftime`] for formatting details
+/// use [`DateTime::parse_from_str`]
 ///
-/// or maybe:
+/// or [`Local::with_ymd_and_hms`]:
 /// ```
 /// use endsong::prelude::*;
 /// let date: DateTime<Local> = Local.with_ymd_and_hms(2020, 6, 3, 1, 1, 1).unwrap();
@@ -70,13 +63,13 @@ use chrono::{DateTime, Local, TimeZone};
 /// let date: DateTime<Local> = parse_date("2020-06-03")?;
 /// assert_eq!(
 ///     date,
-///     Local.datetime_from_str("2020-06-03T00:00:00Z", "%FT%TZ")?
+///     Local.with_ymd_and_hms(2020, 06, 03, 0, 0, 0).unwrap()
 /// );
 ///
 /// let unix_epoch: DateTime<Local> = parse_date("start")?;
 /// assert_eq!(
 ///     unix_epoch,
-///     chrono::Utc.datetime_from_str("1970-01-01T00:00:00Z", "%FT%TZ")?
+///     DateTime::UNIX_EPOCH
 /// );
 ///
 /// let now: DateTime<Local> = parse_date("now")?;
@@ -91,11 +84,15 @@ pub fn parse_date(date: &str) -> Result<DateTime<Local>, chrono::format::ParseEr
     match date {
         "now" | "end" => Ok(Local::now()),
         "start" => {
-            let epoch = chrono::Utc.datetime_from_str("1970-01-01T00:00:00Z", "%FT%TZ")?;
+            let epoch = DateTime::UNIX_EPOCH;
             Ok(Local.from_utc_datetime(&epoch.naive_utc()))
         }
         // date should in YYYY-MM-DD format
-        _ => Local.datetime_from_str(&format!("{date}T00:00:00Z"), "%FT%TZ"),
+        _ => {
+            let full = format!("{date}T00:00:00Z");
+            let naive = NaiveDateTime::parse_from_str(&full, "%FT%TZ")?;
+            Ok(Local.from_local_datetime(&naive).unwrap())
+        }
     }
 }
 
@@ -108,9 +105,7 @@ mod tests {
         // correctly formatted input date
         assert_eq!(
             parse_date("2020-06-06").unwrap(),
-            Local
-                .datetime_from_str("2020-06-06T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ")
-                .unwrap()
+            Local.with_ymd_and_hms(2020, 6, 6, 0, 0, 0).unwrap()
         );
         assert_eq!(
             parse_date("2021-12-13").unwrap(),
@@ -126,12 +121,7 @@ mod tests {
         // special keyword values
         assert!(parse_date("now").is_ok());
         assert!(parse_date("end").is_ok());
-        assert_eq!(
-            parse_date("start").unwrap(),
-            chrono::Utc
-                .datetime_from_str("1970-01-01T00:00:00Z", "%FT%TZ")
-                .unwrap()
-        );
+        assert_eq!(parse_date("start").unwrap(), DateTime::UNIX_EPOCH);
 
         // incorrectly formatted input date
         assert!(parse_date("").is_err());

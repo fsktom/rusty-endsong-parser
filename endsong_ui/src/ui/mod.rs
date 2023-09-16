@@ -105,7 +105,7 @@ impl ShellHelper {
             "plot compare",
             "plot compare rel",
             "plot top",
-            "plot artist",
+            "plot artist albums",
         ]);
     }
 

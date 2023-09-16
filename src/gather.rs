@@ -171,10 +171,5 @@ pub fn all_plays(entries: &[SongEntry]) -> usize {
 /// Returns the total time listened
 #[must_use]
 pub fn listening_time(entries: &[SongEntry]) -> Duration {
-    // sadly doesn't work bc neither chrono::Duration nor std::time::Duration implement iter::sum :))))
-    // self.iter().map(|entry| entry.time_played).sum::<Duration>()
-    entries
-        .iter()
-        .map(|entry| entry.time_played)
-        .fold(Duration::zero(), |sum, dur| sum + dur)
+    entries.iter().map(|entry| entry.time_played).sum()
 }

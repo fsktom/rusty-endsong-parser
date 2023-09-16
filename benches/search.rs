@@ -3,21 +3,6 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 #[allow(unused_imports)]
 use endsong::prelude::*;
 
-/// # Arguments
-/// * `usr_input` - in YYYY-MM-DD format or 'now' or 'start'
-fn user_input_date_parser(usr_input: &str) -> Result<DateTime<Local>, chrono::format::ParseError> {
-    let date_str = match usr_input {
-        "now" => return Ok(chrono::offset::Local::now()),
-        "start" => String::from("1980-01-01T00:00:00Z"),
-        // usr_input should be in YYYY-MM-DD format
-        _ => format!("{usr_input}T00:00:00Z"),
-    };
-
-    // "%FT%TZ" is equivalent to "%Y-%m-%dT%H:%M:%SZ"
-    // see <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>
-    Local.datetime_from_str(&date_str, "%FT%TZ")
-}
-
 fn paths() -> [String; 10] {
     let root = match std::env::consts::OS {
         "windows" => r"C:\\Temp\\Endsong\\",
@@ -55,8 +40,8 @@ fn lol(c: &mut Criterion) {
         })
     });
 
-    let start = user_input_date_parser("2020-01-01").unwrap();
-    let end = user_input_date_parser("2021-01-01").unwrap();
+    let start = parse_date("2020-01-01").unwrap();
+    let end = parse_date("2021-01-01").unwrap();
     c.bench_function("listening_time", |c| {
         c.iter(|| {
             black_box(gather::listening_time(entries.between(&start, &end)));
