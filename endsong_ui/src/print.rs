@@ -384,9 +384,9 @@ fn normalize_dates<'a>(
 /// assert_eq!(leading_whitespace(7usize, 1000usize), "   #7");
 /// ```
 fn leading_whitespace(num: usize, max_num: usize) -> String {
-    assert!(num > 0);
-    assert!(max_num > 0);
-    assert!(max_num >= num);
+    assert!(num > 0, "illogical number");
+    assert!(max_num > 0, "illogical number");
+    assert!(max_num >= num, "illogical number");
     // https://github.com/Filip-Tomasko/endsong-parser-python/blob/main/src/endsong_parser.py#L551-L578
 
     let total_width = max_num.ilog10();
@@ -412,10 +412,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "illogical number"]
     fn order_format_panics() {
+        // num < 1
         leading_whitespace(0usize, 100usize);
+        // max_num < 1
         leading_whitespace(1usize, 0usize);
+        // num > max_num
         leading_whitespace(101usize, 50usize);
     }
 }

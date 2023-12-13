@@ -183,12 +183,7 @@ impl Display for Album {
 }
 impl PartialOrd for Album {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self.artist.partial_cmp(&other.artist) {
-            // if the artists are the same, compare the albums
-            Some(Ordering::Equal) => self.name.partial_cmp(&other.name),
-            // otherwise, compare the artists
-            _ => self.artist.partial_cmp(&other.artist),
-        }
+        Some(self.cmp(other))
     }
 }
 impl Ord for Album {
@@ -294,17 +289,7 @@ impl Display for Song {
 }
 impl PartialOrd for Song {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self.album.artist.partial_cmp(&other.album.artist) {
-            // if the artists are the same, compare the song names
-            Some(Ordering::Equal) => match self.name.partial_cmp(&other.name) {
-                // if the song names are the same, compare the album names
-                Some(Ordering::Equal) => self.album.name.partial_cmp(&other.album.name),
-                // otherwise, compare the song names
-                _ => self.name.partial_cmp(&other.name),
-            },
-            // otherwise, compare the artists
-            _ => self.album.artist.partial_cmp(&other.album.artist),
-        }
+        Some(self.cmp(other))
     }
 }
 impl Ord for Song {

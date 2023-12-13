@@ -71,7 +71,7 @@ pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> Ha
 
         songs_albums
             .entry(song_just_artist)
-            .or_insert_with(HashMap::new)
+            .or_default()
             .insert(song.album, plays_song);
     }
 

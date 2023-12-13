@@ -251,7 +251,7 @@ pub fn start(entries: &SongEntries) {
                     break;
                 }
                 match match_input(&usr_input, entries, &mut rl) {
-                    Ok(_) | Err(UiError::Readline(_)) => (),
+                    Ok(()) | Err(UiError::Readline(_)) => (),
                     Err(e) => eprintln!("{e}"),
                 }
             }
