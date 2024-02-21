@@ -50,7 +50,7 @@ use crate::entry::SongEntry;
 ///
 /// # Panics
 ///
-/// Uses .unwrap() but it should never panic
+/// Uses .`unwrap()` but it should never panic
 #[must_use]
 pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> HashMap<Song, usize> {
     let songs = entries.iter().map(Song::from).counts();

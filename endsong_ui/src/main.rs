@@ -153,7 +153,7 @@ fn test_two(entries: &SongEntries) {
             song.name,
             entries.durations.get(song).unwrap().display()
         );
-        alb_dur = alb_dur + *entries.durations.get(song).unwrap();
+        alb_dur += *entries.durations.get(song).unwrap();
     }
     dbg!(alb_dur.display(), ct_songs.len());
 

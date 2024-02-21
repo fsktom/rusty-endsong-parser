@@ -109,7 +109,7 @@ impl ShellHelper {
         ]);
     }
 
-    /// Changes tab-complete to ["artist", "album", "song"]
+    /// Changes tab-complete to `["artist", "album", "song"]`
     fn complete_aspects(&mut self) {
         self.completer_list = string_vec(&["artist", "album", "song"]);
     }
