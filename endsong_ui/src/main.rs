@@ -45,7 +45,7 @@ fn main() {
     let entries = SongEntries::new(&paths)
         .unwrap_or_else(|e| panic!("{e}"))
         .sum_different_capitalization()
-        .filter(30, Duration::seconds(10));
+        .filter(30, Duration::try_seconds(10).unwrap());
 
     // test(&entries);
     // test_two(&entries);
@@ -119,7 +119,8 @@ fn test(entries: &SongEntries) {
         gather::listening_time(entries.between(&entries.first_date(), &entries.last_date()))
     );
 
-    let (time, start, end) = entries.max_listening_time(chrono::Duration::weeks(26 * 9));
+    let (time, start, end) =
+        entries.max_listening_time(chrono::Duration::try_weeks(26 * 9).unwrap());
     dbg!(time.num_minutes(), start.date_naive(), end.date_naive());
 
     dbg!(gather::all_plays(entries.between(&start, &end)));
@@ -145,7 +146,7 @@ fn test_two(entries: &SongEntries) {
     dbg!(a.display());
 
     let ct = Album::new("Waking The Fallen", "Avenged Sevenfold");
-    let mut alb_dur = Duration::seconds(0);
+    let mut alb_dur = Duration::try_seconds(0).unwrap();
     let ct_songs = entries.find().songs_from_album(&ct);
     for song in &ct_songs {
         println!(

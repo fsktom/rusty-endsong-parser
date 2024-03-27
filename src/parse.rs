@@ -217,7 +217,8 @@ fn entry_to_songentry(
 
     Some(SongEntry {
         timestamp,
-        time_played: Duration::milliseconds(entry.ms_played),
+        // unwrap fine since ms_played will never be big enough...
+        time_played: Duration::try_milliseconds(entry.ms_played).unwrap(),
         track,
         album,
         artist,

@@ -352,6 +352,11 @@ impl SongEntries {
     ///
     /// Minimum duration is 1 day and maximum duration is the whole dataset, so
     /// a check is performed and the timespan is adjusted accordingly
+    ///
+    /// # Panics
+    ///
+    /// Unwraps used on [`Duration::try_days`], but won't panic since
+    /// only duration of 1 day created
     #[must_use]
     pub fn max_listening_time(
         &self,
@@ -360,13 +365,15 @@ impl SongEntries {
         let first = self.first_date();
         let last = self.last_date();
 
+        let one_day: Duration = Duration::try_days(1).unwrap();
+
         let actual_time_span = match time_span {
             // maximum duration is whole dataset?
             x if x >= last - first => {
                 return (gather::listening_time(self), first, last);
             }
             // minimum duration is 1 day
-            x if x < Duration::days(1) => Duration::days(1),
+            x if x < one_day => one_day,
             // duration is within bounds
             _ => time_span,
         };
@@ -385,8 +392,8 @@ impl SongEntries {
                 start_max = start;
                 end_max = end;
             }
-            start += Duration::days(1);
-            end += Duration::days(1);
+            start += one_day;
+            end += one_day;
         }
         (highest, start_max, end_max)
     }

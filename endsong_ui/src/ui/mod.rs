@@ -61,6 +61,9 @@ enum UiError {
     /// Used when the end date is before the start date
     #[error("Date range is in wrong order - end date is before start date!")]
     DateWrongOrder,
+    /// Used when absurdly high time period would lead to panic (shouldn't happen)
+    #[error("Use a sane time period")]
+    TimeDeltaOverflow,
 }
 
 /// Helper for [`Editor`]
@@ -357,8 +360,12 @@ fn match_print_max_time(
     let duration_num = usr_input_duration.parse::<i64>()?;
 
     let (_, start, end) = match duration_type.as_str() {
-        "days" => entries.max_listening_time(Duration::days(duration_num)),
-        "weeks" => entries.max_listening_time(Duration::weeks(duration_num)),
+        "days" => entries.max_listening_time(
+            Duration::try_days(duration_num).ok_or(UiError::TimeDeltaOverflow)?,
+        ),
+        "weeks" => entries.max_listening_time(
+            Duration::try_weeks(duration_num).ok_or(UiError::TimeDeltaOverflow)?,
+        ),
         // is unreachable because of the check above
         _ => unreachable!(),
     };
