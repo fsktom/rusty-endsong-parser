@@ -128,7 +128,7 @@ impl SongEntries {
     /// # Errors
     ///
     /// Will return an error if any of the files can't be opened or read
-    pub fn new<P: AsRef<Path>>(paths: &[P]) -> Result<SongEntries, ParseError> {
+    pub fn new<P: AsRef<Path> + std::fmt::Debug>(paths: &[P]) -> Result<SongEntries, ParseError> {
         let entries = parse(paths)?;
         let durations = song_durations(&entries);
         Ok(SongEntries { entries, durations })
@@ -452,7 +452,7 @@ impl std::ops::DerefMut for SongEntries {
 }
 // TryFrom because of ergonomic API design -> into() etc.
 // see https://youtu.be/0zOg8_B71gE?t=922
-impl<P: AsRef<Path>> TryFrom<&[P]> for SongEntries {
+impl<P: AsRef<Path> + std::fmt::Debug> TryFrom<&[P]> for SongEntries {
     type Error = ParseError;
 
     /// Creates an instance of [`SongEntries`] from a slice of [`Path`][`Path`]s

@@ -6,12 +6,13 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 use std::rc::Rc;
+use tracing::instrument;
 
 use chrono::{DateTime, Duration, Local, TimeZone};
 use itertools::Itertools;
 use serde::Deserialize;
 use thiserror::Error;
-use tracing::{error, info};
+use tracing::{error, info, info_span};
 
 use crate::entry::SongEntry;
 
@@ -122,8 +123,8 @@ struct Entry {
 /// # Errors
 ///
 /// Will return an error if any of the files can't be opened or read
-pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, ParseError> {
-    info!("Parsing files...");
+pub fn parse<P: AsRef<Path> + std::fmt::Debug>(paths: &[P]) -> Result<Vec<SongEntry>, ParseError> {
+    info!("Parsing {} files", paths.len());
     // at least for me: about 15.8k-15.95k entries per file
     // to prevent reallocations?
     let mut song_entries: Vec<SongEntry> = Vec::with_capacity(16_000 * paths.len());
@@ -136,7 +137,9 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, ParseError> 
 
     for path in paths {
         let p = path.as_ref();
-        info!("Parsing {:?}", p);
+        let span = info_span!("file", path = ?p);
+        let _guard = span.enter();
+        info!("currently parsing");
         let mut one = match parse_single(
             path,
             &mut song_names,
@@ -146,11 +149,11 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, ParseError> 
         ) {
             Ok(parsed) => parsed,
             Err(SingleParseError::Io(e)) => {
-                error!("{:?} failed to open", p);
+                error!("failed to open");
                 return Err(ParseError::Io(e, p.into()));
             }
             Err(SingleParseError::Serde(e)) => {
-                error!("{:?} failed to parse", p);
+                error!("failed to parse");
                 return Err(ParseError::Serde(e, p.into()));
             }
         };
@@ -166,7 +169,8 @@ pub fn parse<P: AsRef<Path>>(paths: &[P]) -> Result<Vec<SongEntry>, ParseError> 
 }
 
 /// Responsible for parsing the a single `endsong.json` file into a vector of [`SongEntry`]
-fn parse_single<P: AsRef<Path>>(
+#[instrument]
+fn parse_single<P: AsRef<Path> + std::fmt::Debug>(
     path: P,
     song_names: &mut HashMap<String, Rc<str>>,
     album_names: &mut HashMap<String, Rc<str>>,
