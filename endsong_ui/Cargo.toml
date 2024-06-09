@@ -8,11 +8,11 @@ edition = "2021"
 [dependencies]
 chrono = "0.4"
 endsong = { path = ".." }
-rustyline = { version = "13.*", features = ["derive"] }
-unicode-width = "0.1.11"
+rustyline = { version = "14.*", features = ["derive"] }
+unicode-width = "0.1"
 # plotly = "0.8"
 plotly = { git = "https://github.com/fsktom/plotly.git", branch = "from" }
-itertools = "0.12"
+itertools = "0.13"
 thiserror = "1.0"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
