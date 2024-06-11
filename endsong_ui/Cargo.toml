@@ -9,10 +9,10 @@ edition = "2021"
 chrono = "0.4"
 endsong = { path = ".." }
 rustyline = { version = "14.*", features = ["derive"] }
-unicode-width = "0.1"
 # plotly = "0.8"
 plotly = { git = "https://github.com/fsktom/plotly.git", branch = "from" }
 itertools = "0.13"
+textwrap = "0.16"
 thiserror = "1.0"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
