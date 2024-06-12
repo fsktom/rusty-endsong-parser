@@ -169,23 +169,17 @@ fn top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
         // https://stackoverflow.com/a/60916195
         // and secondary sorting by name ascending
         .sorted_unstable_by_key(|t| (Reverse(t.1), t.0.clone()))
+        // cheap cloning bc Rc::clone() internally
         .collect_vec();
     let length = music_vec.len();
 
     // if the number of unique aspects is lower than the parsed num
     let max_num: usize = if length < num { length } else { num };
 
-    for (i, (asp, plays)) in music_vec.iter().enumerate() {
-        println!(
-            "{}: {} | {} plays",
-            leading_whitespace(i + 1, max_num),
-            asp,
-            plays
-        );
-
-        if i + 1 == max_num {
-            break;
-        }
+    for (i, (asp, plays)) in music_vec.iter().enumerate().take(max_num) {
+        let position = i + 1;
+        let indent = spaces((max_num.ilog10() - position.ilog10()) as usize);
+        println!("{indent}#{position}: {asp} | {plays} plays");
     }
 }
 
@@ -365,61 +359,4 @@ fn normalize_dates<'a>(
     };
 
     (start, end)
-}
-
-/// Formats `1` to ` #1` if user wishes for Top 10
-/// or to `  #1` if Top 100 etc.
-///
-/// # Arguments
-/// * `num` - position of the [`AspectFull`], must be >0
-/// * `max_num` - the highest position you want to display,
-/// must be >0 and >=`num`
-///
-/// # Panics
-///
-/// Panics if `num` or `max_num` is 0
-///
-/// # Examples
-/// ```ignore
-/// assert_eq!(leading_whitespace(7usize, 100usize), "  #7");
-/// assert_eq!(leading_whitespace(7usize, 1000usize), "   #7");
-/// ```
-fn leading_whitespace(num: usize, max_num: usize) -> String {
-    assert!(num > 0, "illogical number");
-    assert!(max_num > 0, "illogical number");
-    assert!(max_num >= num, "illogical number");
-    // https://github.com/Filip-Tomasko/endsong-parser-python/blob/main/src/endsong_parser.py#L551-L578
-
-    let total_width = max_num.ilog10();
-    let num_width = num.ilog10();
-
-    let missing_whitespace = total_width - num_width;
-
-    format!("{}#{num}", " ".repeat(missing_whitespace as usize))
-}
-
-// https://doc.rust-lang.org/book/ch11-03-test-organization.html#unit-tests
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn order_format() {
-        assert_eq!(leading_whitespace(3usize, 9usize), "#3");
-        assert_eq!(leading_whitespace(3usize, 10usize), " #3");
-        assert_eq!(leading_whitespace(3usize, 100usize), "  #3");
-        assert_eq!(leading_whitespace(3usize, 1000usize), "   #3");
-        assert_eq!(leading_whitespace(3usize, 5692usize), "   #3");
-    }
-
-    #[test]
-    #[should_panic = "illogical number"]
-    fn order_format_panics() {
-        // num < 1
-        leading_whitespace(0usize, 100usize);
-        // max_num < 1
-        leading_whitespace(1usize, 0usize);
-        // num > max_num
-        leading_whitespace(101usize, 50usize);
-    }
 }

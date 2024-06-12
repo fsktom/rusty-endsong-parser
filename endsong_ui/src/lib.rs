@@ -24,6 +24,13 @@ pub mod trace;
 pub mod ui;
 
 /// Creates a string with the given number of spaces
+///
+/// Returns an empty string if `num` <= 0 or `num` > 100
+///
+/// # Examples
+/// ```
+/// assert_eq!("   ", endsong_ui::spaces(3));
+/// ```
 #[must_use]
 pub const fn spaces(num: usize) -> &'static str {
     endsong_macros::generate_spaces_match!(100)
