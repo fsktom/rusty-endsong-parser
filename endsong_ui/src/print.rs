@@ -11,6 +11,8 @@ use endsong::prelude::*;
 use itertools::Itertools;
 use thiserror::Error;
 
+use crate::spaces;
+
 /// An enum that is among other things used by functions such as
 /// [`top()`] and its derivatives to know whether
 /// to print top songs ([`Aspect::Songs`]), albums ([`Aspect::Albums`])
@@ -195,7 +197,7 @@ pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
     match *asp {
         AspectFull::Artist(art) => {
             println!("{} | {} plays", art, gather::plays(entries, art));
-            artist(entries, &gather::albums_from_artist(entries, art));
+            artist(entries, &gather::albums_from_artist(entries, art), 4);
         }
         AspectFull::Album(alb) => {
             println!("{} | {} plays", alb, gather::plays(entries, alb));
@@ -210,7 +212,7 @@ pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
 /// Prints each [`Album`] of `albums` with the playcount
 ///
 /// Preferably `albums` contains only albums from one artist
-fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>) {
+fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>, indent: usize) {
     // albums sorted by their playcount descending (primary)
     // and name ascending (secondary) if plays are equal
     let albums_vec: Vec<(&Album, &usize)> = albums
@@ -219,8 +221,8 @@ fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>) {
         .collect_vec();
 
     for (alb, plays) in albums_vec {
-        println!("    {} | {plays} plays", alb.name);
-        album(&gather::songs_from(entries, alb), 8);
+        println!("{}{} | {plays} plays", spaces(indent), alb.name);
+        album(&gather::songs_from(entries, alb), 2 * indent);
     }
 }
 
@@ -235,10 +237,8 @@ fn album(songs: &HashMap<Song, usize>, indent: usize) {
         .sorted_unstable_by_key(|t| (Reverse(t.1), t.0))
         .collect_vec();
 
-    let indent = " ".repeat(indent);
-
     for (song, plays) in songs_vec {
-        println!("{indent}{} | {plays} plays", song.name);
+        println!("{}{} | {plays} plays", spaces(indent), song.name);
     }
 }
 
@@ -275,6 +275,7 @@ pub fn aspect_date(
             artist(
                 entries_within_dates,
                 &gather::albums_from_artist(entries_within_dates, art),
+                4,
             );
         }
         AspectFull::Album(alb) => {

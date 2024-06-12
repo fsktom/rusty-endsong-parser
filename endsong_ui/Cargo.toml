@@ -15,6 +15,7 @@ itertools = "0.13"
 textwrap = "0.16"
 thiserror = "1.0"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+endsong_macros = { path = "endsong_macros"}
 
 [dev-dependencies]
 criterion = "0.5"

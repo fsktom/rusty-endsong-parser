@@ -23,6 +23,12 @@ pub mod print;
 pub mod trace;
 pub mod ui;
 
+/// Creates a string with the given number of spaces
+#[must_use]
+pub const fn spaces(num: usize) -> &'static str {
+    endsong_macros::generate_spaces_match!(100)
+}
+
 /// Prelude containing all the modules,
 /// a function for parsing dates, some structs used for printing,
 /// and a trait to add a method to [`Duration`][endsong::prelude::Duration]

@@ -45,8 +45,8 @@ fn print(title: &str, commands: &[Command]) {
     /// Prefixes the actual command alias
     const ALIAS: &str = "alias: ";
 
-    /// Length of "alias: "
-    const ALIAS_LENGTH: usize = ALIAS.len();
+    /// Spaces going to start of description
+    const INDENT: &str = crate::spaces(COMMAND_LENGTH + ARROW_LENGTH);
 
     let phrase = format!(" {title} commands ");
     // centered, filled with '=' on both sides
@@ -58,19 +58,15 @@ fn print(title: &str, commands: &[Command]) {
 
     println!("{light_green}{centered_title}{reset}");
 
-    let indent = " ".repeat(COMMAND_LENGTH + ARROW_LENGTH);
     for Command(command, alias, description) in commands {
         let description_lines = textwrap::wrap(description, DESCRIPTION_LENGTH);
         let description_first = description_lines.first().unwrap();
 
         println!("{red}{command:>COMMAND_LENGTH$}{reset}{ARROW}{description_first}");
         for line in description_lines.iter().skip(1) {
-            println!("{indent}{line}",);
+            println!("{INDENT}{line}",);
         }
-        println!(
-            "{pink}{ALIAS:>width$}{alias}{reset}",
-            width = COMMAND_LENGTH + ARROW_LENGTH + ALIAS_LENGTH
-        );
+        println!("{pink}{INDENT}{ALIAS}{alias}{reset}");
     }
 }
 

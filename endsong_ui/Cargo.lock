@@ -401,12 +401,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "endsong_macros"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn 2.0.66",
+]
+
+[[package]]
 name = "endsong_ui"
 version = "0.1.0"
 dependencies = [
  "chrono",
  "criterion",
  "endsong",
+ "endsong_macros",
  "itertools 0.13.0",
  "plotly",
  "rustyline",
