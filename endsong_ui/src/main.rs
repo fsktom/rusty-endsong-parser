@@ -57,7 +57,7 @@ fn main() {
 /// tests various [`print`][crate::print] and [`endsong::gather`] functions
 #[allow(dead_code)]
 fn test(entries: &SongEntries) {
-    print::top(entries, Aspect::default(), 10, false);
+    print::top(entries, Aspect::Songs, 10, false);
     print::top(entries, Aspect::Albums, 10, false);
     print::top(entries, Aspect::Artists, 10, false);
 

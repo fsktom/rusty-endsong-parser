@@ -17,16 +17,13 @@ use crate::spaces;
 /// [`top()`] and its derivatives to know whether
 /// to print top songs ([`Aspect::Songs`]), albums ([`Aspect::Albums`])
 /// or artists ([`Aspect::Artists`])
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug)]
 pub enum Aspect {
     /// to print top artists
     Artists,
     /// to print top albums
     Albums,
-    // bc Rust still doesn't have default argument values
-    // https://www.reddit.com/r/rust/comments/fi6nov/why_does_rust_not_support_default_arguments/fkfezxv/
     /// to print top songs
-    #[default]
     Songs,
 }
 impl Display for Aspect {
@@ -206,7 +203,8 @@ pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
 /// Prints each [`Album`] of `albums` with the playcount
 ///
 /// Preferably `albums` contains only albums from one artist
-fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>, indent: usize) {
+fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>, indent_length: usize) {
+    let indent = spaces(indent_length);
     // albums sorted by their playcount descending (primary)
     // and name ascending (secondary) if plays are equal
     let albums_vec: Vec<(&Album, &usize)> = albums
@@ -215,15 +213,16 @@ fn artist(entries: &[SongEntry], albums: &HashMap<Album, usize>, indent: usize) 
         .collect_vec();
 
     for (alb, plays) in albums_vec {
-        println!("{}{} | {plays} plays", spaces(indent), alb.name);
-        album(&gather::songs_from(entries, alb), 2 * indent);
+        println!("{indent}{} | {plays} plays", alb.name);
+        album(&gather::songs_from(entries, alb), 2 * indent_length);
     }
 }
 
 /// Prints each [`Song`] of `songs` with the playcount
 ///
 /// Preferably `songs` contains only songs from one album
-fn album(songs: &HashMap<Song, usize>, indent: usize) {
+fn album(songs: &HashMap<Song, usize>, indent_length: usize) {
+    let indent = spaces(indent_length);
     // songs sorted by their playcount descending (primary)
     // and name ascending (secondary) if plays are equal
     let songs_vec: Vec<(&Song, &usize)> = songs
@@ -232,7 +231,7 @@ fn album(songs: &HashMap<Song, usize>, indent: usize) {
         .collect_vec();
 
     for (song, plays) in songs_vec {
-        println!("{}{} | {plays} plays", spaces(indent), song.name);
+        println!("{indent}{} | {plays} plays", song.name);
     }
 }
 
@@ -335,11 +334,20 @@ pub fn time_played_date(entries: &SongEntries, start: &DateTime<Local>, end: &Da
 /// Used by `*_date` functions to set the start date to
 /// the first entry's date and the end date to the last entry's date
 /// if the inputted dates are before/after those dates
+///
+/// # Panics
+///
+/// Will panic if `entries` is empty
 fn normalize_dates<'a>(
     entries: &'a [SongEntry],
     start: &'a DateTime<Local>,
     end: &'a DateTime<Local>,
 ) -> (&'a DateTime<Local>, &'a DateTime<Local>) {
+    assert!(
+        !entries.is_empty(),
+        "there should at least be one SongEntry!"
+    );
+
     // if inputted start date is before the actual first entry
     // it should be changed to the first entry's date
     let first = entries.first().unwrap();
