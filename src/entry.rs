@@ -255,7 +255,9 @@ impl SongEntries {
     ///
     /// # Arguments
     ///
-    /// `percent_threshold` - a value between 0 and 100 (%); a good default is `30`
+    /// `percent_threshold` - a value between 0 and 100 (%); all songs which have
+    /// been played for less than `percent_threshold`% of their duration will be
+    /// filtered out; a good default is `30`
     ///
     /// `absolute_threshold` - all songs below this [`Duration`]
     /// will be filtered out; a good default is `Duration::seconds(10)`
@@ -265,7 +267,8 @@ impl SongEntries {
     /// Will panic if `threshhold` is below 0 or above 100
     #[must_use]
     pub fn filter(mut self, percent_threshold: i32, absolute_threshold: Duration) -> Self {
-        info!("Filtering out songs...");
+        let length = self.len();
+        info!("Filtering out song entries... ({length} song entries before filtering)");
         assert!(
             (0..=100).contains(&percent_threshold),
             "Threshold has to be between 0 and 100"
@@ -281,6 +284,11 @@ impl SongEntries {
             entry.time_played >= (duration * percent_threshold) / 100
                 && entry.time_played >= absolute_threshold
         });
+
+        info!(
+            "{} song entries have been filtered out!",
+            length - self.len()
+        );
 
         self
     }

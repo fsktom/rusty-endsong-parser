@@ -13,6 +13,9 @@ use thiserror::Error;
 
 use crate::spaces;
 
+/// Length of indent before a sub-aspect
+const INDENT_LENGTH: usize = 4;
+
 /// An enum that is among other things used by functions such as
 /// [`top()`] and its derivatives to know whether
 /// to print top songs ([`Aspect::Songs`]), albums ([`Aspect::Albums`])
@@ -164,8 +167,11 @@ fn top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
         // primary sorting: by plays descending
         // https://stackoverflow.com/a/34555984
         // https://stackoverflow.com/a/60916195
-        // and secondary sorting by name ascending
-        .sorted_unstable_by_key(|t| (Reverse(t.1), t.0.clone()))
+        // secondary sorting: by name ascending
+        // the key is the tuple (reverse(plays), aspect_name)
+        // so it's first compared by the plays in ascending order,
+        // and if the plays are equal, it's compared by the name (alphabetical)
+        .sorted_unstable_by_key(|(asp, plays)| (Reverse(*plays), asp.clone()))
         // cheap cloning bc Rc::clone() internally
         .collect_vec();
     let length = music_vec.len();
@@ -188,11 +194,15 @@ pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
     match *asp {
         AspectFull::Artist(art) => {
             println!("{} | {} plays", art, gather::plays(entries, art));
-            artist(entries, &gather::albums_from_artist(entries, art), 4);
+            artist(
+                entries,
+                &gather::albums_from_artist(entries, art),
+                INDENT_LENGTH,
+            );
         }
         AspectFull::Album(alb) => {
             println!("{} | {} plays", alb, gather::plays(entries, alb));
-            album(&gather::songs_from(entries, alb), 4);
+            album(&gather::songs_from(entries, alb), INDENT_LENGTH);
         }
         AspectFull::Song(son) => {
             println!("{} | {} plays", son, gather::plays(entries, son));
@@ -268,7 +278,7 @@ pub fn aspect_date(
             artist(
                 entries_within_dates,
                 &gather::albums_from_artist(entries_within_dates, art),
-                4,
+                INDENT_LENGTH,
             );
         }
         AspectFull::Album(alb) => {
@@ -279,7 +289,10 @@ pub fn aspect_date(
                 end.date_naive(),
                 gather::plays(entries_within_dates, alb)
             );
-            album(&gather::songs_from(entries_within_dates, alb), 4);
+            album(
+                &gather::songs_from(entries_within_dates, alb),
+                INDENT_LENGTH,
+            );
         }
         AspectFull::Song(son) => {
             println!(
