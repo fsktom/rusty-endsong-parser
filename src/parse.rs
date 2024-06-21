@@ -8,7 +8,7 @@ use std::path::Path;
 use std::rc::Rc;
 use tracing::instrument;
 
-use chrono::{DateTime, Duration, Local, TimeZone};
+use chrono::{DateTime, Local, TimeDelta, TimeZone};
 use itertools::Itertools;
 use serde::Deserialize;
 use thiserror::Error;
@@ -218,7 +218,7 @@ fn entry_to_songentry(
     Some(SongEntry {
         timestamp,
         // unwrap fine since ms_played will never be big enough...
-        time_played: Duration::try_milliseconds(entry.ms_played).unwrap(),
+        time_played: TimeDelta::try_milliseconds(entry.ms_played).unwrap(),
         track,
         album,
         artist,

@@ -94,7 +94,7 @@ fn parse(c: &mut Criterion) {
             black_box(
                 SongEntries::new(&paths[..=0])
                     .unwrap()
-                    .filter(30, Duration::seconds(10)),
+                    .filter(30, TimeDelta::seconds(10)),
             );
         })
     });

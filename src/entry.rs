@@ -12,14 +12,14 @@
 //! let entries = SongEntries::new(&paths)
 //!     .unwrap()
 //!     .sum_different_capitalization()
-//!     .filter(30, Duration::seconds(10));
+//!     .filter(30, TimeDelta::seconds(10));
 //! ```
 
 use std::collections::HashMap;
 use std::path::Path;
 use std::rc::Rc;
 
-use chrono::{DateTime, Duration, Local};
+use chrono::{DateTime, Local, TimeDelta};
 use itertools::Itertools;
 use tracing::info;
 
@@ -43,7 +43,7 @@ pub struct SongEntry {
     /// the time at which the song has been played
     pub timestamp: DateTime<Local>,
     /// for how long the song has been played
-    pub time_played: Duration,
+    pub time_played: TimeDelta,
     /// name of the song
     pub track: Rc<str>,
     /// name of the album
@@ -89,7 +89,7 @@ impl PartialOrd for SongEntry {
     }
 }
 
-/// Struct containing a vector of [`SongEntry`]s and a map of [`Song`]s with their [`Duration`]s
+/// Struct containing a vector of [`SongEntry`]s and a map of [`Song`]s with their [`TimeDelta`]s
 ///
 /// Fundamental for the use of this program
 ///
@@ -106,15 +106,15 @@ impl PartialOrd for SongEntry {
 ///     println!("{entry:?}");
 /// }
 ///
-/// // entries.durations is a HashMap<Song, Duration>
+/// // entries.durations is a HashMap<Song, TimeDelta>
 /// let song = Song::new("STYX HELIX", "eYe's", "MYTH & ROID");
-/// let duration: Duration = entries.durations.get(&song)?;
+/// let duration: TimeDelta = entries.durations.get(&song)?;
 /// ```
 pub struct SongEntries {
     /// Vector of [`SongEntry`]s
     entries: Vec<SongEntry>,
-    /// Map of [`Song`]s with their [`Duration`]s
-    pub durations: HashMap<Song, Duration>,
+    /// Map of [`Song`]s with their [durations][TimeDelta]
+    pub durations: HashMap<Song, TimeDelta>,
 }
 impl SongEntries {
     /// Creates an instance of [`SongEntries`]
@@ -251,7 +251,7 @@ impl SongEntries {
 
     /// Filters out song entries that have been played
     /// below a certain threshold of their duration
-    /// or below a certain absolute [`Duration`]
+    /// or below a certain absolute [`TimeDelta`]
     ///
     /// # Arguments
     ///
@@ -259,14 +259,14 @@ impl SongEntries {
     /// been played for less than `percent_threshold`% of their duration will be
     /// filtered out; a good default is `30`
     ///
-    /// `absolute_threshold` - all songs below this [`Duration`]
-    /// will be filtered out; a good default is `Duration::seconds(10)`
+    /// `absolute_threshold` - all songs below this [`TimeDelta`]
+    /// will be filtered out; a good default is `TimeDelta::seconds(10)`
     ///
     /// # Panics
     ///
     /// Will panic if `threshhold` is below 0 or above 100
     #[must_use]
-    pub fn filter(mut self, percent_threshold: i32, absolute_threshold: Duration) -> Self {
+    pub fn filter(mut self, percent_threshold: i32, absolute_threshold: TimeDelta) -> Self {
         let length = self.len();
         info!("Filtering out song entries... ({length} song entries before filtering)");
         assert!(
@@ -363,17 +363,17 @@ impl SongEntries {
     ///
     /// # Panics
     ///
-    /// Unwraps used on [`Duration::try_days`], but won't panic since
+    /// Unwraps used on [`TimeDelta::try_days`], but won't panic since
     /// only duration of 1 day created
     #[must_use]
     pub fn max_listening_time(
         &self,
-        time_span: Duration,
-    ) -> (Duration, DateTime<Local>, DateTime<Local>) {
+        time_span: TimeDelta,
+    ) -> (TimeDelta, DateTime<Local>, DateTime<Local>) {
         let first = self.first_date();
         let last = self.last_date();
 
-        let one_day: Duration = Duration::try_days(1).unwrap();
+        let one_day = TimeDelta::try_days(1).unwrap();
 
         let actual_time_span = match time_span {
             // maximum duration is whole dataset?
@@ -386,7 +386,7 @@ impl SongEntries {
             _ => time_span,
         };
 
-        let mut highest = Duration::zero();
+        let mut highest = TimeDelta::zero();
         let mut start_max = first;
         let mut end_max = first + actual_time_span;
 
@@ -479,11 +479,11 @@ impl<P: AsRef<Path> + std::fmt::Debug> TryFrom<&[P]> for SongEntries {
 }
 
 /// Returns a [`HashMap`] with the [`Songs`][Song] as keys and
-/// their [`Durations`][Duration] as values
-fn song_durations(entries: &Vec<SongEntry>) -> HashMap<Song, Duration> {
+/// their [durations][TimeDelta]s as values
+fn song_durations(entries: &Vec<SongEntry>) -> HashMap<Song, TimeDelta> {
     info!("Calculating song durations...");
     // 10k is just a guess for amount of unique songs
-    let mut big_boy: HashMap<Song, HashMap<Duration, usize>> = HashMap::with_capacity(10_000);
+    let mut big_boy: HashMap<Song, HashMap<TimeDelta, usize>> = HashMap::with_capacity(10_000);
 
     for entry in entries {
         let song = Song::from(entry);

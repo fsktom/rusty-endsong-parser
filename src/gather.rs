@@ -33,7 +33,7 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use chrono::Duration;
+use chrono::TimeDelta;
 use itertools::Itertools;
 
 use crate::aspect::{Album, Artist, HasSongs, Music, Song};
@@ -170,6 +170,6 @@ pub fn all_plays(entries: &[SongEntry]) -> usize {
 
 /// Returns the total time listened
 #[must_use]
-pub fn listening_time(entries: &[SongEntry]) -> Duration {
+pub fn listening_time(entries: &[SongEntry]) -> TimeDelta {
     entries.iter().map(|entry| entry.time_played).sum()
 }

@@ -34,7 +34,7 @@ pub mod prelude {
     pub use crate::parse_date;
 
     // time and date related
-    pub use chrono::{DateTime, Duration, Local, NaiveDateTime, TimeZone};
+    pub use chrono::{DateTime, Local, NaiveDateTime, TimeDelta, TimeZone};
 }
 
 use chrono::{DateTime, Local, NaiveDateTime, TimeZone};

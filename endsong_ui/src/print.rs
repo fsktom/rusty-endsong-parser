@@ -83,13 +83,13 @@ pub enum Mode {
     Songs,
 }
 
-/// Trait for better display of [`Durations`][Duration]
+/// Trait for better display of [durations][TimeDelta]
 pub trait DurationUtils {
     /// Returns a string with the duration in the format `HH:MM:SS`
     /// or `MM:SS` (if the duration is less than an hour)
     fn display(&self) -> String;
 }
-impl DurationUtils for Duration {
+impl DurationUtils for TimeDelta {
     fn display(&self) -> String {
         let hours = self.num_hours();
         let seconds = self.num_seconds() % 60;

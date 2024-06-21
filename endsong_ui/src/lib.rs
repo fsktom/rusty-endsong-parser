@@ -38,7 +38,8 @@ pub const fn spaces(num: usize) -> &'static str {
 
 /// Prelude containing all the modules,
 /// a function for parsing dates, some structs used for printing,
-/// and a trait to add a method to [`Duration`][endsong::prelude::Duration]
+/// and a trait to add a [pretty display method][print::DurationUtils::display]
+/// to the [duration type][endsong::prelude::TimeDelta]
 pub mod prelude {
     pub use crate::plot;
     pub use crate::print;

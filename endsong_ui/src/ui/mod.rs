@@ -361,10 +361,10 @@ fn match_print_max_time(
 
     let (_, start, end) = match duration_type.as_str() {
         "days" => entries.max_listening_time(
-            Duration::try_days(duration_num).ok_or(UiError::TimeDeltaOverflow)?,
+            TimeDelta::try_days(duration_num).ok_or(UiError::TimeDeltaOverflow)?,
         ),
         "weeks" => entries.max_listening_time(
-            Duration::try_weeks(duration_num).ok_or(UiError::TimeDeltaOverflow)?,
+            TimeDelta::try_weeks(duration_num).ok_or(UiError::TimeDeltaOverflow)?,
         ),
         // is unreachable because of the check above
         _ => unreachable!(),
