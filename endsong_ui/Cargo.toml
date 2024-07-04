@@ -9,8 +9,7 @@ edition = "2021"
 chrono = "0.4"
 endsong = { path = ".." }
 rustyline = { version = "14.*", features = ["derive"] }
-# plotly = "0.8"
-plotly = { git = "https://github.com/fsktom/plotly.git", branch = "from" }
+plotly = "0.9"
 itertools = "0.13"
 textwrap = "0.16"
 thiserror = "1.0"
