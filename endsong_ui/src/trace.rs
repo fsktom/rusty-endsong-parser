@@ -23,7 +23,8 @@ impl TraceType {
     }
 }
 
-/// Formats date for x-axis to `%Y-%m-%d %H:%M`
+/// Formats date for x-axis to `%Y-%m-%d %H:%M` to make sure plotly
+/// scales the x-axis properly
 ///
 /// I.e. "2016-09-01 15:06"
 fn format_date(date: &DateTime<Local>) -> String {

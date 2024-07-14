@@ -130,8 +130,8 @@ fn normalize_path(path: &str) -> String {
     }
 
     // https://stackoverflow.com/a/1976050
-    if new_path.is_empty() {
-        new_path.push('_');
+    if new_path.is_empty() || new_path == "." {
+        new_path = "_".into();
     }
 
     new_path
@@ -157,8 +157,9 @@ mod tests {
         assert_eq!(normalize_path(" "), "_");
         assert_eq!(normalize_path("   "), "___");
 
-        // empty should be changed
+        // empty/only dot should be changed (Windows)
         assert_eq!(normalize_path(""), "_");
+        assert_eq!(normalize_path("."), "_");
 
         assert_eq!(normalize_path(" A|B<>B? "), "_A_B__B__");
 
