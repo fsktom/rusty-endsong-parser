@@ -122,8 +122,8 @@ impl SongEntries {
     /// # Arguments
     ///
     /// * `paths` - a slice of [`Paths`][`Path`] to each `endsong.json` file.
-    /// Those can be [`Strings`][String], [`strs`][str], [`PathBufs`][std::path::PathBuf]
-    /// or whatever implements [`AsRef<Path>`]
+    ///   Those can be [`Strings`][String], [`strs`][str], [`PathBufs`][std::path::PathBuf]
+    ///   or whatever implements [`AsRef<Path>`]
     ///
     /// # Errors
     ///

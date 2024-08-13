@@ -106,14 +106,14 @@ impl DurationUtils for TimeDelta {
 /// Prints the top `num` of an `asp`
 ///
 /// * `asp` - [`Aspect::Songs`] for top songs, [`Aspect::Albums`]
-///  for top albums and [`Aspect::Artists`] for top artists
+///    for top albums and [`Aspect::Artists`] for top artists
 /// * `num` - number of displayed top aspects.
-/// Will automatically change to total number of that aspect if `num` is higher than that
+///   Will automatically change to total number of that aspect if `num` is higher than that
 /// * `sum_songs_from_different_albums` - only matters if `asp` is [`Aspect::Songs`].
-/// If set to true, it will sum up the plays of
-/// one song across multiple albums it may be in.
-/// The album displayed in the parantheses will be the one it has the
-/// highest amount of listens from.
+///   If set to true, it will sum up the plays of
+///   one song across multiple albums it may be in.
+///   The album displayed in the parantheses will be the one it has the
+///   highest amount of listens from.
 pub fn top(entries: &[SongEntry], asp: Aspect, num: usize, sum_songs_from_different_albums: bool) {
     match asp {
         Aspect::Songs => {
@@ -136,7 +136,7 @@ pub fn top(entries: &[SongEntry], asp: Aspect, num: usize, sum_songs_from_differ
 /// * `mode` - [`Mode::Songs`] for top songs and [`Mode::Albums`] for top albums
 /// * `artist` - the [`Artist`] you want the top songs/albums from
 /// * `num` - number of displayed top songs/albums.
-/// Will automatically change to total number of that aspect if `num` is higher than that
+///   Will automatically change to total number of that aspect if `num` is higher than that
 pub fn top_from_artist(entries: &[SongEntry], mode: Mode, artist: &Artist, num: usize) {
     match mode {
         Mode::Songs => {
@@ -154,7 +154,8 @@ pub fn top_from_artist(entries: &[SongEntry], mode: Mode, artist: &Artist, num: 
 ///
 /// * `album` - the [`Album`] you want the top songs from
 /// * `num` - number of displayed top songs.
-/// Will automatically change to total number of songs from that album if `num` is higher than that
+///   Will automatically change to total number of songs from that album
+///   if `num` is higher than that
 pub fn top_from_album(entries: &[SongEntry], album: &Album, num: usize) {
     println!("=== TOP {num} SONGS FROM {album} ===");
     top_helper(gather::songs_from(entries, album), num);
@@ -189,7 +190,7 @@ fn top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
 /// Prints a specfic aspect
 ///
 /// * `asp` - the [`AspectFull`] you want information about containing the
-/// relevant struct ([`Artist`], [`Album`] or [`Song`])
+///   relevant struct ([`Artist`], [`Album`] or [`Song`])
 pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
     match *asp {
         AspectFull::Artist(art) => {
@@ -250,7 +251,7 @@ fn album(songs: &HashMap<Song, usize>, indent_length: usize) {
 /// Basically [`aspect()`] but with date limitations
 ///
 /// * `asp` - the [`AspectFull`] you want information about containing the
-/// relevant struct ([`Artist`], [`Album`] or [`Song`])
+///   relevant struct ([`Artist`], [`Album`] or [`Song`])
 ///
 /// # Panics
 ///

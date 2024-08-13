@@ -149,11 +149,11 @@ pub fn parse<P: AsRef<Path> + std::fmt::Debug>(paths: &[P]) -> Result<Vec<SongEn
         ) {
             Ok(parsed) => parsed,
             Err(SingleParseError::Io(e)) => {
-                error!("failed to open");
+                error!("failed to open {p:?}");
                 return Err(ParseError::Io(e, p.into()));
             }
             Err(SingleParseError::Serde(e)) => {
-                error!("failed to parse");
+                error!("failed to parse {p:?}");
                 return Err(ParseError::Serde(e, p.into()));
             }
         };
