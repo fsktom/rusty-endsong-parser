@@ -39,11 +39,17 @@ use itertools::Itertools;
 use crate::aspect::{Album, Artist, HasSongs, Music, Song};
 use crate::entry::SongEntry;
 
-/// Returns a map with all [`Songs`][Song] and their playcount
+/// Returns a map with all [`Songs`][Song] and their playcount while taking
+/// the album the song is in into account
 ///
-/// `sum_songs_from_different_albums` - with `true` it will summarize the plays
-/// of songs if their name and artist is the same;
-/// with `false` it will also take into account the album the song is in
+/// See [`songs_summed_across_albums`] for a version which ignores the album
+#[must_use]
+pub fn songs(entries: &[SongEntry]) -> HashMap<Song, usize> {
+    entries.iter().map(Song::from).counts()
+}
+
+/// Like [`songs`] but summarizes the number of plays of a song if the song
+/// and artist name are the same -> ignores the album
 ///
 /// It matters because oftentimes the same song will be in many albums (or singles).
 /// But it's still case-sensitive!
@@ -52,11 +58,8 @@ use crate::entry::SongEntry;
 ///
 /// Uses .`unwrap()` but it should never panic
 #[must_use]
-pub fn songs(entries: &[SongEntry], sum_songs_from_different_albums: bool) -> HashMap<Song, usize> {
+pub fn songs_summed_across_albums(entries: &[SongEntry]) -> HashMap<Song, usize> {
     let songs = entries.iter().map(Song::from).counts();
-    if !sum_songs_from_different_albums {
-        return songs;
-    }
 
     // to know which album the song had highest amount of plays from
     // that album will be then displayed in () after the song name

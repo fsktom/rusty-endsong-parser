@@ -26,15 +26,18 @@ pub enum Aspect {
     Artists,
     /// to print top albums
     Albums,
-    /// to print top songs
-    Songs,
+    /// to print top songs, the [`bool`] inside is used
+    /// to decide whether or not to
+    /// ignore the album (and use only track/artist name) when gathering plays
+    /// (false by default when using `.parse()`)
+    Songs(bool),
 }
 impl Display for Aspect {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Aspect::Artists => write!(f, "artists"),
             Aspect::Albums => write!(f, "albums"),
-            Aspect::Songs => write!(f, "songs"),
+            Aspect::Songs(_) => write!(f, "songs"),
         }
     }
 }
@@ -44,7 +47,7 @@ impl FromStr for Aspect {
         match s {
             "artist" | "artists" => Ok(Aspect::Artists),
             "album" | "albums" => Ok(Aspect::Albums),
-            "song" | "songs" => Ok(Aspect::Songs),
+            "song" | "songs" => Ok(Aspect::Songs(false)),
             _ => Err(AspectParseError),
         }
     }
@@ -109,16 +112,17 @@ impl DurationUtils for TimeDelta {
 ///    for top albums and [`Aspect::Artists`] for top artists
 /// * `num` - number of displayed top aspects.
 ///   Will automatically change to total number of that aspect if `num` is higher than that
-/// * `sum_songs_from_different_albums` - only matters if `asp` is [`Aspect::Songs`].
-///   If set to true, it will sum up the plays of
-///   one song across multiple albums it may be in.
-///   The album displayed in the parantheses will be the one it has the
-///   highest amount of listens from.
-pub fn top(entries: &[SongEntry], asp: Aspect, num: usize, sum_songs_from_different_albums: bool) {
+pub fn top(entries: &[SongEntry], asp: Aspect, num: usize) {
     match asp {
-        Aspect::Songs => {
+        Aspect::Songs(true) => {
+            println!("=== TOP {num} SONGS SUMMED ACROSS ALBUMS ===");
+            // The album displayed in the parantheses will be the
+            // one it has the highest amount of listens from.
+            top_helper(gather::songs_summed_across_albums(entries), num);
+        }
+        Aspect::Songs(false) => {
             println!("=== TOP {num} SONGS ===");
-            top_helper(gather::songs(entries, sum_songs_from_different_albums), num);
+            top_helper(gather::songs(entries), num);
         }
         Aspect::Albums => {
             println!("=== TOP {num} ALBUMS ===");

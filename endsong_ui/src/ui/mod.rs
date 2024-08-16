@@ -303,9 +303,9 @@ fn match_input(
         "print album date" | "palbd" => match_print_album_date(entries, rl)?,
         "print song date" | "psond" => match_print_song_date(entries, rl)?,
         "print songs date" | "psonsd" => match_print_songs_date(entries, rl)?,
-        "print top artists" | "ptarts" => match_print_top(entries, rl, Aspect::Artists, false)?,
-        "print top albums" | "ptalbs" => match_print_top(entries, rl, Aspect::Albums, false)?,
-        "print top songs" | "ptsons" => match_print_top(entries, rl, Aspect::Songs, true)?,
+        "print top artists" | "ptarts" => match_print_top(entries, rl, Aspect::Artists)?,
+        "print top albums" | "ptalbs" => match_print_top(entries, rl, Aspect::Albums)?,
+        "print top songs" | "ptsons" => match_print_top(entries, rl, Aspect::Songs(false))?,
         "plot" | "g" => match_plot(entries, rl)?,
         "plot rel" | "gr" => match_plot_relative(entries, rl)?,
         "plot compare" | "gc" => match_plot_compare(entries, rl)?,
@@ -544,33 +544,23 @@ fn match_print_top(
     entries: &SongEntries,
     rl: &mut Editor<ShellHelper, FileHistory>,
     asp: Aspect,
-    ask_for_sum: bool,
 ) -> Result<(), UiError> {
-    rl.helper_mut().unwrap().reset();
+    let asp = match asp {
+        Aspect::Songs(_) => {
+            // prompt: ask if you want to sum songs from different albums
+            let ignore_album = read_whether_to_sum_songs(rl)?;
+            Aspect::Songs(ignore_album)
+        }
+        _ => asp,
+    };
+
     // prompt: top n
+    rl.helper_mut().unwrap().reset();
     println!("How many Top {asp}?");
     let usr_input_n = rl.readline(PROMPT_MAIN)?;
     let num: usize = usr_input_n.parse()?;
 
-    let mut sum_songs_from_different_albums = false;
-    if ask_for_sum {
-        // prompt: ask if you want to sum songs from different albums
-        rl.helper_mut()
-            .unwrap()
-            .complete_list(string_vec(&["yes", "y", "no", "n"]));
-        println!("Do you want to sum songs from different albums? (y/n)");
-        let usr_input_b = rl.readline(PROMPT_SECONDARY)?;
-        sum_songs_from_different_albums = match usr_input_b.as_str() {
-            "yes" | "y" => true,
-            "no" | "n" => false,
-            _ => {
-                println!("Invalid input. Assuming 'no'.");
-                false
-            }
-        }
-    }
-
-    print::top(entries, asp, num, sum_songs_from_different_albums);
+    print::top(entries, asp, num);
     Ok(())
 }
 
@@ -671,21 +661,41 @@ fn match_plot_top(
     let usr_input_asp = rl.readline(PROMPT_MAIN)?;
     let aspect: Aspect = usr_input_asp.parse()?;
 
+    let mut ignore_album = false;
+
+    let aspect = if let Aspect::Songs(_) = aspect {
+        // prompt: ask if you want to sum songs from different albums
+        ignore_album = read_whether_to_sum_songs(rl)?;
+        Aspect::Songs(ignore_album)
+    } else {
+        aspect
+    };
+
     // prompt: top n
     rl.helper_mut().unwrap().reset();
     println!("How many top {aspect} to plot? (recommended: ~5)");
     let usr_input_n = rl.readline(PROMPT_SECONDARY)?;
     let num: usize = usr_input_n.parse()?;
 
-    // TODO prompt: sum songs from different albums?
-
     let traces = match aspect {
         Aspect::Artists => get_traces(entries, &gather::artists(entries), num),
         Aspect::Albums => get_traces(entries, &gather::albums(entries), num),
-        Aspect::Songs => get_traces(entries, &gather::songs(entries, true), num),
+        Aspect::Songs(false) => get_traces(entries, &gather::songs(entries), num),
+        Aspect::Songs(true) => gather::songs_summed_across_albums(entries)
+            .iter()
+            .sorted_unstable_by_key(|t| (std::cmp::Reverse(t.1), t.0))
+            .take(num)
+            .map(|(aspect, _)| trace::absolute_ignore_album(entries, aspect))
+            .collect_vec(),
     };
 
-    plot::multiple(traces, &format!("Top {aspect}"));
+    let title = if ignore_album {
+        "Top songs summed across albums".to_string()
+    } else {
+        format!("Top {aspect}")
+    };
+
+    plot::multiple(traces, &title);
 
     Ok(())
 }
@@ -1001,4 +1011,23 @@ fn read_songs(
         .find()
         .song(&usr_input_son, &art.name)
         .ok_or(UiError::NotFound("song from this artist"))
+}
+
+/// Used by [`match_print_top`] and [`match_plot_top`] for y/n prompt
+/// if user wants to sum song plays across albums
+fn read_whether_to_sum_songs(rl: &mut Editor<ShellHelper, FileHistory>) -> Result<bool, UiError> {
+    // prompt: ask if you want to sum songs from different albums
+    rl.helper_mut()
+        .unwrap()
+        .complete_list(string_vec(&["yes", "y", "no", "n"]));
+    println!("Do you want to sum songs from different albums? (y/n)");
+    let usr_input_b = rl.readline(PROMPT_SECONDARY)?;
+    match usr_input_b.as_str() {
+        "yes" | "y" | "true" => Ok(true),
+        "no" | "n" | "false" => Ok(false),
+        _ => {
+            println!("Invalid input. Assuming 'no'.");
+            Ok(false)
+        }
+    }
 }

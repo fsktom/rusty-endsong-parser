@@ -54,6 +54,33 @@ pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> TraceType {
     TraceType::Absolute(trace)
 }
 
+/// Creates a trace of the absolute amount of plays of a song
+/// with its plays summed across all album it's in
+///
+/// Creates an empty trace if `song` is not in `entries`
+#[must_use]
+pub fn absolute_ignore_album(entries: &SongEntries, song: &Song) -> TraceType {
+    let mut times = Vec::<String>::with_capacity(entries.len());
+    let mut plays = Vec::<usize>::with_capacity(entries.len());
+
+    // since each date represents a single listen, we can just count up
+    let mut song_plays = 0;
+
+    for entry in entries
+        .iter()
+        .filter(|entry| song.album.artist.name == entry.artist && song.name == entry.track)
+    {
+        song_plays += 1;
+        times.push(format_date(&entry.timestamp));
+        plays.push(song_plays);
+    }
+
+    let title = format!("{song}");
+    let trace = Scatter::new(times, plays).name(title);
+
+    TraceType::Absolute(trace)
+}
+
 /// Module for relative traces
 ///
 /// Either to all plays, the artist or the album

@@ -37,7 +37,7 @@ fn main() {
         "macos" => "/Users/filip/Other/Endsong/",
         _ => "/mnt/c/temp/Endsong/",
     };
-    let last: u8 = 0;
+    let last: u8 = 9;
     let paths: Vec<String> = (0..=last)
         .map(|i| format!("{root}endsong_{i}.json"))
         .collect();
@@ -57,9 +57,9 @@ fn main() {
 /// tests various [`print`][crate::print] and [`endsong::gather`] functions
 #[allow(dead_code)]
 fn test(entries: &SongEntries) {
-    print::top(entries, Aspect::Songs, 10, false);
-    print::top(entries, Aspect::Albums, 10, false);
-    print::top(entries, Aspect::Artists, 10, false);
+    print::top(entries, Aspect::Songs(false), 10);
+    print::top(entries, Aspect::Albums, 10);
+    print::top(entries, Aspect::Artists, 10);
 
     let powerwolf = Artist::new("Powerwolf");
     print::top_from_artist(entries, Mode::Songs, &powerwolf, 10);
