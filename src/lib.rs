@@ -31,13 +31,21 @@ pub mod prelude {
     pub use crate::aspect::{Album, Artist, Song};
     pub use crate::aspect::{HasSongs, Music};
 
+    pub use crate::get_sorted_list;
+    pub use crate::get_sorted_ref_list;
     pub use crate::parse_date;
 
     // time and date related
     pub use chrono::{DateTime, Local, NaiveDateTime, TimeDelta, TimeZone};
 }
 
+use std::collections::HashMap;
+
 use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
+use itertools::Itertools;
+
+use aspect::Music;
+
 /// Converts a `YYYY-MM-DD` string to a [`DateTime<Local>`]
 /// in the context of the [`Local`] timezone
 ///
@@ -100,6 +108,28 @@ pub fn parse_date(date: &str) -> Result<DateTime<Local>, chrono::format::ParseEr
             Ok(Local.from_local_datetime(&naive).unwrap())
         }
     }
+}
+
+/// Makes a list of the aspect sorted by its playcount descending
+/// and then the name alphabetically
+#[allow(clippy::implicit_hasher)]
+#[must_use]
+pub fn get_sorted_list<Asp: Music>(map: HashMap<Asp, usize>) -> Vec<Asp> {
+    map.into_iter()
+        .sorted_unstable_by_key(|t: &(Asp, usize)| (std::cmp::Reverse(t.1), t.0.clone()))
+        .map(|(aspect, _)| aspect)
+        .collect()
+}
+
+/// Makes a list of references to the aspect sorted by its playcount descending
+/// and then the name alphabetically
+#[allow(clippy::implicit_hasher)]
+#[must_use]
+pub fn get_sorted_ref_list<Asp: Music>(map: &HashMap<Asp, usize>) -> Vec<&Asp> {
+    map.iter()
+        .sorted_unstable_by_key(|t: &(&Asp, &usize)| (std::cmp::Reverse(t.1), t.0))
+        .map(|(aspect, _)| aspect)
+        .collect()
 }
 
 #[cfg(test)]

@@ -7,9 +7,14 @@
 //! Using [`&SongEntries`][crate::entry::SongEntries] is also possible for data for the whole dataset
 //! since it implements [`Deref`][std::ops::Deref] to the [`Vec<SongEntry>`] it contains.
 //!
+//! Use [`get_sorted_list`][crate::get_sorted_list] and
+//! [`get_sorted_ref_list`][crate::get_sorted_ref_list] to transform the [`HashMap`]s
+//! from the functions here into [`Vec`]s sorted by playcount
+//!
 //! # Examples
 //! ```rust
 //! use endsong::prelude::*;
+//! use itertools::Itertools;
 //!
 //! // create SongEntries from a single file
 //! let paths = vec![format!(
@@ -19,7 +24,7 @@
 //! let entries = SongEntries::new(&paths).unwrap();
 //!
 //! // example artist
-//! let artist = Artist::new("Sabaton");
+//! let artist: Artist = entries.find().artist("Sabaton").unwrap().remove(0);
 //!
 //! // get all albums from the artist with their plays
 //! let _ = gather::albums_from_artist(&entries, &artist);
@@ -28,6 +33,13 @@
 //! let start_date = parse_date("2020-11-14").unwrap();
 //! let end_date = parse_date("now").unwrap();
 //! let _ = gather::albums_from_artist(entries.between(&start_date, &end_date), &artist);
+//!
+//! // to get a list of albums from the artist sorted
+//! // primarily by their playcount descending
+//! // and then alphabetically
+//! let albums_map = gather::albums_from_artist(&entries, &artist);
+//! let albums: Vec<&Album> = get_sorted_ref_list(&albums_map);
+//! let albums_owned: Vec<Album> = get_sorted_list(gather::albums_from_artist(&entries, &artist));
 //! ```
 
 use std::collections::HashMap;

@@ -585,14 +585,4 @@ impl<'a> Find<'a> {
     pub fn song(&self, song_name: &str, artist_name: &str) -> Option<Vec<Song>> {
         find::song(self.0, song_name, artist_name)
     }
-
-    /// Returns a [`Vec<Song>`] with all the songs in the given album
-    ///
-    /// # Panics
-    ///
-    /// Panics if `album` is not in the dataset
-    #[must_use]
-    pub fn songs_from_album(&self, album: &Album) -> Vec<Song> {
-        find::songs_from_album(self.0, album)
-    }
 }

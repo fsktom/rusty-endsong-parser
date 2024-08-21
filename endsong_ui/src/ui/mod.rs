@@ -712,11 +712,7 @@ fn match_plot_artist_albums(
     let art = read_artist(rl, entries)?;
 
     let albums_map = gather::albums_from_artist(entries, &art);
-    let albums = albums_map
-        .iter()
-        .sorted_unstable_by_key(|t| (std::cmp::Reverse(t.1), t.0))
-        .map(|(aspect, _)| aspect)
-        .collect_vec();
+    let albums = get_sorted_ref_list(&albums_map);
 
     let mut traces = vec![];
     for (count, alb) in albums.into_iter().enumerate() {

@@ -146,7 +146,7 @@ fn test_two(entries: &SongEntries) {
 
     let ct = Album::new("Waking The Fallen", "Avenged Sevenfold");
     let mut alb_dur = TimeDelta::try_seconds(0).unwrap();
-    let ct_songs = entries.find().songs_from_album(&ct);
+    let ct_songs = get_sorted_list(gather::songs_from(entries, &ct));
     for song in &ct_songs {
         println!(
             "{} - {}",

@@ -1,4 +1,22 @@
 //! Module responsible for finding artists, albums and songs in the dataset
+//!
+//! Use functions here instead of manually creating aspects to make sure
+//! they actually exist in the dataset!
+//!
+//! ```
+//! use endsong::prelude::*;
+//!
+//! // create SongEntries from a single file
+//! let paths = vec![format!(
+//!     "{}/stuff/example_endsong/endsong_0.json",
+//!     std::env::current_dir().unwrap().display()
+//! )];
+//! let entries = SongEntries::new(&paths).unwrap();
+//!
+//! // example artist
+//! let artist: Artist = entries.find().artist("sabaTON").unwrap().remove(0);
+//! assert_eq!(artist, Artist::new("Sabaton"));
+//! ```
 
 use itertools::Itertools;
 
@@ -117,20 +135,6 @@ pub fn song(entries: &[SongEntry], song_name: &str, artist_name: &str) -> Option
     }
 
     Some(song_versions)
-}
-
-/// Returns a [`Vec<Song>`] with all the songs in the given album
-///
-/// # Panics
-///
-/// Panics if `album` is not in the dataset
-pub fn songs_from_album(entries: &[SongEntry], album: &Album) -> Vec<Song> {
-    entries
-        .iter()
-        .filter(|entry| album.is_entry(entry))
-        .unique()
-        .map(Song::from)
-        .collect_vec()
 }
 
 #[cfg(test)]
