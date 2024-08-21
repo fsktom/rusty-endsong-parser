@@ -73,19 +73,30 @@ fn kekw(c: &mut Criterion) {
 
 #[allow(dead_code)]
 fn parse(c: &mut Criterion) {
-    let paths = paths(0, 9);
+    let paths = paths(0, 0);
 
     c.bench_function("parse", |c| {
         c.iter(|| {
-            black_box(SongEntries::new(&paths[..=0]).unwrap());
+            black_box(SongEntries::new(&paths).unwrap());
         })
     });
 
     c.bench_function("parse and filter", |c| {
         c.iter(|| {
             black_box(
-                SongEntries::new(&paths[..=0])
+                SongEntries::new(&paths)
                     .unwrap()
+                    .filter(30, TimeDelta::seconds(10)),
+            );
+        })
+    });
+
+    c.bench_function("parse, sum and filter", |c| {
+        c.iter(|| {
+            black_box(
+                SongEntries::new(&paths)
+                    .unwrap()
+                    .sum_different_capitalization()
                     .filter(30, TimeDelta::seconds(10)),
             );
         })
@@ -179,7 +190,7 @@ fn gather(c: &mut Criterion) {
             black_box(gather::albums(&entries));
         })
     });
-    c.bench_function("gather songs", |c| {
+    c.bench_function("gather songs summed across albums", |c| {
         c.iter(|| {
             black_box(gather::songs_summed_across_albums(&entries));
         })
@@ -274,9 +285,9 @@ fn find(c: &mut Criterion) {
 
 // criterion_group!(benches, lol);
 // criterion_group!(benches, kekw);
-// criterion_group!(benches, parse);
+criterion_group!(benches, parse);
 // criterion_group!(benches, unique_sum);
 // criterion_group!(benches, gather);
 // criterion_group!(benches, capitalization);
-criterion_group!(benches, find);
+// criterion_group!(benches, find);
 criterion_main!(benches);
