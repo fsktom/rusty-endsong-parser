@@ -60,20 +60,6 @@ impl FromStr for Aspect {
 )]
 pub struct AspectParseError;
 
-/// Algebraic data type similar to [`Aspect`]
-/// but used by functions such as [`crate::print::aspect()`]
-/// to get more specfic data
-///
-/// Each variant contains a reference to an instance of the aspect
-pub enum AspectFull<'a> {
-    /// with ref to [`Artist`]
-    Artist(&'a Artist),
-    /// with ref to [`Album`]
-    Album(&'a Album),
-    /// with ref to [`Song`]
-    Song(&'a Song),
-}
-
 /// For choosing mode of a function, similar to [`Aspect`] but
 /// without [`Aspect::Artists`]
 ///
@@ -84,6 +70,97 @@ pub enum Mode {
     Albums,
     /// to print songs from artists
     Songs,
+}
+
+/// Trait for handling printing an aspect and its subaspects with playcount etc
+pub trait Print: Music {
+    /// Prints a specific aspect
+    ///
+    /// I.e. a song, an album with its songs or an artist with its albums
+    fn print(&self, entries: &[SongEntry]);
+
+    /// Prints a specfic aspect in a date range
+    ///
+    /// I.e. a song, an album with its songs or an artist with its albums
+    ///
+    /// Basically [`Print::print()`] but with date limitations
+    ///
+    /// # Panics
+    ///
+    /// Panics if `start` is after or equal to `end`
+    fn print_date(&self, entries: &SongEntries, start: &DateTime<Local>, end: &DateTime<Local>);
+}
+impl Print for Artist {
+    fn print(&self, entries: &[SongEntry]) {
+        println!("{} | {} plays", self, gather::plays(entries, self));
+        artist(
+            entries,
+            &gather::albums_from_artist(entries, self),
+            INDENT_LENGTH,
+        );
+    }
+    fn print_date(&self, entries: &SongEntries, start: &DateTime<Local>, end: &DateTime<Local>) {
+        assert!(start <= end, "Start date is after end date!");
+        let entries_within_dates = entries.between(start, end);
+
+        let (start, end) = normalize_dates(entries_within_dates, start, end);
+
+        println!(
+            "{} | between {} and {} | {} plays",
+            self,
+            start.date_naive(),
+            end.date_naive(),
+            gather::plays(entries_within_dates, self)
+        );
+        artist(
+            entries_within_dates,
+            &gather::albums_from_artist(entries_within_dates, self),
+            INDENT_LENGTH,
+        );
+    }
+}
+impl Print for Album {
+    fn print(&self, entries: &[SongEntry]) {
+        println!("{} | {} plays", self, gather::plays(entries, self));
+        album(&gather::songs_from(entries, self), INDENT_LENGTH);
+    }
+    fn print_date(&self, entries: &SongEntries, start: &DateTime<Local>, end: &DateTime<Local>) {
+        assert!(start <= end, "Start date is after end date!");
+        let entries_within_dates = entries.between(start, end);
+
+        let (start, end) = normalize_dates(entries_within_dates, start, end);
+
+        println!(
+            "{} | between {} and {} | {} plays",
+            self,
+            start.date_naive(),
+            end.date_naive(),
+            gather::plays(entries_within_dates, self)
+        );
+        album(
+            &gather::songs_from(entries_within_dates, self),
+            INDENT_LENGTH,
+        );
+    }
+}
+impl Print for Song {
+    fn print(&self, entries: &[SongEntry]) {
+        println!("{} | {} plays", self, gather::plays(entries, self));
+    }
+    fn print_date(&self, entries: &SongEntries, start: &DateTime<Local>, end: &DateTime<Local>) {
+        assert!(start <= end, "Start date is after end date!");
+        let entries_within_dates = entries.between(start, end);
+
+        let (start, end) = normalize_dates(entries_within_dates, start, end);
+
+        println!(
+            "{} | between {} and {} | {} plays",
+            self,
+            start.date_naive(),
+            end.date_naive(),
+            gather::plays(entries_within_dates, self)
+        );
+    }
 }
 
 /// Trait for better display of [durations][TimeDelta]
@@ -193,26 +270,9 @@ fn top_helper<Asp: Music>(music_dict: HashMap<Asp, usize>, num: usize) {
 
 /// Prints a specfic aspect
 ///
-/// * `asp` - the [`AspectFull`] you want information about containing the
-///   relevant struct ([`Artist`], [`Album`] or [`Song`])
-pub fn aspect(entries: &[SongEntry], asp: &AspectFull) {
-    match *asp {
-        AspectFull::Artist(art) => {
-            println!("{} | {} plays", art, gather::plays(entries, art));
-            artist(
-                entries,
-                &gather::albums_from_artist(entries, art),
-                INDENT_LENGTH,
-            );
-        }
-        AspectFull::Album(alb) => {
-            println!("{} | {} plays", alb, gather::plays(entries, alb));
-            album(&gather::songs_from(entries, alb), INDENT_LENGTH);
-        }
-        AspectFull::Song(son) => {
-            println!("{} | {} plays", son, gather::plays(entries, son));
-        }
-    }
+/// Or just import [`Print`] and use `.print()` on the aspect
+pub fn aspect<Asp: Print>(entries: &[SongEntry], asp: &Asp) {
+    asp.print(entries);
 }
 
 /// Prints each [`Album`] of `albums` with the playcount
@@ -254,61 +314,18 @@ fn album(songs: &HashMap<Song, usize>, indent_length: usize) {
 ///
 /// Basically [`aspect()`] but with date limitations
 ///
-/// * `asp` - the [`AspectFull`] you want information about containing the
-///   relevant struct ([`Artist`], [`Album`] or [`Song`])
+/// Or just import [`Print`] and use `.print_date()` on the aspect
 ///
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
-pub fn aspect_date(
+pub fn aspect_date<Asp: Print>(
     entries: &SongEntries,
-    asp: &AspectFull,
+    asp: &Asp,
     start: &DateTime<Local>,
     end: &DateTime<Local>,
 ) {
-    assert!(start <= end, "Start date is after end date!");
-    let entries_within_dates = entries.between(start, end);
-
-    let (start, end) = normalize_dates(entries_within_dates, start, end);
-
-    match *asp {
-        AspectFull::Artist(art) => {
-            println!(
-                "{} | between {} and {} | {} plays",
-                art,
-                start.date_naive(),
-                end.date_naive(),
-                gather::plays(entries_within_dates, art)
-            );
-            artist(
-                entries_within_dates,
-                &gather::albums_from_artist(entries_within_dates, art),
-                INDENT_LENGTH,
-            );
-        }
-        AspectFull::Album(alb) => {
-            println!(
-                "{} | between {} and {} | {} plays",
-                alb,
-                start.date_naive(),
-                end.date_naive(),
-                gather::plays(entries_within_dates, alb)
-            );
-            album(
-                &gather::songs_from(entries_within_dates, alb),
-                INDENT_LENGTH,
-            );
-        }
-        AspectFull::Song(son) => {
-            println!(
-                "{} | between {} and {} | {} plays",
-                son,
-                start.date_naive(),
-                end.date_naive(),
-                gather::plays(entries_within_dates, son)
-            );
-        }
-    }
+    asp.print_date(entries, start, end);
 }
 
 /// Prints the total time played

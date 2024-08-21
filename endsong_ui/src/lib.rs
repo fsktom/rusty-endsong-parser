@@ -47,7 +47,6 @@ pub mod prelude {
     pub use crate::ui;
 
     pub use print::Aspect;
-    pub use print::AspectFull;
     pub use print::DurationUtils;
     pub use print::Mode;
 }

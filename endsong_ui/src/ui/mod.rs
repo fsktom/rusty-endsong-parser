@@ -19,7 +19,7 @@ use thiserror::Error;
 use crate::plot;
 use crate::print;
 use crate::trace;
-use print::{Aspect, AspectFull};
+use print::Aspect;
 use trace::TraceType;
 
 /// Prompt used for top-level shell commands
@@ -387,7 +387,7 @@ fn match_print_artist(
     // prompt: artist name
     let art = read_artist(rl, entries)?;
 
-    print::aspect(entries, &AspectFull::Artist(&art));
+    print::aspect(entries, &art);
     Ok(())
 }
 
@@ -404,7 +404,7 @@ fn match_print_artist_date(
     // 2nd + 3rd prompt: start + end date
     let (start_date, end_date) = read_dates(rl)?;
 
-    print::aspect_date(entries, &AspectFull::Artist(&art), &start_date, &end_date);
+    print::aspect_date(entries, &art, &start_date, &end_date);
     Ok(())
 }
 
@@ -419,7 +419,7 @@ fn match_print_album(
     // 2nd prompt: album name
     let alb = read_album(rl, entries, &art)?;
 
-    print::aspect(entries, &AspectFull::Album(&alb));
+    print::aspect(entries, &alb);
     Ok(())
 }
 
@@ -439,7 +439,7 @@ fn match_print_album_date(
     // 3rd + 4th prompt: start + end date
     let (start_date, end_date) = read_dates(rl)?;
 
-    print::aspect_date(entries, &AspectFull::Album(&alb), &start_date, &end_date);
+    print::aspect_date(entries, &alb, &start_date, &end_date);
     Ok(())
 }
 
@@ -457,7 +457,7 @@ fn match_print_song(
     // 3rd prompt: song name
     let son = read_song(rl, entries, &alb)?;
 
-    print::aspect(entries, &AspectFull::Song(&son));
+    print::aspect(entries, &son);
     Ok(())
 }
 
@@ -480,7 +480,7 @@ fn match_print_song_date(
     // 4th + 5th prompt: start + end date
     let (start_date, end_date) = read_dates(rl)?;
 
-    print::aspect_date(entries, &AspectFull::Song(&son), &start_date, &end_date);
+    print::aspect_date(entries, &son, &start_date, &end_date);
     Ok(())
 }
 
@@ -506,7 +506,7 @@ fn match_print_songs(
         );
     }
     for song in songs {
-        print::aspect(entries, &AspectFull::Song(&song));
+        print::aspect(entries, &song);
     }
     Ok(())
 }
@@ -536,7 +536,7 @@ fn match_print_songs_date(
         );
     }
     for song in songs {
-        print::aspect_date(entries, &AspectFull::Song(&song), &start_date, &end_date);
+        print::aspect_date(entries, &song, &start_date, &end_date);
     }
 
     Ok(())

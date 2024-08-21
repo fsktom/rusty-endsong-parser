@@ -69,11 +69,11 @@ fn test(entries: &SongEntries) {
     print::top_from_album(entries, &coat, 50);
 
     let final_solution = Song::new("The Final Solution", "Coat of Arms", "Sabaton");
-    print::aspect(entries, &AspectFull::Artist(&Artist::new("Sabaton")));
+    print::aspect(entries, &Artist::new("Sabaton"));
     println!();
-    print::aspect(entries, &AspectFull::Album(&coat));
+    print::aspect(entries, &coat);
     println!();
-    print::aspect(entries, &AspectFull::Song(&final_solution));
+    print::aspect(entries, &final_solution);
 
     dbg!(entries.find().artist("Sabaton").unwrap());
     dbg!(entries.find().album("COAT OF ARMS", "sabaton").unwrap());
@@ -100,19 +100,9 @@ fn test(entries: &SongEntries) {
     let start_date = parse_date("2020-01-01").unwrap();
     let end_date = parse_date("2022-07-01").unwrap();
 
-    print::aspect_date(
-        entries,
-        &AspectFull::Artist(&powerwolf),
-        &start_date,
-        &end_date,
-    );
-    print::aspect_date(entries, &AspectFull::Album(&coat), &start_date, &end_date);
-    print::aspect_date(
-        entries,
-        &AspectFull::Song(&final_solution),
-        &start_date,
-        &end_date,
-    );
+    print::aspect_date(entries, &powerwolf, &start_date, &end_date);
+    print::aspect_date(entries, &coat, &start_date, &end_date);
+    print::aspect_date(entries, &final_solution, &start_date, &end_date);
 
     assert_eq!(
         gather::listening_time(entries),
@@ -126,10 +116,7 @@ fn test(entries: &SongEntries) {
     print::time_played_date(entries, &start, &end);
     dbg!(gather::listening_time(entries.between(&start, &end)).num_minutes());
 
-    print::aspect(
-        entries,
-        &AspectFull::Album(&Album::new("Built To Last", "HammerFall")),
-    );
+    print::aspect(entries, &Album::new("Built To Last", "HammerFall"));
 }
 
 /// another test function
