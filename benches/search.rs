@@ -2,30 +2,22 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[allow(unused_imports)]
 use endsong::prelude::*;
+use itertools::Itertools;
 
-fn paths() -> [String; 10] {
+fn paths(first: usize, last: usize) -> Vec<String> {
     let root = match std::env::consts::OS {
-        "windows" => r"C:\\Temp\\Endsong\\",
+        "windows" => r"C:\Temp\Endsong\",
         "macos" => "/Users/filip/Other/Endsong/",
         _ => "/mnt/c/temp/Endsong/",
     };
-    [
-        format!("{root}endsong_0.json"),
-        format!("{root}endsong_1.json"),
-        format!("{root}endsong_2.json"),
-        format!("{root}endsong_3.json"),
-        format!("{root}endsong_4.json"),
-        format!("{root}endsong_5.json"),
-        format!("{root}endsong_6.json"),
-        format!("{root}endsong_7.json"),
-        format!("{root}endsong_8.json"),
-        format!("{root}endsong_9.json"),
-    ]
+    (first..=last)
+        .map(|i| format!("{root}endsong_{i}.json"))
+        .collect()
 }
 
 #[allow(dead_code)]
 fn lol(c: &mut Criterion) {
-    let entries = black_box(SongEntries::new(&paths()[..=2]).unwrap());
+    let entries = black_box(SongEntries::new(&paths(0, 2)).unwrap());
 
     c.bench_function("artists_vec", |c| {
         c.iter(|| {
@@ -51,7 +43,7 @@ fn lol(c: &mut Criterion) {
 
 #[allow(dead_code)]
 fn kekw(c: &mut Criterion) {
-    let entries = black_box(SongEntries::new(&paths()[7..=9]).unwrap());
+    let entries = black_box(SongEntries::new(&paths(7, 9)).unwrap());
 
     let lth = Song::new(
         "Last Train Home",
@@ -81,7 +73,7 @@ fn kekw(c: &mut Criterion) {
 
 #[allow(dead_code)]
 fn parse(c: &mut Criterion) {
-    let paths = paths();
+    let paths = paths(0, 9);
 
     c.bench_function("parse", |c| {
         c.iter(|| {
@@ -175,7 +167,7 @@ fn unique_sum(c: &mut Criterion) {
 
 #[allow(dead_code)]
 fn gather(c: &mut Criterion) {
-    let entries = black_box(SongEntries::new(&paths()[..=0]).unwrap());
+    let entries = black_box(SongEntries::new(&paths(0, 0)).unwrap());
 
     c.bench_function("gather artists", |c| {
         c.iter(|| {
@@ -189,7 +181,7 @@ fn gather(c: &mut Criterion) {
     });
     c.bench_function("gather songs", |c| {
         c.iter(|| {
-            black_box(gather::songs(&entries, true));
+            black_box(gather::songs_summed_across_albums(&entries));
         })
     });
 }
@@ -199,7 +191,7 @@ fn capitalization(c: &mut Criterion) {
     c.bench_function("parse and sum diff capitalization", |c| {
         c.iter(|| {
             black_box(
-                SongEntries::new(&paths()[..=0])
+                SongEntries::new(&paths(0, 0))
                     .unwrap()
                     .sum_different_capitalization(),
             );
@@ -207,10 +199,84 @@ fn capitalization(c: &mut Criterion) {
     });
 }
 
+#[allow(dead_code)]
+fn find(c: &mut Criterion) {
+    let entries = black_box(SongEntries::new(&paths(0, 9)).unwrap());
+    let usr_song_one = Song::new("MUKANJYO", "MUKANJYO", "Survive Said The Prophet");
+    let usr_song_two = Song::new("MUKANJYO", "Mukanjyo", "Survive Said The Prophet");
+
+    let one = entries
+        .iter()
+        .find(|entry| usr_song_one.is_entry_lowercase(entry))
+        .map(Song::from)
+        .unwrap();
+    let two = entries
+        .iter()
+        .find(|entry| usr_song_two.is_entry_lowercase(entry))
+        .map(Song::from)
+        .unwrap();
+    dbg!(one, two);
+
+    let (song_name, artist_name) = (
+        usr_song_one.name.to_lowercase(),
+        usr_song_one.album.artist.name.to_lowercase(),
+    );
+
+    let onetwo = entries
+        .iter()
+        .filter(|entry| {
+            entry.track.to_lowercase() == song_name && entry.artist.to_lowercase() == artist_name
+        })
+        .unique()
+        .map(Song::from)
+        .collect_vec();
+    dbg!(onetwo);
+
+    c.bench_function("find v1", |c| {
+        c.iter(|| {
+            entries
+                .iter()
+                .find(|entry| usr_song_one.is_entry_lowercase(entry))
+                .map(Song::from)
+        })
+    });
+    c.bench_function("find v2", |c| {
+        c.iter(|| {
+            entries
+                .iter()
+                .filter(|entry| usr_song_one.is_entry_lowercase(entry))
+                .map(Song::from)
+                .unique()
+                .collect_vec()
+        })
+    });
+
+    let art = Artist::new("survive said the prophet");
+    c.bench_function("find artist v1", |c| {
+        c.iter(|| {
+            entries
+                .iter()
+                .find(|entry| art.is_entry_lowercase(entry))
+                .map(Artist::from)
+        })
+    });
+    c.bench_function("find artist v2", |c| {
+        c.iter(|| {
+            entries
+                .iter()
+                .filter(|entry| art.is_entry_lowercase(entry))
+                .map(Artist::from)
+                .unique()
+                .collect_vec()
+        })
+    });
+}
+
 // criterion_group!(benches, lol);
 // criterion_group!(benches, kekw);
-criterion_group!(benches, parse);
+// criterion_group!(benches, parse);
 // criterion_group!(benches, unique_sum);
 // criterion_group!(benches, gather);
 // criterion_group!(benches, capitalization);
+criterion_group!(benches, find);
 criterion_main!(benches);

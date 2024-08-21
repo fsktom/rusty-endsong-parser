@@ -67,6 +67,10 @@ pub trait Music: Display + Clone + Eq + Ord {
 pub trait HasSongs: Music {}
 
 /// Struct for representing an artist
+///
+/// Usually, you don't want to create this yourself, but rather use
+/// [`SongEntries::find`][crate::entry::SongEntries::find] to guarantee
+/// it's in the dataset
 #[derive(PartialEq, Eq, Hash, Debug, PartialOrd, Ord)]
 pub struct Artist {
     /// Name of the artist
@@ -74,6 +78,10 @@ pub struct Artist {
 }
 impl Artist {
     /// Creates an instance of Artist
+    ///
+    /// Usually, you don't want to use this yourself, but rather use
+    /// [`SongEntries::find`][crate::entry::SongEntries::find] to guarantee
+    /// it's in the dataset
     pub fn new<S: Into<Rc<str>>>(artist_name: S) -> Artist {
         Artist {
             name: artist_name.into(),
@@ -149,6 +157,10 @@ impl Music for Artist {
 impl HasSongs for Artist {}
 
 /// Struct for representing an album
+///
+/// Usually, you don't want to create this yourself, but rather use
+/// [`SongEntries::find`][crate::entry::SongEntries::find] to guarantee
+/// it's in the dataset
 #[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Album {
     /// Name of the album
@@ -158,6 +170,10 @@ pub struct Album {
 }
 impl Album {
     /// Creates an instance of Album
+    ///
+    /// Usually, you don't want to use this yourself, but rather use
+    /// [`SongEntries::find`][crate::entry::SongEntries::find] to guarantee
+    /// it's in the dataset
     pub fn new<S: Into<Rc<str>>>(album_name: S, artist_name: S) -> Album {
         Album {
             name: album_name.into(),
@@ -250,6 +266,10 @@ impl Music for Album {
 impl HasSongs for Album {}
 
 /// Struct for representing a song
+///
+/// Usually, you don't want to create this yourself, but rather use
+/// [`SongEntries::find`][crate::entry::SongEntries::find] to guarantee
+/// it's in the dataset
 #[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Song {
     /// Name of the song
@@ -260,6 +280,10 @@ pub struct Song {
 }
 impl Song {
     /// Creates an instance of Song
+    ///
+    /// Usually, you don't want to use this yourself, but rather use
+    /// [`SongEntries::find`][crate::entry::SongEntries::find] to guarantee
+    /// it's in the dataset
     pub fn new<S: Into<Rc<str>>>(song_name: S, album_name: S, artist_name: S) -> Song {
         Song {
             name: song_name.into(),

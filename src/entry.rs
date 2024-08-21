@@ -445,8 +445,8 @@ impl SongEntries {
 
     /// Adds search capability
     ///
-    /// Use with methods from [`Find`]: [`.artist()`][Find::artist()], [`.album()`][Find::album()],
-    /// [`.song_from_album()`][Find::song_from_album()] and [`.song()`][Find::song()]
+    /// Use with methods from [`Find`] to search for valid artist, album or song
+    /// names from the dataset and more.
     #[must_use]
     pub fn find(&self) -> Find {
         Find(self)
@@ -523,33 +523,46 @@ fn song_durations(entries: &Vec<SongEntry>) -> HashMap<Song, TimeDelta> {
 /// Created with [`SongEntries::find`]
 pub struct Find<'a>(&'a SongEntries);
 impl<'a> Find<'a> {
-    /// Searches the entries for if the given artist exists in the dataset
+    /// Searches the entries for possible artists
     ///
-    /// Case-insensitive and returns the [`Artist`] with proper capitalization
-    /// (i.e. the capitalization of the first entry it finds)
+    /// Case-insensitive and returns the [`Artist`] with proper capitalization.
+    /// The vector contains multiple [`Artist`]s if they're called the same,
+    /// but their names are capitalized diffferently
+    ///
+    /// Vector is guaranteed to be non-empty if [`Some`]
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     #[must_use]
-    pub fn artist(&self, artist_name: &str) -> Option<Artist> {
+    pub fn artist(&self, artist_name: &str) -> Option<Vec<Artist>> {
         find::artist(self.0, artist_name)
     }
 
-    /// Searches the entries for if the given album exists in the dataset
+    /// Searches the entries for possible albums
     ///
     /// Case-insensitive and returns the [`Album`] with proper capitalization
-    /// (i.e. the capitalization of the first entry it finds)
+    /// The vector contains multiple [`Album`]s if they're called the same,
+    /// but their names are capitalized diffferently
+    /// (Guaranteed for there to be only one version if you use
+    /// [`SongEntries::sum_different_capitalization`][crate::entry::SongEntries::sum_different_capitalization])
+    ///
+    /// Vector is guaranteed to be non-empty if [`Some`]
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     #[must_use]
-    pub fn album(&self, album_name: &str, artist_name: &str) -> Option<Album> {
+    pub fn album(&self, album_name: &str, artist_name: &str) -> Option<Vec<Album>> {
         find::album(self.0, album_name, artist_name)
     }
 
-    /// Searches the entries for if the given song (in that specific album)
-    /// exists in the dataset
+    /// Searches the entries possible songs (in that specific album)
+    /// in the dataset
     ///
     /// Case-insensitive and returns the [`Song`] with proper capitalization
-    /// (i.e. the capitalization of the first entry it finds)
+    /// The vector contains multiple [`Song`]s if they're called the same,
+    /// but their names are capitalized diffferently
+    /// (Guaranteed for there to be only one version if you use
+    /// [`SongEntries::sum_different_capitalization`][crate::entry::SongEntries::sum_different_capitalization])
+    ///
+    /// Vector is guaranteed to be non-empty if [`Some`]
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     #[must_use]
@@ -558,7 +571,7 @@ impl<'a> Find<'a> {
         song_name: &str,
         album_name: &str,
         artist_name: &str,
-    ) -> Option<Song> {
+    ) -> Option<Vec<Song>> {
         find::song_from_album(self.0, song_name, album_name, artist_name)
     }
 

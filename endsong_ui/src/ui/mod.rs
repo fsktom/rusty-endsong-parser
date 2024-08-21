@@ -64,6 +64,9 @@ enum UiError {
     /// Used when absurdly high time period would lead to panic (shouldn't happen)
     #[error("Use a sane time period")]
     TimeDeltaOverflow,
+    /// Used when you don't want an `.unwrap()` but should never happen
+    #[error("Should never occur! Something very bad happened!")]
+    Unreachable,
 }
 
 /// Helper for [`Editor`]
@@ -959,9 +962,29 @@ fn read_artist(
     rl.helper_mut().unwrap().complete_list(entries.artists());
     println!("Artist name?");
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
-    entries
-        .find()
-        .artist(&usr_input_art)
+    let artists = entries.find().artist(&usr_input_art);
+
+    let Some(artists) = artists else {
+        return Err(UiError::NotFound("artist"));
+    };
+
+    if artists.len() == 1 {
+        return artists.into_iter().next().ok_or(UiError::Unreachable);
+    }
+
+    println!("There's multiple artists with that name, but capitalized differently! Which one do you mean:");
+    for artist in &artists {
+        println!("{artist}");
+    }
+
+    // prompt: artist name exact
+    rl.helper_mut()
+        .unwrap()
+        .complete_list(artists.iter().map(|art| Rc::clone(&art.name)).collect());
+    let usr_input_art = rl.readline(PROMPT_MAIN)?;
+    artists
+        .into_iter()
+        .find(|art| usr_input_art == art.name.as_ref())
         .ok_or(UiError::NotFound("artist"))
 }
 
@@ -975,9 +998,30 @@ fn read_album(
     rl.helper_mut().unwrap().complete_list(entries.albums(art));
     println!("Album name?");
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
-    entries
-        .find()
-        .album(&usr_input_alb, &art.name)
+    let albums = entries.find().album(&usr_input_alb, &art.name);
+
+    let Some(albums) = albums else {
+        return Err(UiError::NotFound("album from this artist"));
+    };
+
+    if albums.len() == 1 {
+        return albums.into_iter().next().ok_or(UiError::Unreachable);
+    }
+
+    // should only happen if you didn't do SongEntries::sum_different_capitalization()
+    println!("There's multiple albums from this artist with that name, but capitalized differently! Which one do you mean:");
+    for album in &albums {
+        println!("{}", album.name);
+    }
+
+    // prompt: artist name exact
+    rl.helper_mut()
+        .unwrap()
+        .complete_list(albums.iter().map(|alb| Rc::clone(&alb.name)).collect());
+    let usr_input_alb = rl.readline(PROMPT_MAIN)?;
+    albums
+        .into_iter()
+        .find(|alb| usr_input_alb == alb.name.as_ref())
         .ok_or(UiError::NotFound("album from this artist"))
 }
 
@@ -991,9 +1035,32 @@ fn read_song(
     rl.helper_mut().unwrap().complete_list(entries.songs(alb));
     println!("Song name?");
     let usr_input_son = rl.readline(PROMPT_MAIN)?;
-    entries
+    let songs = entries
         .find()
-        .song_from_album(&usr_input_son, &alb.name, &alb.artist.name)
+        .song_from_album(&usr_input_son, &alb.name, &alb.artist.name);
+
+    let Some(songs) = songs else {
+        return Err(UiError::NotFound("song from this album"));
+    };
+
+    if songs.len() == 1 {
+        return songs.into_iter().next().ok_or(UiError::Unreachable);
+    }
+
+    // should only happen if you didn't do SongEntries::sum_different_capitalization()
+    println!("There's multiple songs from this album with that name, but capitalized differently! Which one do you mean:");
+    for song in &songs {
+        println!("{}", song.name);
+    }
+
+    // prompt: artist name exact
+    rl.helper_mut()
+        .unwrap()
+        .complete_list(songs.iter().map(|som| Rc::clone(&som.name)).collect());
+    let usr_input_son = rl.readline(PROMPT_MAIN)?;
+    songs
+        .into_iter()
+        .find(|son| usr_input_son == son.name.as_ref())
         .ok_or(UiError::NotFound("song from this album"))
 }
 
