@@ -55,7 +55,9 @@ pub fn absolute<Asp: Music>(entries: &SongEntries, aspect: &Asp) -> TraceType {
 }
 
 /// Creates a trace of the absolute amount of plays of a song
-/// with its plays summed across all album it's in
+/// with its plays summed across all albums it's in
+///
+/// Is case-INSENSITIVE
 ///
 /// Creates an empty trace if `song` is not in `entries`
 #[must_use]
@@ -68,7 +70,7 @@ pub fn absolute_ignore_album(entries: &SongEntries, song: &Song) -> TraceType {
 
     for entry in entries
         .iter()
-        .filter(|entry| song.album.artist.name == entry.artist && song.name == entry.track)
+        .filter(|entry| song.is_entry_lowercase_ignore_album(entry))
     {
         song_plays += 1;
         times.push(format_date(&entry.timestamp));
@@ -198,6 +200,82 @@ pub mod relative {
         }
 
         let title = format!("{song} | relative to the album");
+        let trace = Scatter::new(times, plays).name(title);
+
+        TraceType::Relative(trace)
+    }
+
+    /// Creates a trace of the amount of plays of a [`Song`] relative to all plays
+    /// while ignoring the album the song is in and its capitalization
+    ///
+    /// Creates an empty trace if `song` is not in `entries`
+    #[must_use]
+    pub fn to_all_ignore_album(entries: &SongEntries, song: &Song) -> TraceType {
+        let mut times = Vec::<String>::with_capacity(entries.len());
+        // percentages relative to the sum of all plays
+        let mut plays = Vec::<f64>::with_capacity(entries.len());
+
+        let mut aspect_plays = 0.0;
+        let mut all_plays = 0.0;
+
+        // the plot should start at the first time the aspect is played
+        let mut aspect_found = false;
+
+        for entry in entries.iter() {
+            all_plays += 1.0;
+
+            if song.is_entry_lowercase_ignore_album(entry) {
+                aspect_found = true;
+                aspect_plays += 1.0;
+            }
+            if aspect_found {
+                times.push(format_date(&entry.timestamp));
+                // *100 so that the percentage is easier to read...
+                plays.push(100.0 * (aspect_plays / all_plays));
+            }
+        }
+
+        let title = format!("{song} | relative to all plays");
+        let trace = Scatter::new(times, plays).name(title);
+
+        TraceType::Relative(trace)
+    }
+
+    /// Creates a plot of the amount of plays of an [`Song`]
+    /// relative to total plays of the corresponding [`Artist`]
+    /// while ignoring the album the song is in and its capitalization
+    ///
+    /// Creates an empty trace if `song` is not in `entries`
+    #[must_use]
+    pub fn to_artist_ignore_album(entries: &SongEntries, song: &Song) -> TraceType {
+        let artist = &song.album.artist;
+
+        let mut times = Vec::<String>::new();
+        // percentages relative to the sum of respective artist plays
+        let mut plays = Vec::<f64>::new();
+
+        let mut aspect_plays = 0.0;
+        let mut artist_plays = 0.0;
+
+        // the plot should start at the first time the aspect is played
+        let mut aspect_found = false;
+
+        for entry in entries.iter().filter(|entry| artist.is_entry(entry)) {
+            artist_plays += 1.0;
+
+            if song.is_entry_lowercase_ignore_album(entry) {
+                aspect_found = true;
+                aspect_plays += 1.0;
+            }
+
+            if aspect_found {
+                times.push(format_date(&entry.timestamp));
+                // *100 so that the percentage is easier to read...
+                plays.push(100.0 * (aspect_plays / artist_plays));
+            }
+        }
+
+        let title = format!("{song} | relative to the artist");
         let trace = Scatter::new(times, plays).name(title);
 
         TraceType::Relative(trace)

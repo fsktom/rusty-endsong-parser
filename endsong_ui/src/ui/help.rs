@@ -170,8 +170,33 @@ const fn plot_commands() -> &'static [Command] {
         ),
         Command(
             "plot artist albums",
-            "gaa",
+            "garta",
             "creates a plot of the absolute traces of all albums of the given artist and opens it in the web browser",
+        ),
+        Command(
+            "plot artist albums rel",
+            "gartar",
+            "creates a plot of the traces of all albums of the given artist relative to all or this artist and opens it in the web browser",
+        ),
+        Command(
+            "plot artist songs",
+            "garts",
+            "creates a plot of the absolute traces of all songs of the given artist and opens it in the web browser",
+        ),
+        Command(
+            "plot artist songs rel",
+            "gartsr",
+            "creates a plot of the traces of all songs of the given artist relative to all or this artist and opens it in the web browser",
+        ),
+        Command(
+            "plot album songs",
+            "galbs",
+            "creates a plot of the absolute traces of all songs of the given album and opens it in the web browser",
+        ),
+        Command(
+            "plot album songs rel",
+            "galbsr",
+            "creates a plot of the traces of all songs of the given album relative to all. this artist or to this album and opens it in the web browser",
         ),
     ]
 }

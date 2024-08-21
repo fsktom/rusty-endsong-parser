@@ -290,6 +290,14 @@ impl Song {
             album: Album::new(album_name, artist_name),
         }
     }
+
+    /// Checks if a [`SongEntry`] is this song, but only regarding artist and track name,
+    /// ignoring album name
+    #[must_use]
+    pub fn is_entry_lowercase_ignore_album(&self, entry: &SongEntry) -> bool {
+        entry.artist.to_lowercase() == self.album.artist.name.to_lowercase()
+            && entry.track.to_lowercase() == self.name.to_lowercase()
+    }
 }
 impl Clone for Song {
     /// Clones the song

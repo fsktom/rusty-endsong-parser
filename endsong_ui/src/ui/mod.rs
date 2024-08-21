@@ -112,6 +112,11 @@ impl ShellHelper {
             "plot compare rel",
             "plot top",
             "plot artist albums",
+            "plot artist albums rel",
+            "plot artist songs",
+            "plot artist songs rel",
+            "plot album songs",
+            "plot album songs rel",
         ]);
     }
 
@@ -314,7 +319,12 @@ fn match_input(
         "plot compare" | "gc" => match_plot_compare(entries, rl)?,
         "plot compare rel" | "gcr" => match_plot_compare_relative(entries, rl)?,
         "plot top" | "gt" => match_plot_top(entries, rl)?,
-        "plot artist albums" | "gaa" => match_plot_artist_albums(entries, rl)?,
+        "plot artist albums" | "garta" => match_plot_artist_albums(entries, rl)?,
+        "plot artist albums rel" | "gartar" => match_plot_artist_albums_relative(entries, rl)?,
+        "plot artist songs" | "garts" => match_plot_artist_songs(entries, rl)?,
+        "plot artist songs rel" | "gartr" => match_plot_artist_songs_relative(entries, rl)?,
+        "plot album songs" | "galbs" => match_plot_album_songs(entries, rl)?,
+        "plot album songs rel" | "galbsr" => match_plot_album_songs_relative(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -370,7 +380,7 @@ fn match_print_max_time(
             TimeDelta::try_weeks(duration_num).ok_or(UiError::TimeDeltaOverflow)?,
         ),
         // is unreachable because of the check above
-        _ => unreachable!(),
+        _ => return Err(UiError::Unreachable),
     };
 
     // temporary, maybe later make a custom one
@@ -550,7 +560,7 @@ fn match_print_top(
 ) -> Result<(), UiError> {
     let asp = match asp {
         Aspect::Songs(_) => {
-            // prompt: ask if you want to sum songs from different albums
+            // prompt: ask if you want to sum songs from different albums (and ignore capitalizaiton)
             let ignore_album = read_whether_to_sum_songs(rl)?;
             Aspect::Songs(ignore_album)
         }
@@ -667,7 +677,7 @@ fn match_plot_top(
     let mut ignore_album = false;
 
     let aspect = if let Aspect::Songs(_) = aspect {
-        // prompt: ask if you want to sum songs from different albums
+        // prompt: ask if you want to sum songs from different albums (and ignore capitalizaiton)
         ignore_album = read_whether_to_sum_songs(rl)?;
         Aspect::Songs(ignore_album)
     } else {
@@ -717,7 +727,7 @@ fn match_plot_artist_albums(
     let mut traces = vec![];
     for (count, alb) in albums.into_iter().enumerate() {
         let TraceType::Absolute(trace) = trace::absolute(entries, alb) else {
-            unreachable!()
+            return Err(UiError::Unreachable);
         };
 
         let trace = trace
@@ -736,6 +746,338 @@ fn match_plot_artist_albums(
     }
 
     let title = format!("{art} albums");
+
+    plot::multiple(traces, &title);
+
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot artist albums relative` command
+fn match_plot_artist_albums_relative(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), UiError> {
+    // 1st prompt: artist name
+    let art = read_artist(rl, entries)?;
+
+    // 2nd prompt: relative to what
+    rl.helper_mut()
+        .unwrap()
+        .complete_list(string_vec(&["all", "artist"]));
+    println!("Relative to all or artist?");
+    let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
+
+    let mut hard_limit = 10;
+
+    let trace_fn: fn(&SongEntries, &Album) -> TraceType = match usr_input_rel.as_str() {
+        "all" => trace::relative::to_all,
+        "artist" => {
+            hard_limit = 100;
+            trace::relative::to_artist
+        }
+        _ => return Err(UiError::InvalidArgument("all, artist")),
+    };
+
+    let albums_map = gather::albums_from_artist(entries, &art);
+    let albums = get_sorted_ref_list(&albums_map);
+
+    let full = albums.len() < hard_limit;
+    if full {
+        hard_limit = albums.len();
+    }
+
+    let mut traces = vec![];
+    for (count, alb) in albums.into_iter().enumerate() {
+        let TraceType::Relative(trace) = trace_fn(entries, alb) else {
+            return Err(UiError::Unreachable);
+        };
+
+        let trace = trace
+            .legend_group_title(art.name.to_string())
+            .name(&alb.name);
+
+        // only the traces for the 3 albums with most plays are shown by default
+        let trace = if count < 3 {
+            trace
+        } else {
+            // others are hidden and have to be enabled manually
+            trace.visible(plotly::common::Visible::LegendOnly)
+        };
+
+        if count >= hard_limit {
+            break;
+        }
+
+        traces.push(TraceType::Relative(trace));
+    }
+
+    let title = if full {
+        format!("{art} albums relative to {usr_input_rel}")
+    } else {
+        format!("Top {hard_limit} {art} albums relative to {usr_input_rel}")
+    };
+
+    plot::multiple(traces, &title);
+
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot artist songs` command
+fn match_plot_artist_songs(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), UiError> {
+    // 1st prompt: artist name
+    let art = read_artist(rl, entries)?;
+
+    // 2nd prompt: ask if you want to sum songs from different albums (and ignore capitalizaiton)
+    let ignore_albums = read_whether_to_sum_songs(rl)?;
+
+    let songs_map = if ignore_albums {
+        gather::songs_from_artist_summed_across_albums(entries, &art)
+    } else {
+        gather::songs_from(entries, &art)
+    };
+    let songs = get_sorted_ref_list(&songs_map);
+
+    let trace_fn: fn(&SongEntries, &Song) -> TraceType = if ignore_albums {
+        trace::absolute_ignore_album
+    } else {
+        trace::absolute
+    };
+
+    let mut traces = vec![];
+    for (count, son) in songs.into_iter().enumerate() {
+        let TraceType::Absolute(trace) = trace_fn(entries, son) else {
+            return Err(UiError::Unreachable);
+        };
+
+        let trace = trace
+            .legend_group_title(art.name.to_string())
+            .name(&son.name);
+
+        // only the traces for the 3 albums with most plays are shown by default
+        let trace = if count < 3 {
+            trace
+        } else {
+            // others are hidden and have to be enabled manually
+            trace.visible(plotly::common::Visible::LegendOnly)
+        };
+
+        traces.push(TraceType::Absolute(trace));
+    }
+
+    let title = format!("{art} songs");
+
+    plot::multiple(traces, &title);
+
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot artist songs relative` command
+fn match_plot_artist_songs_relative(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), UiError> {
+    // 1st prompt: artist name
+    let art = read_artist(rl, entries)?;
+
+    // 2nd prompt: ask if you want to sum songs from different albums (and ignore capitalization)
+    let ignore_albums = read_whether_to_sum_songs(rl)?;
+
+    let songs_map = if ignore_albums {
+        gather::songs_from_artist_summed_across_albums(entries, &art)
+    } else {
+        gather::songs_from(entries, &art)
+    };
+    let songs = get_sorted_ref_list(&songs_map);
+
+    // 3rd prompt: relative to what
+    rl.helper_mut()
+        .unwrap()
+        .complete_list(string_vec(&["all", "artist"]));
+    println!("Relative to all or artist?");
+    let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
+
+    // sabaton incident of 188 songs relative to all
+    // => 917 MB html, 58 MB xz COMPRESSED XDD
+    let mut hard_limit = 10;
+
+    let trace_fn: fn(&SongEntries, &Song) -> TraceType = match usr_input_rel.as_str() {
+        "all" => {
+            if ignore_albums {
+                trace::relative::to_all_ignore_album
+            } else {
+                trace::relative::to_all
+            }
+        }
+        "artist" => {
+            hard_limit = 100;
+            if ignore_albums {
+                trace::relative::to_artist_ignore_album
+            } else {
+                trace::relative::to_artist
+            }
+        }
+        _ => return Err(UiError::InvalidArgument("all, artist")),
+    };
+
+    let full = songs.len() < hard_limit;
+    if full {
+        hard_limit = songs.len();
+    }
+
+    let mut traces = vec![];
+    for (count, son) in songs.into_iter().enumerate() {
+        let TraceType::Relative(trace) = trace_fn(entries, son) else {
+            return Err(UiError::Unreachable);
+        };
+
+        let trace = trace
+            .legend_group_title(art.name.to_string())
+            .name(&son.name);
+
+        // only the traces for the 3 albums with most plays are shown by default
+        let trace = if count < 3 {
+            trace
+        } else {
+            // others are hidden and have to be enabled manually
+            trace.visible(plotly::common::Visible::LegendOnly)
+        };
+
+        if count >= hard_limit {
+            break;
+        }
+
+        traces.push(TraceType::Relative(trace));
+    }
+
+    let title = if full {
+        format!("{art} songs relative to {usr_input_rel}")
+    } else {
+        format!("Top {hard_limit} {art} songs relative to {usr_input_rel}")
+    };
+
+    plot::multiple(traces, &title);
+
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot album songs` command
+fn match_plot_album_songs(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), UiError> {
+    // 1st prompt: artist name
+    let art = read_artist(rl, entries)?;
+
+    // 2nd prompt: album name
+    let alb = read_album(rl, entries, &art)?;
+
+    let songs_map = gather::songs_from(entries, &alb);
+    let songs = get_sorted_ref_list(&songs_map);
+
+    let mut traces = vec![];
+    for (count, son) in songs.into_iter().enumerate() {
+        let TraceType::Absolute(trace) = trace::absolute(entries, son) else {
+            return Err(UiError::Unreachable);
+        };
+
+        let trace = trace
+            .legend_group_title(art.name.to_string())
+            .name(&son.name);
+
+        // only the traces for the 3 albums with most plays are shown by default
+        let trace = if count < 3 {
+            trace
+        } else {
+            // others are hidden and have to be enabled manually
+            trace.visible(plotly::common::Visible::LegendOnly)
+        };
+
+        traces.push(TraceType::Absolute(trace));
+    }
+
+    let title = format!("{alb} songs");
+
+    plot::multiple(traces, &title);
+
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `plot album songs relative` command
+fn match_plot_album_songs_relative(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), UiError> {
+    // 1st prompt: artist name
+    let art = read_artist(rl, entries)?;
+
+    // 2nd prompt: album name
+    let alb = read_album(rl, entries, &art)?;
+
+    let songs_map = gather::songs_from(entries, &alb);
+    let songs = get_sorted_ref_list(&songs_map);
+
+    // 3rd prompt: relative to what
+    rl.helper_mut()
+        .unwrap()
+        .complete_list(string_vec(&["all", "artist", "album"]));
+    println!("Relative to all, artist or album?");
+    let usr_input_rel = rl.readline(PROMPT_SECONDARY)?;
+
+    // sabaton incident of 188 songs relative to all
+    // => 917 MB html, 58 MB xz COMPRESSED XDD
+    let mut hard_limit = 10;
+
+    let trace_fn: fn(&SongEntries, &Song) -> TraceType = match usr_input_rel.as_str() {
+        "all" => trace::relative::to_all,
+        "artist" => {
+            hard_limit = 100;
+            trace::relative::to_artist
+        }
+        "album" => {
+            hard_limit = 1000;
+            trace::relative::to_album
+        }
+        _ => return Err(UiError::InvalidArgument("all, artist")),
+    };
+
+    let full = songs.len() < hard_limit;
+    if full {
+        hard_limit = songs.len();
+    }
+
+    let mut traces = vec![];
+    for (count, son) in songs.into_iter().enumerate() {
+        let TraceType::Relative(trace) = trace_fn(entries, son) else {
+            return Err(UiError::Unreachable);
+        };
+
+        let trace = trace
+            .legend_group_title(art.name.to_string())
+            .name(&son.name);
+
+        // only the traces for the 3 albums with most plays are shown by default
+        let trace = if count < 3 {
+            trace
+        } else {
+            // others are hidden and have to be enabled manually
+            trace.visible(plotly::common::Visible::LegendOnly)
+        };
+
+        if count >= hard_limit {
+            break;
+        }
+
+        traces.push(TraceType::Relative(trace));
+    }
+
+    let title = if full {
+        format!("{alb} songs relative to {usr_input_rel}")
+    } else {
+        format!("Top {hard_limit} {alb} songs relative to {usr_input_rel}")
+    };
 
     plot::multiple(traces, &title);
 
@@ -797,7 +1139,7 @@ fn match_plot_artist(
     if let TraceType::Absolute(trace) = trace::absolute(entries, &art) {
         Ok((trace, art.to_string()))
     } else {
-        unreachable!()
+        Err(UiError::Unreachable)
     }
 }
 
@@ -815,7 +1157,7 @@ fn match_plot_album(
     if let TraceType::Absolute(trace) = trace::absolute(entries, &alb) {
         Ok((trace, alb.to_string()))
     } else {
-        unreachable!()
+        Err(UiError::Unreachable)
     }
 }
 
@@ -836,7 +1178,7 @@ fn match_plot_song(
     if let TraceType::Absolute(trace) = trace::absolute(entries, &son) {
         Ok((trace, son.to_string()))
     } else {
-        unreachable!()
+        Err(UiError::Unreachable)
     }
 }
 
@@ -853,7 +1195,7 @@ fn match_plot_artist_relative(
     if let TraceType::Relative(trace) = trace {
         Ok((trace, art.to_string()))
     } else {
-        unreachable!()
+        Err(UiError::Unreachable)
     }
 }
 
@@ -884,7 +1226,7 @@ fn match_plot_album_relative(
     if let TraceType::Relative(trace) = trace {
         Ok((trace, alb.to_string()))
     } else {
-        unreachable!()
+        Err(UiError::Unreachable)
     }
 }
 
@@ -920,7 +1262,7 @@ fn match_plot_song_relative(
     if let TraceType::Relative(trace) = trace {
         Ok((trace, son.to_string()))
     } else {
-        unreachable!()
+        Err(UiError::Unreachable)
     }
 }
 
@@ -1077,13 +1419,13 @@ fn read_songs(
 }
 
 /// Used by [`match_print_top`] and [`match_plot_top`] for y/n prompt
-/// if user wants to sum song plays across albums
+/// if user wants to sum song plays across albums (and capitalization)
 fn read_whether_to_sum_songs(rl: &mut Editor<ShellHelper, FileHistory>) -> Result<bool, UiError> {
-    // prompt: ask if you want to sum songs from different albums
+    // prompt: ask if you want to sum songs from different albums (and ignore capitalizaiton)
     rl.helper_mut()
         .unwrap()
-        .complete_list(string_vec(&["yes", "y", "no", "n"]));
-    println!("Do you want to sum songs from different albums? (y/n)");
+        .complete_list(string_vec(&["yes", "y", "true", "no", "n", "false"]));
+    println!("Do you want to sum songs from different albums and ignore capitalization? (y/n)");
     let usr_input_b = rl.readline(PROMPT_SECONDARY)?;
     match usr_input_b.as_str() {
         "yes" | "y" | "true" => Ok(true),
