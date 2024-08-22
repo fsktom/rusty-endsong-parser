@@ -70,7 +70,7 @@ pub fn absolute_ignore_album(entries: &SongEntries, song: &Song) -> TraceType {
 
     for entry in entries
         .iter()
-        .filter(|entry| song.is_entry_lowercase_ignore_album(entry))
+        .filter(|entry| song.is_entry_ignore_album_and_case(entry))
     {
         song_plays += 1;
         times.push(format_date(&entry.timestamp));
@@ -224,7 +224,7 @@ pub mod relative {
         for entry in entries.iter() {
             all_plays += 1.0;
 
-            if song.is_entry_lowercase_ignore_album(entry) {
+            if song.is_entry_ignore_album_and_case(entry) {
                 aspect_found = true;
                 aspect_plays += 1.0;
             }
@@ -263,7 +263,7 @@ pub mod relative {
         for entry in entries.iter().filter(|entry| artist.is_entry(entry)) {
             artist_plays += 1.0;
 
-            if song.is_entry_lowercase_ignore_album(entry) {
+            if song.is_entry_ignore_album_and_case(entry) {
                 aspect_found = true;
                 aspect_plays += 1.0;
             }

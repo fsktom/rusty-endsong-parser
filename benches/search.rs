@@ -91,6 +91,16 @@ fn parse(c: &mut Criterion) {
         })
     });
 
+    // let a = SongEntries::new(&paths)
+    //     .unwrap()
+    //     .sum_different_capitalization()
+    //     .filter(30, TimeDelta::seconds(10));
+    // let b = SongEntries::new(&paths)
+    //     .unwrap()
+    //     .new_sum_different_capitalization()
+    //     .filter(30, TimeDelta::seconds(10));
+    // assert!(a.iter().eq(b.iter()));
+
     c.bench_function("parse, sum and filter", |c| {
         c.iter(|| {
             black_box(
@@ -101,6 +111,17 @@ fn parse(c: &mut Criterion) {
             );
         })
     });
+
+    // c.bench_function("new parse, sum and filter", |c| {
+    //     c.iter(|| {
+    //         black_box(
+    //             SongEntries::new(&paths)
+    //                 .unwrap()
+    //                 .new_sum_different_capitalization()
+    //                 .filter(30, TimeDelta::seconds(10)),
+    //         );
+    //     })
+    // });
 }
 
 // not related to this at all but just curious xd
@@ -213,52 +234,14 @@ fn capitalization(c: &mut Criterion) {
 #[allow(dead_code)]
 fn find(c: &mut Criterion) {
     let entries = black_box(SongEntries::new(&paths(0, 9)).unwrap());
-    let usr_song_one = Song::new("MUKANJYO", "MUKANJYO", "Survive Said The Prophet");
-    let usr_song_two = Song::new("MUKANJYO", "Mukanjyo", "Survive Said The Prophet");
-
-    let one = entries
-        .iter()
-        .find(|entry| usr_song_one.is_entry_lowercase(entry))
-        .map(Song::from)
-        .unwrap();
-    let two = entries
-        .iter()
-        .find(|entry| usr_song_two.is_entry_lowercase(entry))
-        .map(Song::from)
-        .unwrap();
-    dbg!(one, two);
-
-    let (song_name, artist_name) = (
-        usr_song_one.name.to_lowercase(),
-        usr_song_one.album.artist.name.to_lowercase(),
-    );
-
-    let onetwo = entries
-        .iter()
-        .filter(|entry| {
-            entry.track.to_lowercase() == song_name && entry.artist.to_lowercase() == artist_name
-        })
-        .unique()
-        .map(Song::from)
-        .collect_vec();
-    dbg!(onetwo);
 
     c.bench_function("find v1", |c| {
         c.iter(|| {
-            entries
-                .iter()
-                .find(|entry| usr_song_one.is_entry_lowercase(entry))
-                .map(Song::from)
-        })
-    });
-    c.bench_function("find v2", |c| {
-        c.iter(|| {
-            entries
-                .iter()
-                .filter(|entry| usr_song_one.is_entry_lowercase(entry))
-                .map(Song::from)
-                .unique()
-                .collect_vec()
+            black_box(entries.find().song_from_album(
+                "MUKANJYO",
+                "MUKANJYO",
+                "Survive Said The Prophet",
+            ));
         })
     });
 
@@ -267,7 +250,7 @@ fn find(c: &mut Criterion) {
         c.iter(|| {
             entries
                 .iter()
-                .find(|entry| art.is_entry_lowercase(entry))
+                .find(|entry| art.is_entry_ignore_case(entry))
                 .map(Artist::from)
         })
     });
@@ -275,19 +258,22 @@ fn find(c: &mut Criterion) {
         c.iter(|| {
             entries
                 .iter()
-                .filter(|entry| art.is_entry_lowercase(entry))
+                .filter(|entry| art.is_entry_ignore_case(entry))
                 .map(Artist::from)
                 .unique()
                 .collect_vec()
         })
     });
+    c.bench_function("find song", |c| {
+        c.iter(|| black_box(entries.find().song("mukanjyo", "survive said THE PROPHET")))
+    });
 }
 
 // criterion_group!(benches, lol);
 // criterion_group!(benches, kekw);
-criterion_group!(benches, parse);
+// criterion_group!(benches, parse);
 // criterion_group!(benches, unique_sum);
-// criterion_group!(benches, gather);
+criterion_group!(benches, gather);
 // criterion_group!(benches, capitalization);
 // criterion_group!(benches, find);
 criterion_main!(benches);

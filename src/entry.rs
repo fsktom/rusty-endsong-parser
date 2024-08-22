@@ -50,8 +50,8 @@ pub struct SongEntry {
     pub album: Rc<str>,
     /// name of the artist
     pub artist: Rc<str>,
-    /// Spotify URI
-    pub id: String,
+    // /// Spotify URI
+    // pub id: String,
 }
 /// Equal if `artist`, `album` and `track` name are the same
 impl PartialEq for SongEntry {
@@ -174,7 +174,7 @@ impl SongEntries {
 
         // the last album in the vector is the one that will be kept
         // cause it's the most recent one
-        // key: albym, value: newest album name
+        // key: album, value: newest album name
         let mut album_mappings: HashMap<Album, Rc<str>> = HashMap::new();
 
         for alb in albums {

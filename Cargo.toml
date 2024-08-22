@@ -16,6 +16,7 @@ chrono = "0.4"
 itertools = "0.13"
 tracing = "0.1"
 thiserror = "1.0"
+unicase = "2.7"
 
 [dev-dependencies]
 criterion = "0.5"

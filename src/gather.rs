@@ -64,7 +64,9 @@ pub fn songs(entries: &[SongEntry]) -> HashMap<Song, usize> {
 /// and artist name are the same -> ignores the album and capitalization
 ///
 /// It matters because oftentimes the same song will be in many albums (or singles).
-/// It's case-INSENSITIVE!
+/// It's case-INSENSITIVE in regards to the song name!
+///
+/// The [`Album`] of the returned [`Song`] is the one the song has the most plays from.
 ///
 /// # Panics
 ///
@@ -139,7 +141,9 @@ pub fn songs_from<Asp: HasSongs>(entries: &[SongEntry], aspect: &Asp) -> HashMap
 /// Returns a map with all [`Songs`][Song] from the `artist` with their playcount
 /// while ignoring the album the song is in and its capitalization
 ///
-/// It's case-INSENSITIVE
+/// It's case-INSENSITIVE in regards to the song name!
+///
+/// The [`Album`] of the returned [`Song`] is the one the song has the most plays from.
 ///
 /// See [`songs_summed_across_albums`] for similar
 ///

@@ -37,7 +37,7 @@ pub fn artist(entries: &[SongEntry], artist_name: &str) -> Option<Vec<Artist>> {
 
     let artists = entries
         .iter()
-        .filter(|entry| usr_artist.is_entry_lowercase(entry))
+        .filter(|entry| usr_artist.is_entry_ignore_case(entry))
         .map(Artist::from)
         .unique()
         .collect_vec();
@@ -65,7 +65,7 @@ pub fn album(entries: &[SongEntry], album_name: &str, artist_name: &str) -> Opti
 
     let albums = entries
         .iter()
-        .filter(|entry| usr_album.is_entry_lowercase(entry))
+        .filter(|entry| usr_album.is_entry_ignore_case(entry))
         .map(Album::from)
         .unique()
         .collect_vec();
@@ -99,7 +99,7 @@ pub fn song_from_album(
 
     let songs = entries
         .iter()
-        .filter(|entry| usr_song.is_entry_lowercase(entry))
+        .filter(|entry| usr_song.is_entry_ignore_case(entry))
         .map(Song::from)
         .unique()
         .collect_vec();
@@ -119,13 +119,11 @@ pub fn song_from_album(
 ///
 /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
 pub fn song(entries: &[SongEntry], song_name: &str, artist_name: &str) -> Option<Vec<Song>> {
-    let (song_name, artist_name) = (song_name.to_lowercase(), artist_name.to_lowercase());
+    let song_bogus_album = Song::new(song_name, "", artist_name);
 
     let song_versions = entries
         .iter()
-        .filter(|entry| {
-            entry.track.to_lowercase() == song_name && entry.artist.to_lowercase() == artist_name
-        })
+        .filter(|entry| song_bogus_album.is_entry_ignore_album_and_case(entry))
         .map(Song::from)
         .unique()
         .collect_vec();

@@ -49,6 +49,8 @@ use std::cmp::Ordering;
 use std::fmt::Display;
 use std::rc::Rc;
 
+use unicase::UniCase;
+
 use crate::entry::SongEntry;
 
 /// Used for functions that accept either
@@ -57,10 +59,10 @@ pub trait Music: Display + Clone + Eq + Ord {
     /// Checks if a [`SongEntry`] is a [`Music`]
     fn is_entry(&self, entry: &SongEntry) -> bool;
 
-    /// Checks if a [`SongEntry`] is a [`Music`] but case insensitive
+    /// Checks if a [`SongEntry`] is a [`Music`] but case-insensitive
     ///
-    /// Performs `.to_lowercase()` on both `entry` and on [`self`].
-    fn is_entry_lowercase(&self, entry: &SongEntry) -> bool;
+    /// Uses [`UniCase`] for fast case-insensitive comparison `entry` between [`self`].
+    fn is_entry_ignore_case(&self, entry: &SongEntry) -> bool;
 }
 
 /// Trait used to accept only [`Artist`] and [`Album`]
@@ -150,8 +152,8 @@ impl Music for Artist {
     fn is_entry(&self, entry: &SongEntry) -> bool {
         entry.artist == self.name
     }
-    fn is_entry_lowercase(&self, entry: &SongEntry) -> bool {
-        entry.artist.to_lowercase() == self.name.to_lowercase()
+    fn is_entry_ignore_case(&self, entry: &SongEntry) -> bool {
+        UniCase::new(&entry.artist) == UniCase::new(&self.name)
     }
 }
 impl HasSongs for Artist {}
@@ -256,11 +258,11 @@ impl AsRef<str> for Album {
 }
 impl Music for Album {
     fn is_entry(&self, entry: &SongEntry) -> bool {
-        entry.artist == self.artist.name && entry.album == self.name
+        self.artist.is_entry(entry) && entry.album == self.name
     }
-    fn is_entry_lowercase(&self, entry: &SongEntry) -> bool {
-        entry.artist.to_lowercase() == self.artist.name.to_lowercase()
-            && entry.album.to_lowercase() == self.name.to_lowercase()
+    fn is_entry_ignore_case(&self, entry: &SongEntry) -> bool {
+        self.artist.is_entry_ignore_case(entry)
+            && UniCase::new(&entry.album) == UniCase::new(&self.name)
     }
 }
 impl HasSongs for Album {}
@@ -292,11 +294,10 @@ impl Song {
     }
 
     /// Checks if a [`SongEntry`] is this song, but only regarding artist and track name,
-    /// ignoring album name
+    /// ignoring album name and capitalization for track name
     #[must_use]
-    pub fn is_entry_lowercase_ignore_album(&self, entry: &SongEntry) -> bool {
-        entry.artist.to_lowercase() == self.album.artist.name.to_lowercase()
-            && entry.track.to_lowercase() == self.name.to_lowercase()
+    pub fn is_entry_ignore_album_and_case(&self, entry: &SongEntry) -> bool {
+        self.album.artist.is_entry(entry) && UniCase::new(&entry.track) == UniCase::new(&self.name)
     }
 }
 impl Clone for Song {
@@ -380,14 +381,11 @@ impl AsRef<str> for Song {
 }
 impl Music for Song {
     fn is_entry(&self, entry: &SongEntry) -> bool {
-        entry.artist == self.album.artist.name
-            && entry.album == self.album.name
-            && entry.track == self.name
+        self.album.is_entry(entry) && entry.track == self.name
     }
-    fn is_entry_lowercase(&self, entry: &SongEntry) -> bool {
-        entry.artist.to_lowercase() == self.album.artist.name.to_lowercase()
-            && entry.album.to_lowercase() == self.album.name.to_lowercase()
-            && entry.track.to_lowercase() == self.name.to_lowercase()
+    fn is_entry_ignore_case(&self, entry: &SongEntry) -> bool {
+        self.album.is_entry_ignore_case(entry)
+            && UniCase::new(&entry.track) == UniCase::new(&self.name)
     }
 }
 
@@ -545,6 +543,29 @@ mod tests {
                 "Sabaton"
             )) == Some(Ordering::Less)
         );
+    }
+
+    #[test]
+    fn aspect_equality() {
+        let entry = SongEntry {
+            timestamp: crate::parse_date("now").unwrap(),
+            time_played: chrono::TimeDelta::zero(),
+            track: Rc::from("White Death"),
+            album: Rc::from("Coat of Arms"),
+            artist: Rc::from("Sabaton"),
+        };
+
+        assert!(Artist::new("Sabaton").is_entry(&entry));
+        assert!(!Artist::new("SABATON").is_entry(&entry));
+        assert!(Artist::new("SABATON").is_entry_ignore_case(&entry));
+
+        assert!(Album::new("Coat of Arms", "Sabaton").is_entry(&entry));
+        assert!(!Album::new("Coat Of Arms", "SABATON").is_entry(&entry));
+        assert!(Album::new("Coat Of Arms", "SABATON").is_entry_ignore_case(&entry));
+
+        assert!(Song::new("White Death", "Coat of Arms", "Sabaton").is_entry(&entry));
+        assert!(!Song::new("white death", "Coat Of Arms", "SABATON").is_entry(&entry));
+        assert!(Song::new("white death", "Coat Of Arms", "SABATON").is_entry_ignore_case(&entry));
     }
 
     #[test]

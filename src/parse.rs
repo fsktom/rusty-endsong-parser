@@ -82,7 +82,8 @@ struct Entry {
     /// Option because the field will be empty if it's a podcast
     master_metadata_album_album_name: Option<String>,
     /// Spotify URI (ID)
-    spotify_track_uri: Option<String>,
+    #[serde(skip_deserializing)]
+    _spotify_track_uri: Option<String>,
     /// TBD: Podcast stuff
     #[serde(skip_deserializing)]
     _episode_name: (),
@@ -222,7 +223,7 @@ fn entry_to_songentry(
         track,
         album,
         artist,
-        id: entry.spotify_track_uri?,
+        // id: entry.spotify_track_uri?,
     })
 }
 
