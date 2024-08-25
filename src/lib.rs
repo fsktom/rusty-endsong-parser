@@ -110,24 +110,28 @@ pub fn parse_date(date: &str) -> Result<DateTime<Local>, chrono::format::ParseEr
     }
 }
 
-/// Makes a list of the aspect sorted by its playcount descending
+/// Makes a list of the aspects sorted by its playcount descending
 /// and then the name alphabetically
+///
+/// Use with maps gotten through [`gather`] functions
 #[allow(clippy::implicit_hasher)]
 #[must_use]
 pub fn get_sorted_list<Asp: Music>(map: HashMap<Asp, usize>) -> Vec<Asp> {
     map.into_iter()
-        .sorted_unstable_by_key(|t: &(Asp, usize)| (std::cmp::Reverse(t.1), t.0.clone()))
+        .sorted_unstable_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)))
         .map(|(aspect, _)| aspect)
         .collect()
 }
 
-/// Makes a list of references to the aspect sorted by its playcount descending
+/// Makes a list of references to aspects sorted by its playcount descending
 /// and then the name alphabetically
+///
+/// Use with maps gotten through [`gather`] functions
 #[allow(clippy::implicit_hasher)]
 #[must_use]
 pub fn get_sorted_ref_list<Asp: Music>(map: &HashMap<Asp, usize>) -> Vec<&Asp> {
     map.iter()
-        .sorted_unstable_by_key(|t: &(&Asp, &usize)| (std::cmp::Reverse(t.1), t.0))
+        .sorted_unstable_by(|a, b| b.1.cmp(a.1).then_with(|| a.0.cmp(b.0)))
         .map(|(aspect, _)| aspect)
         .collect()
 }

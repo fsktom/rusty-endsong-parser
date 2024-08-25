@@ -201,16 +201,16 @@ fn unique_sum(c: &mut Criterion) {
 fn gather(c: &mut Criterion) {
     let entries = black_box(SongEntries::new(&paths(0, 0)).unwrap());
 
-    c.bench_function("gather artists", |c| {
-        c.iter(|| {
-            black_box(gather::artists(&entries));
-        })
-    });
-    c.bench_function("gather albums", |c| {
-        c.iter(|| {
-            black_box(gather::albums(&entries));
-        })
-    });
+    // c.bench_function("gather artists", |c| {
+    //     c.iter(|| {
+    //         black_box(gather::artists(&entries));
+    //     })
+    // });
+    // c.bench_function("gather albums", |c| {
+    //     c.iter(|| {
+    //         black_box(gather::albums(&entries));
+    //     })
+    // });
     c.bench_function("gather songs summed across albums", |c| {
         c.iter(|| {
             black_box(gather::songs_summed_across_albums(&entries));

@@ -67,60 +67,44 @@ pub fn songs(entries: &[SongEntry]) -> HashMap<Song, usize> {
 /// It's case-INSENSITIVE in regards to the song name!
 ///
 /// The [`Album`] of the returned [`Song`] is the one the song has the most plays from.
-///
-/// # Panics
-///
-/// Uses .`unwrap()` but it should never panic
+/// Possible (esp. if you didn't do
+/// [`SongEntries::sum_different_capitalization`][crate::entry::SongEntries::sum_different_capitalization])
+/// that there's multiple capitalization versions of the song.
+/// This will return the capitalization with the most plays.
 #[must_use]
 pub fn songs_summed_across_albums(entries: &[SongEntry]) -> HashMap<Song, usize> {
-    let songs = entries.iter().map(Song::from).counts();
+    let songs = songs(entries);
 
-    // to know which album the song had highest amount of plays from
-    // that album will be then displayed in () after the song name
-    // but the number of plays that will be displayed will be a sum of
-    // the plays from all albums
-    // key: (song name lowercase, artist)
-    // value: HashMap of albums with number of plays of the song in that album
-    let mut songs_albums: HashMap<(String, Artist), HashMap<Album, usize>> =
-        HashMap::with_capacity(songs.len());
+    // to know which album and capitalization the song
+    // had the highest amount of plays from
+    let mut song_versions: HashMap<Song, Vec<(Song, usize)>> = HashMap::with_capacity(songs.len());
+
+    let bogus_album = Rc::from("");
     for (song, plays_song) in songs {
-        let song_just_artist = (song.name.to_lowercase(), song.album.artist.clone());
-
-        songs_albums
-            .entry(song_just_artist)
-            .or_default()
-            .insert(song.album, plays_song);
-    }
-
-    // required because only one version (i.e. album) of the song should be saved
-    let mut songs: HashMap<Song, usize> = HashMap::with_capacity(songs_albums.len());
-
-    for ((song_name, _), albs) in songs_albums {
-        // number of plays of the song across all albums
-        let total = albs.values().sum();
-        // album with the highest number of plays
-        let highest = albs
-            .into_iter()
-            // sorts albums alphabetically so that this function is deterministic
-            // if different albums have the same highest number of plays
-            .sorted_unstable_by(|(a, _), (b, _)| a.cmp(b))
-            .max_by(|(_, a), (_, b)| a.cmp(b))
-            .map(|(alb, _)| alb)
-            // unwrap ok because there's at least one album?
-            .unwrap();
-
-        let proper_song_name = Rc::clone(
-            &entries
-                .iter()
-                .find(|e| highest.is_entry(e) && e.track.to_lowercase() == song_name)
-                .unwrap()
-                .track,
+        let song_bogus_album = Song::new(
+            Rc::from(song.name.to_lowercase()),
+            Rc::clone(&bogus_album),
+            Rc::clone(&song.album.artist.name),
         );
 
-        let son: Song = Song {
-            name: proper_song_name,
-            album: highest,
-        };
+        song_versions
+            .entry(song_bogus_album)
+            .or_default()
+            .push((song, plays_song));
+    }
+
+    let mut songs: HashMap<Song, usize> = HashMap::with_capacity(song_versions.len());
+
+    for mut versions in song_versions.into_values() {
+        // sort descending by plays and then alphabetically if plays equal
+        // "alphabetically"... here only difference will be capitalization
+        // so that it's deterministic
+        versions.sort_unstable_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+        // number of plays of the song across all albums/capitalization
+        let total = versions.iter().map(|(_, plays)| plays).sum();
+
+        let son = versions.swap_remove(0).0;
 
         songs.insert(son, total);
     }
@@ -141,70 +125,53 @@ pub fn songs_from<Asp: HasSongs>(entries: &[SongEntry], aspect: &Asp) -> HashMap
 /// Returns a map with all [`Songs`][Song] from the `artist` with their playcount
 /// while ignoring the album the song is in and its capitalization
 ///
+/// It matters because oftentimes the same song will be in many albums (or singles).
 /// It's case-INSENSITIVE in regards to the song name!
 ///
 /// The [`Album`] of the returned [`Song`] is the one the song has the most plays from.
+/// Possible (esp. if you didn't do
+/// [`SongEntries::sum_different_capitalization`][crate::entry::SongEntries::sum_different_capitalization])
+/// that there's multiple capitalization versions of the song.
+/// This will return the capitalization with the most plays.
 ///
 /// See [`songs_summed_across_albums`] for similar
-///
-/// # Panics
-///
-/// Uses .`unwrap()` but it should never panic
 #[must_use]
 pub fn songs_from_artist_summed_across_albums(
     entries: &[SongEntry],
     artist: &Artist,
 ) -> HashMap<Song, usize> {
-    let songs = entries
-        .iter()
-        .filter(|entry| artist.is_entry(entry))
-        .map(Song::from)
-        .counts();
+    let songs = songs_from(entries, artist);
 
-    // to know which album the song had highest amount of plays from
-    // that album will be then displayed in () after the song name
-    // but the number of plays that will be displayed will be a sum of
-    // the plays from all albums
-    // key: song name lowercase
-    // value: HashMap of albums with number of plays of the song in that album
-    let mut songs_albums: HashMap<String, HashMap<Album, usize>> =
-        HashMap::with_capacity(songs.len());
+    // to know which album and capitalization the song
+    // had the highest amount of plays from
+    let mut song_versions: HashMap<Song, Vec<(Song, usize)>> = HashMap::with_capacity(songs.len());
+
+    let bogus_album = Rc::from("");
     for (song, plays_song) in songs {
-        songs_albums
-            .entry(song.name.to_lowercase())
-            .or_default()
-            .insert(song.album, plays_song);
-    }
-
-    // required because only one version (i.e. album) of the song should be saved
-    let mut songs: HashMap<Song, usize> = HashMap::with_capacity(songs_albums.len());
-
-    for (song_name, albs) in songs_albums {
-        // number of plays of the song across all albums
-        let total = albs.values().sum();
-        // album with the highest number of plays
-        let highest = albs
-            .into_iter()
-            // sorts albums alphabetically so that this function is deterministic
-            // if different albums have the same highest number of plays
-            .sorted_unstable_by(|(a, _), (b, _)| a.cmp(b))
-            .max_by(|(_, a), (_, b)| a.cmp(b))
-            .map(|(alb, _)| alb)
-            // unwrap ok because there's at least one album?
-            .unwrap();
-
-        let proper_song_name = Rc::clone(
-            &entries
-                .iter()
-                .find(|e| highest.is_entry(e) && e.track.to_lowercase() == song_name)
-                .unwrap()
-                .track,
+        let song_bogus_album = Song::new(
+            Rc::from(song.name.to_lowercase()),
+            Rc::clone(&bogus_album),
+            Rc::clone(&artist.name),
         );
 
-        let son: Song = Song {
-            name: proper_song_name,
-            album: highest,
-        };
+        song_versions
+            .entry(song_bogus_album)
+            .or_default()
+            .push((song, plays_song));
+    }
+
+    let mut songs: HashMap<Song, usize> = HashMap::with_capacity(song_versions.len());
+
+    for mut versions in song_versions.into_values() {
+        // sort descending by plays and then alphabetically if plays equal
+        // "alphabetically"... here only difference will be capitalization
+        // so that it's deterministic
+        versions.sort_unstable_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+        // number of plays of the song across all albums/capitalization
+        let total = versions.iter().map(|(_, plays)| plays).sum();
+
+        let son = versions.swap_remove(0).0;
 
         songs.insert(son, total);
     }
