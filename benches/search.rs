@@ -91,16 +91,6 @@ fn parse(c: &mut Criterion) {
         })
     });
 
-    // let a = SongEntries::new(&paths)
-    //     .unwrap()
-    //     .sum_different_capitalization()
-    //     .filter(30, TimeDelta::seconds(10));
-    // let b = SongEntries::new(&paths)
-    //     .unwrap()
-    //     .new_sum_different_capitalization()
-    //     .filter(30, TimeDelta::seconds(10));
-    // assert!(a.iter().eq(b.iter()));
-
     c.bench_function("parse, sum and filter", |c| {
         c.iter(|| {
             black_box(
@@ -111,17 +101,6 @@ fn parse(c: &mut Criterion) {
             );
         })
     });
-
-    // c.bench_function("new parse, sum and filter", |c| {
-    //     c.iter(|| {
-    //         black_box(
-    //             SongEntries::new(&paths)
-    //                 .unwrap()
-    //                 .new_sum_different_capitalization()
-    //                 .filter(30, TimeDelta::seconds(10)),
-    //         );
-    //     })
-    // });
 }
 
 // not related to this at all but just curious xd
@@ -271,9 +250,9 @@ fn find(c: &mut Criterion) {
 
 // criterion_group!(benches, lol);
 // criterion_group!(benches, kekw);
-// criterion_group!(benches, parse);
+criterion_group!(benches, parse);
 // criterion_group!(benches, unique_sum);
-criterion_group!(benches, gather);
+// criterion_group!(benches, gather);
 // criterion_group!(benches, capitalization);
 // criterion_group!(benches, find);
 criterion_main!(benches);

@@ -152,22 +152,25 @@ impl SongEntries {
     #[allow(clippy::missing_panics_doc)]
     pub fn sum_different_capitalization(mut self) -> Self {
         info!("Summing up different capitalization...");
+
         // 1st: Albums
         // if it's from the same artist and has the same name
         // but different capitalization it's the same album
         let albums = self.iter().map(Album::from).unique().collect_vec();
 
-        // key: (artist, lowercase album name), value: all album names
-        let mut album_versions: HashMap<(Artist, String), Vec<Rc<str>>> = HashMap::new();
+        // key: lowercase album, value: all album names
+        let mut album_versions: HashMap<Album, Vec<Rc<str>>> = HashMap::new();
 
         for alb in &albums {
-            let lowercase = alb.name.to_lowercase();
-            let artist = Artist::from(alb);
+            let lowercase_album = Album {
+                name: Rc::from(alb.name.to_lowercase()),
+                artist: alb.artist.clone(),
+            };
 
-            match album_versions.get_mut(&(artist.clone(), lowercase.clone())) {
+            match album_versions.get_mut(&lowercase_album) {
                 Some(vec) => vec.push(Rc::clone(&alb.name)),
                 None => {
-                    album_versions.insert((artist, lowercase), vec![Rc::clone(&alb.name)]);
+                    album_versions.insert(lowercase_album, vec![Rc::clone(&alb.name)]);
                 }
             }
         }
@@ -175,14 +178,18 @@ impl SongEntries {
         // the last album in the vector is the one that will be kept
         // cause it's the most recent one
         // key: album, value: newest album name
-        let mut album_mappings: HashMap<Album, Rc<str>> = HashMap::new();
+        let mut album_mappings: HashMap<Album, Rc<str>> = HashMap::with_capacity(albums.len());
 
         for alb in albums {
-            let artist = Artist::from(&alb);
-            let versions = album_versions
-                .get(&(artist, alb.name.to_lowercase()))
-                .unwrap();
+            let lowercase_album = Album {
+                name: Rc::from(alb.name.to_lowercase()),
+                artist: alb.artist.clone(),
+            };
 
+            let versions = album_versions.get(&lowercase_album).unwrap();
+
+            // see next loop with if let Some(), you don't need to change
+            // anything if there's only one version (no mapping necessary)
             if versions.len() < 2 {
                 continue;
             }
@@ -191,8 +198,8 @@ impl SongEntries {
         }
 
         for entry in self.iter_mut() {
-            let album = Album::from(&entry.clone());
-            if let Some(new_alb) = album_mappings.get(&(album)) {
+            let album = Album::from(&*entry);
+            if let Some(new_alb) = album_mappings.get(&album) {
                 entry.album = Rc::clone(new_alb);
             }
         }
@@ -203,31 +210,35 @@ impl SongEntries {
         // !! doing this after the iteration of changing album names !!
         let songs = self.iter().map(Song::from).unique().collect_vec();
 
-        // key: (album, lowercase song name), value: all song names
-        let mut song_versions: HashMap<(Album, String), Vec<Rc<str>>> = HashMap::new();
+        // key: lowercase song, value: all song names
+        let mut song_versions: HashMap<Song, Vec<Rc<str>>> = HashMap::with_capacity(songs.len());
 
         for song in &songs {
-            let lowercase = song.name.to_lowercase();
-            let album = Album::from(song);
+            let lowercase_song = Song {
+                name: Rc::from(song.name.to_lowercase()),
+                album: song.album.clone(),
+            };
 
-            match song_versions.get_mut(&(album.clone(), lowercase.clone())) {
+            match song_versions.get_mut(&lowercase_song) {
                 Some(vec) => vec.push(Rc::clone(&song.name)),
                 None => {
-                    song_versions.insert((album, lowercase), vec![Rc::clone(&song.name)]);
+                    song_versions.insert(lowercase_song, vec![Rc::clone(&song.name)]);
                 }
             }
         }
 
-        // the last songs in the vector is the one that will be kept
+        // the last song in the vector is the one that will be kept
         // cause it's the most recent one
         // key: song, value: newest song name
         let mut song_mappings: HashMap<Song, Rc<str>> = HashMap::new();
 
         for song in songs {
-            let album = Album::from(&song);
-            let versions = song_versions
-                .get(&(album, song.name.to_lowercase()))
-                .unwrap();
+            let lowercase_song = Song {
+                name: Rc::from(song.name.to_lowercase()),
+                album: song.album.clone(),
+            };
+
+            let versions = song_versions.get(&lowercase_song).unwrap();
 
             if versions.len() < 2 {
                 continue;
@@ -237,7 +248,7 @@ impl SongEntries {
         }
 
         for entry in self.iter_mut() {
-            let song = Song::from(&entry.clone());
+            let song = Song::from(&*entry);
             if let Some(new_song) = song_mappings.get(&song) {
                 entry.track = Rc::clone(new_song);
             }
@@ -480,42 +491,45 @@ impl<P: AsRef<Path> + std::fmt::Debug> TryFrom<&[P]> for SongEntries {
 
 /// Returns a [`HashMap`] with the [`Songs`][Song] as keys and
 /// their [durations][TimeDelta]s as values
-fn song_durations(entries: &Vec<SongEntry>) -> HashMap<Song, TimeDelta> {
+///
+/// A duration is calculated by finding the most common playtime of a song.
+/// If multiple playtimes have the same amount of plays, the larger/longer
+/// one is chosen.
+fn song_durations(entries: &[SongEntry]) -> HashMap<Song, TimeDelta> {
     info!("Calculating song durations...");
+
+    // first, calculate the amount of plays each song playtime has
+    let duration_counts: HashMap<(Song, TimeDelta), usize> = entries
+        .iter()
+        .map(|e| (Song::from(e), e.time_played))
+        .counts();
+
     // 10k is just a guess for amount of unique songs
-    let mut big_boy: HashMap<Song, HashMap<TimeDelta, usize>> = HashMap::with_capacity(10_000);
+    let mut song_durations: HashMap<Song, TimeDelta> = HashMap::with_capacity(10_000);
 
-    for entry in entries {
-        let song = Song::from(entry);
-        let duration = entry.time_played;
+    for ((song, duration), plays) in &duration_counts {
+        song_durations
+            .entry(song.clone())
+            .and_modify(|current_duration| {
+                let current_plays = duration_counts[&(song.clone(), *current_duration)];
 
-        if let Some(durations) = big_boy.get_mut(&song) {
-            *durations.entry(duration).or_insert(0) += 1;
-        } else {
-            big_boy.insert(song, HashMap::from([(duration, 1)]));
-        }
-    }
+                // because the longest duration is not necessarily the correct one
+                // e.g. if you skip through the song `ms_played`
+                // will be longer than the actual song length
+                // so we take the most common duration
+                let more_common = current_plays < *plays;
 
-    big_boy
-        .into_iter()
-        .map(|(song, durations)| {
-            // because the longest duration is not necessarily the correct one
-            // e.g. if you skip through the song `ms_played` will be longer than the actual song length
-            // so we take the most common duration
-            let max_occurrence = durations.iter().max_by_key(|(_, count)| *count).unwrap().1;
-
-            let duration = *durations
-                .iter()
                 // but multiple durations can have the same maximum occurrence
-                .filter(|(_, count)| *count == max_occurrence)
                 // so we then take the longest maximum duration
-                .max_by_key(|(dur, _)| *dur)
-                .unwrap()
-                .0;
+                let same_but_longer = current_plays == *plays && *current_duration < *duration;
 
-            (song, duration)
-        })
-        .collect()
+                if more_common || same_but_longer {
+                    *current_duration = *duration;
+                }
+            })
+            .or_insert(*duration);
+    }
+    song_durations
 }
 
 /// Used by [`SongEntries`] as a wrapper for [`find`] methods
