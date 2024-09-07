@@ -38,7 +38,7 @@ use parse::{parse, ParseError};
 ///
 /// Contains the relevant metadata of each entry song entry in endsong.json
 #[derive(Clone, Debug)]
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions, reason = "good name")]
 pub struct SongEntry {
     /// the time at which the song has been played
     pub timestamp: DateTime<Local>,
@@ -149,7 +149,7 @@ impl SongEntries {
     ///
     /// [issue #65]: https://github.com/fsktom/rusty-endsong-parser/issues/65
     #[must_use]
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(clippy::missing_panics_doc, reason = "unwrap fine")]
     pub fn sum_different_capitalization(mut self) -> Self {
         info!("Summing up different capitalization...");
 

@@ -218,7 +218,7 @@ fn string_vec(slice: &[&str]) -> Vec<Rc<str>> {
 }
 
 /// Starts the CLI/shell instance
-#[allow(clippy::missing_panics_doc)]
+#[expect(clippy::missing_panics_doc, reason = "unwrap fine")]
 pub fn start(entries: &SongEntries) {
     println!("=== INTERACTIVE MODE ACTIVATED ===");
     println!("PRESS 'CTRL+C' TO EXIT THE PROGRAM");

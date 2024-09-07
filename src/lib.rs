@@ -3,7 +3,7 @@
 // unsafe code is bad
 #![deny(unsafe_code)]
 // can be a pain, but it's worth it
-// for stupid suggestions use #[allow(clippy::...)]
+// don't forget to use #[expect(clippy::...)] when sensible
 #![warn(clippy::pedantic)]
 // because I want to be explicit when cloning is cheap
 #![warn(clippy::clone_on_ref_ptr)]
@@ -13,6 +13,9 @@
 // https://doc.rust-lang.org/rustdoc/lints.html
 // other good ones are warn by default
 #![warn(rustdoc::missing_crate_level_docs, rustdoc::unescaped_backticks)]
+// https://blog.rust-lang.org/2024/09/05/Rust-1.81.0.html#expectlint
+#![warn(clippy::allow_attributes_without_reason)]
+#![warn(clippy::allow_attributes)]
 
 pub mod aspect;
 pub mod entry;
@@ -114,7 +117,7 @@ pub fn parse_date(date: &str) -> Result<DateTime<Local>, chrono::format::ParseEr
 /// and then the name alphabetically
 ///
 /// Use with maps gotten through [`gather`] functions
-#[allow(clippy::implicit_hasher)]
+#[expect(clippy::implicit_hasher, reason = "uniform HashMap across crate")]
 #[must_use]
 pub fn get_sorted_list<Asp: Music>(map: HashMap<Asp, usize>) -> Vec<Asp> {
     map.into_iter()
@@ -127,7 +130,7 @@ pub fn get_sorted_list<Asp: Music>(map: HashMap<Asp, usize>) -> Vec<Asp> {
 /// and then the name alphabetically
 ///
 /// Use with maps gotten through [`gather`] functions
-#[allow(clippy::implicit_hasher)]
+#[expect(clippy::implicit_hasher, reason = "uniform HashMap across crate")]
 #[must_use]
 pub fn get_sorted_ref_list<Asp: Music>(map: &HashMap<Asp, usize>) -> Vec<&Asp> {
     map.iter()

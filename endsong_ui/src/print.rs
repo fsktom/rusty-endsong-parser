@@ -329,7 +329,7 @@ pub fn aspect_date<Asp: Print>(
 }
 
 /// Prints the total time played
-#[allow(clippy::missing_panics_doc)]
+#[expect(clippy::missing_panics_doc, reason = "unwrap fine")]
 pub fn time_played(entries: &SongEntries) {
     time_played_date(
         entries,
@@ -345,7 +345,8 @@ pub fn time_played(entries: &SongEntries) {
 /// # Panics
 ///
 /// Panics if `start` is after or equal to `end`
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_wrap)]
+#[expect(clippy::cast_precision_loss, reason = "casting i64 to f64")]
+#[expect(clippy::cast_possible_wrap, reason = "casting usize to i64")]
 pub fn time_played_date(entries: &SongEntries, start: &DateTime<Local>, end: &DateTime<Local>) {
     assert!(start <= end, "Start date is after end date!");
     let duration = gather::listening_time(entries.between(start, end));

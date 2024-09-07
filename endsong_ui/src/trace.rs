@@ -5,7 +5,7 @@ use plotly::{Scatter, Trace};
 
 /// Wrapper to use instead of [`Box<dyn Trace>`][plotly::Trace]
 /// to access internal methods
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions, reason = "no better name")]
 pub enum TraceType {
     /// trace of absolute amount of plays
     Absolute(Box<Scatter<String, usize>>),

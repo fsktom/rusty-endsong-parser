@@ -29,7 +29,7 @@ enum SingleParseError {
 
 /// Errors that can occur when parsing the endsong.json files
 #[derive(Error, Debug)]
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions, reason = "no better name")]
 pub enum ParseError {
     /// Used when serde deserialization fails
     #[error("Error while parsing {1}: {0}")]
