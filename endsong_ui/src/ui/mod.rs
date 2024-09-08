@@ -106,6 +106,7 @@ impl ShellHelper {
             "print songs date",
             "print top artists",
             "print top songs",
+            "print day",
             "plot",
             "plot rel",
             "plot compare",
@@ -314,6 +315,7 @@ fn match_input(
         "print top artists" | "ptarts" => match_print_top(entries, rl, Aspect::Artists)?,
         "print top albums" | "ptalbs" => match_print_top(entries, rl, Aspect::Albums)?,
         "print top songs" | "ptsons" => match_print_top(entries, rl, Aspect::Songs(false))?,
+        "print day" | "pd" => match_print_day(entries, rl)?,
         "plot" | "g" => match_plot(entries, rl)?,
         "plot rel" | "gr" => match_plot_relative(entries, rl)?,
         "plot compare" | "gc" => match_plot_compare(entries, rl)?,
@@ -574,6 +576,24 @@ fn match_print_top(
     let num: usize = usr_input_n.parse()?;
 
     print::top(entries, asp, num);
+    Ok(())
+}
+
+/// Used by [`match_input()`] for `print day` command
+fn match_print_day(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), UiError> {
+    // make sure no wrong autocompletes appear
+    rl.helper_mut().unwrap().reset();
+
+    // 1st prompt: start date
+    println!("What day's data do you want to see? YYYY-MM-DD");
+    let usr_input_date = rl.readline(PROMPT_SECONDARY)?;
+    let date = parse_date(&usr_input_date)?;
+
+    print::day(entries, date);
+
     Ok(())
 }
 

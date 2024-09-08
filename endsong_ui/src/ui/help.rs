@@ -128,6 +128,11 @@ const fn print_commands() -> &'static [Command] {
             "psonsd",
             "prints a song with all the albums it may be from within a date range",
         ),
+        Command(
+            "print day",
+            "pd",
+            "prints all song entries on a specific day",
+        ),
     ]
 }
 

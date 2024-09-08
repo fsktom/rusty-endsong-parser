@@ -404,3 +404,86 @@ fn normalize_dates<'a>(
 
     (start, end)
 }
+
+/// Prints each [`SongEntry`] on a specific day
+pub fn day(entries: &[SongEntry], date: DateTime<Local>) {
+    let day = date.date_naive();
+    let day_entries = entries.iter().filter(|e| e.timestamp.date_naive() == day);
+
+    let length = day_entries.clone().count();
+    if length == 0 {
+        println!("You haven't listened to any songs on {day}!");
+        return;
+    }
+    let time_played = pretty_duration(day_entries.clone().map(|e| e.time_played).sum());
+    let sng = if length == 1 { "song" } else { "songs" };
+    println!("You've listened to {length} {sng} on {day} for {time_played}!");
+
+    for entry in day_entries {
+        println!(
+            "{}: {} - {} ({}) for {}s",
+            entry.timestamp.time(),
+            entry.artist,
+            entry.track,
+            entry.album,
+            entry.time_played.num_seconds()
+        );
+    }
+}
+
+/// Formats [`TimeDelta`] in a convenient way
+///
+/// I.e. not include hours when only minutes necessary etc.
+fn pretty_duration(duration: TimeDelta) -> String {
+    let hours = duration.num_hours();
+    let minutes = duration.num_minutes();
+
+    if minutes == 0 || minutes == 1 {
+        return format!("{} seconds", duration.num_seconds());
+    }
+
+    if hours > 0 {
+        let hrs = if hours == 1 { "hour" } else { "hours" };
+        let remaining_minutes = minutes % (60 * hours);
+        // yes, I know ignoring 1min :)
+        if remaining_minutes == 0 || remaining_minutes == 1 {
+            return format!("{hours} {hrs}");
+        }
+        return format!("{hours} {hrs} and {remaining_minutes} minutes");
+    }
+
+    format!("{minutes} minutes")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Tests [`pretty_duration`]
+    #[test]
+    fn pretty_dur() {
+        let thirty_secs = TimeDelta::seconds(30);
+        assert_eq!(pretty_duration(thirty_secs), "30 seconds");
+
+        let one_half_min = TimeDelta::seconds(90);
+        assert_eq!(pretty_duration(one_half_min), "90 seconds");
+
+        let two_mins = TimeDelta::minutes(2);
+        assert_eq!(pretty_duration(two_mins), "2 minutes");
+
+        let fifty_nine_mins = TimeDelta::minutes(59);
+        assert_eq!(pretty_duration(fifty_nine_mins), "59 minutes");
+
+        let one_hour = TimeDelta::hours(1);
+        assert_eq!(pretty_duration(one_hour), "1 hour");
+
+        let one_half_hours = TimeDelta::minutes(90);
+        assert_eq!(pretty_duration(one_half_hours), "1 hour and 30 minutes");
+
+        let three_half_hours = TimeDelta::minutes(3 * 60 + 30);
+        assert_eq!(pretty_duration(three_half_hours), "3 hours and 30 minutes");
+
+        let five_days = TimeDelta::days(5);
+        assert_eq!(pretty_duration(five_days), "120 hours");
+    }
+}

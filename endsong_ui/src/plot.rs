@@ -110,10 +110,10 @@ fn write_and_open_plot(plot: &Plot, title: &str) {
     };
 }
 
-/// Replaces Windows forbidden symbols in path with a '_'
+/// Replaces Windows forbidden symbols in path with an '_'
 ///
 /// Also removes whitespace and replaces empty
-/// strings with "_"
+/// strings with '_'
 fn normalize_path(path: &str) -> String {
     // https://stackoverflow.com/a/31976060
     // Array > HashSet bc of overhead

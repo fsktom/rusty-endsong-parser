@@ -371,11 +371,6 @@ impl SongEntries {
     ///
     /// Minimum duration is 1 day and maximum duration is the whole dataset, so
     /// a check is performed and the timespan is adjusted accordingly
-    ///
-    /// # Panics
-    ///
-    /// Unwraps used on [`TimeDelta::try_days`], but won't panic since
-    /// only duration of 1 day created
     #[must_use]
     pub fn max_listening_time(
         &self,
@@ -384,7 +379,7 @@ impl SongEntries {
         let first = self.first_date();
         let last = self.last_date();
 
-        let one_day = TimeDelta::try_days(1).unwrap();
+        let one_day = TimeDelta::days(1);
 
         let actual_time_span = match time_span {
             // maximum duration is whole dataset?
