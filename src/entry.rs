@@ -376,10 +376,11 @@ impl SongEntries {
         &self,
         time_span: TimeDelta,
     ) -> (TimeDelta, DateTime<Local>, DateTime<Local>) {
+        /// Duration of one day
+        const ONE_DAY: TimeDelta = TimeDelta::days(1);
+
         let first = self.first_date();
         let last = self.last_date();
-
-        let one_day = TimeDelta::days(1);
 
         let actual_time_span = match time_span {
             // maximum duration is whole dataset?
@@ -387,7 +388,7 @@ impl SongEntries {
                 return (gather::listening_time(self), first, last);
             }
             // minimum duration is 1 day
-            x if x < one_day => one_day,
+            x if x < ONE_DAY => ONE_DAY,
             // duration is within bounds
             _ => time_span,
         };
@@ -406,8 +407,8 @@ impl SongEntries {
                 start_max = start;
                 end_max = end;
             }
-            start += one_day;
-            end += one_day;
+            start += ONE_DAY;
+            end += ONE_DAY;
         }
         (highest, start_max, end_max)
     }
