@@ -23,6 +23,9 @@ pub fn help() {
 
     // GRAPH COMMANDS
     print("graph/plot", plot_commands());
+
+    // SUMMARIZE COMMANDS
+    print("summarize", summarize_commands());
 }
 
 /// Prints the commands
@@ -204,4 +207,13 @@ const fn plot_commands() -> &'static [Command] {
             "creates a plot of the traces of all songs of the given album relative to all. this artist or to this album and opens it in the web browser",
         ),
     ]
+}
+
+/// Returns summarize commands
+const fn summarize_commands() -> &'static [Command] {
+    &[Command(
+        "summarize artist",
+        "sa",
+        "creates an HTML summary page of an artist and opens it in the browser",
+    )]
 }

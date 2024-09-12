@@ -1,0 +1,25 @@
+<head>
+  <title>{{ name }}</title>
+</head>
+<body>
+  <h1>Summary of {{ name }}</h1>
+  <h2>General info</h2>
+  <ul>
+    <li>Total playcount: {{ plays }}</li>
+    <li>First listen: {{ first_listen }}</li>
+    <li>Last listen: {{ last_listen }}</li>
+    <li>% of total plays: {{ percentage_of_plays }}%</li>
+  </ul>
+  <h2>Top {{ top }} songs</h2>
+  <ol>
+    {% for song in songs -%}
+    <li>{{ song.0 }} | {{ song.1 }} plays</li>
+    {% endfor %}
+  </ol>
+  <h2>Top {{ top }} albums</h2>
+  <ol>
+    {% for album in albums -%}
+    <li>{{ album.0 }} | {{ album.1 }} plays</li>
+    {% endfor %}
+  </ol>
+</body>

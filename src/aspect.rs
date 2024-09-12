@@ -63,6 +63,10 @@ pub trait Music: Display + Clone + Eq + Ord {
     ///
     /// Uses [`UniCase`] for fast case-insensitive comparison `entry` between [`self`].
     fn is_entry_ignore_case(&self, entry: &SongEntry) -> bool;
+
+    /// Returns the aspect's name (i.e. artist/album/song name)
+    /// by [`Rc::clone`]
+    fn name(&self) -> Rc<str>;
 }
 
 /// Trait used to accept only [`Artist`] and [`Album`]
@@ -154,6 +158,9 @@ impl Music for Artist {
     }
     fn is_entry_ignore_case(&self, entry: &SongEntry) -> bool {
         UniCase::new(&entry.artist) == UniCase::new(&self.name)
+    }
+    fn name(&self) -> Rc<str> {
+        Rc::clone(&self.name)
     }
 }
 impl HasSongs for Artist {}
@@ -263,6 +270,9 @@ impl Music for Album {
     fn is_entry_ignore_case(&self, entry: &SongEntry) -> bool {
         self.artist.is_entry_ignore_case(entry)
             && UniCase::new(&entry.album) == UniCase::new(&self.name)
+    }
+    fn name(&self) -> Rc<str> {
+        Rc::clone(&self.name)
     }
 }
 impl HasSongs for Album {}
@@ -386,6 +396,9 @@ impl Music for Song {
     fn is_entry_ignore_case(&self, entry: &SongEntry) -> bool {
         self.album.is_entry_ignore_case(entry)
             && UniCase::new(&entry.track) == UniCase::new(&self.name)
+    }
+    fn name(&self) -> Rc<str> {
+        Rc::clone(&self.name)
     }
 }
 

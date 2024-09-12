@@ -16,11 +16,7 @@ use rustyline::{
 };
 use thiserror::Error;
 
-use crate::plot;
-use crate::print;
-use crate::trace;
-use print::Aspect;
-use trace::TraceType;
+use crate::prelude::*;
 
 /// Prompt used for top-level shell commands
 ///
@@ -118,6 +114,7 @@ impl ShellHelper {
             "plot artist songs rel",
             "plot album songs",
             "plot album songs rel",
+            "summarize artist",
         ]);
     }
 
@@ -327,6 +324,7 @@ fn match_input(
         "plot artist songs rel" | "gartr" => match_plot_artist_songs_relative(entries, rl)?,
         "plot album songs" | "galbs" => match_plot_album_songs(entries, rl)?,
         "plot album songs rel" | "galbsr" => match_plot_album_songs_relative(entries, rl)?,
+        "summrize artist" | "sa" => match_summarize_artist(entries, rl)?,
         // when you press ENTER -> nothing happens, new prompt
         "" => (),
         _ => {
@@ -1284,6 +1282,22 @@ fn match_plot_song_relative(
     } else {
         Err(UiError::Unreachable)
     }
+}
+
+/// Used by [`match_input()`] for `summarize artist` command
+fn match_summarize_artist(
+    entries: &SongEntries,
+    rl: &mut Editor<ShellHelper, FileHistory>,
+) -> Result<(), UiError> {
+    // make sure no wrong autocompletes appear
+    rl.helper_mut().unwrap().reset();
+
+    // prompt: artist
+    let art = read_artist(rl, entries)?;
+
+    summarize::artist(entries, &art);
+
+    Ok(())
 }
 
 /// Used by `*_date` functions for reading start and end dates from user

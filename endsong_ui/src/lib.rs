@@ -23,6 +23,7 @@
 
 pub mod plot;
 pub mod print;
+pub mod summarize;
 pub mod trace;
 pub mod ui;
 
@@ -46,10 +47,13 @@ pub const fn spaces(num: usize) -> &'static str {
 pub mod prelude {
     pub use crate::plot;
     pub use crate::print;
+    pub use crate::summarize;
     pub use crate::trace;
     pub use crate::ui;
 
     pub use print::Aspect;
     pub use print::DurationUtils;
     pub use print::Mode;
+
+    pub use trace::TraceType;
 }
