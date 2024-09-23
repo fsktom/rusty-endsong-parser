@@ -17,6 +17,7 @@
 
 use std::collections::HashMap;
 use std::path::Path;
+use std::path::PathBuf;
 use std::rc::Rc;
 
 use chrono::{DateTime, Local, TimeDelta};
@@ -115,6 +116,8 @@ pub struct SongEntries {
     entries: Vec<SongEntry>,
     /// Map of [`Song`]s with their [durations][TimeDelta]
     pub durations: HashMap<Song, TimeDelta>,
+    /// Paths to endsong.json files used to create it
+    pub files_used: Vec<PathBuf>,
 }
 impl SongEntries {
     /// Creates an instance of [`SongEntries`]
@@ -128,10 +131,19 @@ impl SongEntries {
     /// # Errors
     ///
     /// Will return an error if any of the files can't be opened or read
+    ///
+    /// # Panics
+    ///
+    /// Will panic if `paths` contains a non-UTF-8 path
     pub fn new<P: AsRef<Path> + std::fmt::Debug>(paths: &[P]) -> Result<SongEntries, ParseError> {
         let entries = parse(paths)?;
         let durations = song_durations(&entries);
-        Ok(SongEntries { entries, durations })
+        let files_used = paths.iter().map(|p| p.as_ref().to_owned()).collect();
+        Ok(SongEntries {
+            entries,
+            durations,
+            files_used,
+        })
     }
 
     /// Sometimes an artist changes the capitalization of their album

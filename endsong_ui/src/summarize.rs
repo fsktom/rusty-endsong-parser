@@ -27,6 +27,10 @@ struct ArtistSummary {
     first_listen: DateTime<Local>,
     /// Date of last listen
     last_listen: DateTime<Local>,
+    /// Current time
+    now: DateTime<Local>,
+    /// Names of the files used for the [`SongEntries`]
+    filenames: Vec<String>,
 }
 
 /// Generates an HTML summary page of an [`Artist`]
@@ -56,6 +60,14 @@ pub fn artist(entries: &SongEntries, artist: &Artist) {
         .unwrap()
         .timestamp;
 
+    let now = Local::now();
+
+    let filenames = entries
+        .files_used
+        .iter()
+        .map(|p| p.file_name().unwrap().to_string_lossy().into_owned())
+        .collect();
+
     let page = ArtistSummary {
         name: std::rc::Rc::clone(&artist.name),
         top,
@@ -65,14 +77,16 @@ pub fn artist(entries: &SongEntries, artist: &Artist) {
         percentage_of_plays,
         first_listen,
         last_listen,
+        now,
+        filenames,
     };
     std::fs::create_dir_all("summaries").unwrap();
     let path = format!("summaries/{} summary.html", artist.name);
     std::fs::write(&path, page.render().unwrap()).unwrap();
-    std::process::Command::new("open")
-        .arg(&path)
-        .output()
-        .unwrap();
+    // std::process::Command::new("open")
+    //     .arg(&path)
+    //     .output()
+    //     .unwrap();
 }
 
 /// Makes a list of aspects with their total playcount sorted by their

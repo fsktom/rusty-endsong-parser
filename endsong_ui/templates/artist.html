@@ -1,25 +1,58 @@
-<head>
-  <title>{{ name }}</title>
-</head>
-<body>
-  <h1>Summary of {{ name }}</h1>
-  <h2>General info</h2>
-  <ul>
-    <li>Total playcount: {{ plays }}</li>
-    <li>First listen: {{ first_listen }}</li>
-    <li>Last listen: {{ last_listen }}</li>
-    <li>% of total plays: {{ percentage_of_plays }}%</li>
-  </ul>
-  <h2>Top {{ top }} songs</h2>
-  <ol>
-    {% for song in songs -%}
-    <li>{{ song.0 }} | {{ song.1 }} plays</li>
-    {% endfor %}
-  </ol>
-  <h2>Top {{ top }} albums</h2>
-  <ol>
-    {% for album in albums -%}
-    <li>{{ album.0 }} | {{ album.1 }} plays</li>
-    {% endfor %}
-  </ol>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ name }}</title>
+    <style>
+      /* disable html.validate.styles in VS Code */
+      {% include "tailwind_style.css" %}
+    </style>
+  </head>
+</html>
+<body class="flex flex-col items-center justify-evenly gap-4 bg-slate-100">
+  <header class="p-4 text-center text-3xl">
+    <h1>Summary of {{ name }}</h1>
+  </header>
+  <main class="flex flex-col items-center gap-8">
+    <section class="flex">
+      <article
+        class="flex w-96 flex-col gap-3 rounded-lg border border-gray-200 p-6 shadow"
+      >
+        <h2 class="self-center text-xl font-bold">General info</h2>
+        <ul class="list-none">
+          <li>Total playcount: {{ plays }}</li>
+          <li>First listen: {{ first_listen }}</li>
+          <li>Last listen: {{ last_listen }}</li>
+          <li>% of total plays: {{ percentage_of_plays }}%</li>
+        </ul>
+      </article>
+    </section>
+    <section class="flex gap-16">
+      <article
+        class="flex w-96 flex-col gap-3 rounded-lg border border-gray-200 p-6 shadow"
+      >
+        <h2 class="self-center text-xl font-bold">Top {{ top }} songs</h2>
+        <ol class="list-decimal">
+          {% for song in songs -%}
+          <li class="ml-6">{{ song.0 }} | {{ song.1 }} plays</li>
+          {% endfor %}
+        </ol>
+      </article>
+      <article
+        class="flex w-96 flex-col gap-3 rounded-lg border border-gray-200 p-6 shadow"
+      >
+        <h2 class="self-center text-xl font-bold">Top {{ top }} albums</h2>
+        <ol class="list-decimal">
+          {% for album in albums -%}
+          <li class="ml-6">{{ album.0 }} | {{ album.1 }} plays</li>
+          {% endfor %}
+        </ol>
+      </article>
+    </section>
+  </main>
+  <footer class="p-4 text-center text-xs">
+    <p>Generated on {{now}} with files:</p>
+    <p>|{% for file in filenames %} {{file}} |{% endfor %}</p>
+  </footer>
 </body>

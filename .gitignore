@@ -16,3 +16,6 @@ endsong_ui/plots/
 
 # folder with HTML pages generated at runtime
 endsong_ui/summaries/
+
+# ...
+endsong_ui/templates/node_modules/
