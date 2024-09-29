@@ -1,6 +1,7 @@
 {
-    "rust-analyzer.linkedProjects": [
-        "./endsong_ui/Cargo.toml",
-        "./Cargo.toml"
-    ]
+  "rust-analyzer.linkedProjects": [
+    "./endsong_ui/Cargo.toml",
+    "./Cargo.toml",
+    "./endsong_web/Cargo.toml"
+  ]
 }

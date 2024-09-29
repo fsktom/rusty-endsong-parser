@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+https://youtu.be/cH8VbLM1958
+https://defensivecss.dev/tip/flexbox-min-content-size/
+https://www.joshwcomeau.com/css/interactive-guide-to-flexbox/
+*/
+* {
+    min-width: 0;
+}

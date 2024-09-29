@@ -109,8 +109,6 @@ pub fn artist(entries: &SongEntries, artist: &Artist) {
         first_listens,
         last_listens,
     };
-    let path = format!("summaries/{} summary.html", artist.name);
-    std::fs::write(&path, page.render().unwrap()).unwrap();
     write_and_open_summary(page, &artist.name);
 }
 
@@ -120,7 +118,7 @@ pub fn artist(entries: &SongEntries, artist: &Artist) {
 fn write_and_open_summary<S: Template>(summary: S, name: &str) {
     std::fs::create_dir_all("summaries").unwrap();
 
-    let title = crate::normalize_path(&format!("{name}_summary.html"));
+    let title = crate::normalize_path(&format!("{name}_summary"));
 
     match std::env::consts::OS {
         // see https://github.com/plotly/plotly.rs/issues/132#issuecomment-1488920563
@@ -230,16 +228,5 @@ mod filters {
         }
 
         Ok(format!("{minutes}m"))
-    }
-
-    /// Formats a [`TimeDelta`] in a machine-readble way
-    /// for the `dateime` `<time>` attribute
-    ///
-    /// See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time>
-    /// and <https://www.w3schools.com/tags/att_time_datetime.asp>
-    #[expect(clippy::unnecessary_wraps, reason = "rinja required output type")]
-    pub fn machine_duration(duration: &TimeDelta) -> rinja::Result<String> {
-        let seconds = duration.num_seconds();
-        Ok(format!("P{seconds}S"))
     }
 }
