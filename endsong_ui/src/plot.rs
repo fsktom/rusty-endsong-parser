@@ -57,7 +57,7 @@ fn write_and_open_plot(plot: &Plot, title: &str) {
     // creates plots/ folder
     std::fs::create_dir_all("plots").unwrap();
 
-    let title = normalize_path(title);
+    let title = crate::normalize_path(title);
 
     // opens the plot in the browser
     match std::env::consts::OS {
@@ -108,63 +108,4 @@ fn write_and_open_plot(plot: &Plot, title: &str) {
             }
         }
     };
-}
-
-/// Replaces Windows forbidden symbols in path with an '_'
-///
-/// Also removes whitespace and replaces empty
-/// strings with '_'
-fn normalize_path(path: &str) -> String {
-    // https://stackoverflow.com/a/31976060
-    // Array > HashSet bc of overhead
-    let forbidden_characters = [' ', '<', '>', ':', '"', '/', '\\', '|', '?', '*'];
-    let mut new_path = String::with_capacity(path.len());
-
-    for ch in path.chars() {
-        if forbidden_characters.contains(&ch) {
-            // replace a forbidden symbol with an underscore (for now...)
-            new_path.push('_');
-        } else {
-            new_path.push(ch);
-        }
-    }
-
-    // https://stackoverflow.com/a/1976050
-    if new_path.is_empty() || new_path == "." {
-        new_path = "_".into();
-    }
-
-    new_path
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn normalize_paths() {
-        // should change the forbidden symbols to '_' in these
-        assert_eq!(normalize_path("A|B"), "A_B");
-        assert_eq!(normalize_path("A>B<C"), "A_B_C");
-        assert_eq!(normalize_path(":A\"B"), "_A_B");
-        assert_eq!(normalize_path("A/B"), normalize_path("A\\B"));
-        assert_eq!(normalize_path("?A?"), "_A_");
-        assert_eq!(normalize_path("A*B"), "A_B");
-
-        // whitespace should be removed
-        assert_eq!(normalize_path(" A"), "_A");
-        assert_eq!(normalize_path("A "), "A_");
-        assert_eq!(normalize_path(" "), "_");
-        assert_eq!(normalize_path("   "), "___");
-
-        // empty/only dot should be changed (Windows)
-        assert_eq!(normalize_path(""), "_");
-        assert_eq!(normalize_path("."), "_");
-
-        assert_eq!(normalize_path(" A|B<>B? "), "_A_B__B__");
-
-        // shouldn't change anything about these
-        assert_eq!(normalize_path("A_B"), "A_B");
-        assert_eq!(normalize_path("AB"), "AB");
-    }
 }

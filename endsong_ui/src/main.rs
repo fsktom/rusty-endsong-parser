@@ -51,9 +51,7 @@ fn main() {
     // test_two(&entries);
     // test_plot(&entries);
 
-    summarize::artist(&entries, &Artist::new("Sabaton"));
-
-    // ui::start(&entries);
+    ui::start(&entries);
 }
 
 /// tests various [`print`][crate::print] and [`endsong::gather`] functions

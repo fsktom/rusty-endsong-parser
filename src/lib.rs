@@ -39,7 +39,7 @@ pub mod prelude {
     pub use crate::parse_date;
 
     // time and date related
-    pub use chrono::{DateTime, Local, NaiveDateTime, TimeDelta, TimeZone};
+    pub use chrono::{DateTime, Datelike, Local, NaiveDateTime, TimeDelta, TimeZone, Timelike};
 }
 
 use std::collections::HashMap;
