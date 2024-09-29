@@ -9,99 +9,99 @@
       {% include "tailwind_style.css" %}
     </style>
   </head>
+  <body class="flex flex-col items-center justify-evenly gap-4 bg-slate-100">
+    <header class="p-4 text-center text-3xl">
+      <h1>Summary of {{ name }}</h1>
+    </header>
+    <main class="flex flex-col items-center gap-8">
+      <section class="flex">
+        <article
+          class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
+        >
+          <h2 class="self-center text-xl font-bold">General info</h2>
+          <ul class="list-none">
+            <li>Total playcount: {{ plays }}</li>
+            <li>
+              Time spent listening:
+              <time datetime="{{ time_played|machine_duration }}"
+                >{{ time_played|pretty_duration }}</time
+              >
+            </li>
+            <li>
+              First listen:
+              <time datetime="{{ first_listen }}"
+                >{{ first_listen|pretty_date}}</time
+              >
+            </li>
+            <li>
+              Last listen:
+              <time datetime="{{ last_listen }}"
+                >{{ last_listen|pretty_date}}</time
+              >
+            </li>
+            <li>% of total plays: {{ percentage_of_plays }}%</li>
+          </ul>
+        </article>
+      </section>
+      <section class="flex gap-16">
+        <article
+          class="flex w-1/2 flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
+        >
+          <div class="flex flex-col items-center self-center">
+            <h2 class="text-xl font-bold">Top {{ top }} songs</h2>
+            <em class="text-sm">summed across albums</em>
+          </div>
+          <ol class="list-decimal">
+            {% for song in songs -%}
+            <li class="ml-7">{{ song.0 }} | {{ song.1 }} plays</li>
+            {% endfor %}
+          </ol>
+        </article>
+        <article
+          class="flex w-1/2 flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
+        >
+          <h2 class="self-center text-xl font-bold">Top {{ top }} albums</h2>
+          <ol class="list-decimal">
+            {% for album in albums -%}
+            <li class="ml-7">{{ album.0 }} | {{ album.1 }} plays</li>
+            {% endfor %}
+          </ol>
+        </article>
+      </section>
+      <section class="flex gap-16">
+        <article
+          class="flex w-1/2 flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
+        >
+          <h2 class="self-center text-xl font-bold">First listens</h2>
+          <ol class="list-decimal">
+            {% for entry in first_listens -%}
+            <li class="ml-7">
+              {{ entry.track }} ({{ entry.album }})<br />on {{
+              entry.timestamp|pretty_date }} for {{
+              entry.time_played.num_seconds() }}s
+            </li>
+            {% endfor %}
+          </ol>
+        </article>
+        <article
+          class="flex w-1/2 flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
+        >
+          <h2 class="self-center text-xl font-bold">Most recent listens</h2>
+          <ol class="list-decimal" start="{{ plays - top + 1 }}">
+            {% for entry in last_listens -%}
+            <li class="ml-7">
+              {{ entry.track }} ({{ entry.album }})<br />on {{
+              entry.timestamp|pretty_date }} for {{
+              entry.time_played.num_seconds() }}s
+            </li>
+            {% endfor %}
+          </ol>
+        </article>
+      </section>
+    </main>
+    <footer class="p-4 text-center text-xs">
+      <p>Generated on {{now}} with files:</p>
+      <p>|{% for file in filenames %} {{file}} |{% endfor %}</p>
+    </footer>
+  </body>
 </html>
-<body class="flex flex-col items-center justify-evenly gap-4 bg-slate-100">
-  <header class="p-4 text-center text-3xl">
-    <h1>Summary of {{ name }}</h1>
-  </header>
-  <main class="flex flex-col items-center gap-8">
-    <section class="flex">
-      <article
-        class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
-      >
-        <h2 class="self-center text-xl font-bold">General info</h2>
-        <ul class="list-none">
-          <li>Total playcount: {{ plays }}</li>
-          <li>
-            Time spent listening:
-            <time datetime="{{ time_played|machine_duration }}"
-              >{{ time_played|pretty_duration }}</time
-            >
-          </li>
-          <li>
-            First listen:
-            <time datetime="{{ first_listen }}"
-              >{{ first_listen|pretty_date}}</time
-            >
-          </li>
-          <li>
-            Last listen:
-            <time datetime="{{ last_listen }}"
-              >{{ last_listen|pretty_date}}</time
-            >
-          </li>
-          <li>% of total plays: {{ percentage_of_plays }}%</li>
-        </ul>
-      </article>
-    </section>
-    <section class="flex gap-16">
-      <article
-        class="flex w-1/2 flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
-      >
-        <div class="flex flex-col items-center self-center">
-          <h2 class="text-xl font-bold">Top {{ top }} songs</h2>
-          <em class="text-sm">summed across albums</em>
-        </div>
-        <ol class="list-decimal">
-          {% for song in songs -%}
-          <li class="ml-7">{{ song.0 }} | {{ song.1 }} plays</li>
-          {% endfor %}
-        </ol>
-      </article>
-      <article
-        class="flex w-1/2 flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
-      >
-        <h2 class="self-center text-xl font-bold">Top {{ top }} albums</h2>
-        <ol class="list-decimal">
-          {% for album in albums -%}
-          <li class="ml-7">{{ album.0 }} | {{ album.1 }} plays</li>
-          {% endfor %}
-        </ol>
-      </article>
-    </section>
-    <section class="flex gap-16">
-      <article
-        class="flex w-1/2 flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
-      >
-        <h2 class="self-center text-xl font-bold">First listens</h2>
-        <ol class="list-decimal">
-          {% for entry in first_listens -%}
-          <li class="ml-7">
-            {{ entry.track }} ({{ entry.album }})<br />on {{
-            entry.timestamp|pretty_date }} for {{
-            entry.time_played.num_seconds() }}s
-          </li>
-          {% endfor %}
-        </ol>
-      </article>
-      <article
-        class="flex w-1/2 flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
-      >
-        <h2 class="self-center text-xl font-bold">Most recent listens</h2>
-        <ol class="list-decimal" start="{{ plays - top + 1 }}">
-          {% for entry in last_listens -%}
-          <li class="ml-7">
-            {{ entry.track }} ({{ entry.album }})<br />on {{
-            entry.timestamp|pretty_date }} for {{
-            entry.time_played.num_seconds() }}s
-          </li>
-          {% endfor %}
-        </ol>
-      </article>
-    </section>
-  </main>
-  <footer class="p-4 text-center text-xs">
-    <p>Generated on {{now}} with files:</p>
-    <p>|{% for file in filenames %} {{file}} |{% endfor %}</p>
-  </footer>
-</body>
