@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use axum::{
     extract::State,
-    http::StatusCode,
+    http::{header::CONTENT_TYPE, HeaderMap, HeaderValue, StatusCode},
     response::IntoResponse,
     routing::{get, post},
     Json, Router,
 };
 use endsong::prelude::*;
 use rinja_axum::Template;
-use tokio::sync::RwLock;
+use tokio::{fs::File, io::AsyncReadExt, sync::RwLock};
 use tracing_subscriber::filter::{EnvFilter, LevelFilter};
 
 #[tokio::main]
@@ -23,7 +23,9 @@ async fn main() {
     //     entries: Arc::new(RwLock::new(entries)),
     // };
 
-    let app = Router::new().route("/", get(index));
+    let app = Router::new()
+        .route("/", get(index))
+        .route("/styles.css", get(styles));
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
@@ -32,6 +34,18 @@ async fn main() {
     tracing::debug!("listening on {}", listener.local_addr().unwrap());
 
     axum::serve(listener, app).await.unwrap();
+}
+
+async fn styles() -> impl IntoResponse {
+    let mut headers = HeaderMap::new();
+    headers.insert(CONTENT_TYPE, HeaderValue::from_str("text/css").unwrap());
+
+    let mut file = File::open("templates/tailwind_style.css").await.unwrap();
+
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).await.unwrap();
+
+    (headers, contents)
 }
 
 async fn index() -> impl IntoResponse {
