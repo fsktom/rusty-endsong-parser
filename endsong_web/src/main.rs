@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use axum::{
     extract::State,
-    http::{header::CONTENT_TYPE, HeaderMap, HeaderValue, StatusCode},
+    http::{header::CONTENT_TYPE, HeaderMap, HeaderValue},
     response::IntoResponse,
-    routing::{get, post},
-    Json, Router,
+    routing::get,
+    Router,
 };
 use endsong::prelude::*;
 use rinja_axum::Template;
@@ -19,36 +19,6 @@ async fn main() {
         .from_env_lossy();
     tracing_subscriber::fmt().with_env_filter(env).init();
 
-    // let data = Data {
-    //     entries: Arc::new(RwLock::new(entries)),
-    // };
-
-    let app = Router::new()
-        .route("/", get(index))
-        .route("/styles.css", get(styles));
-
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-        .await
-        .unwrap();
-
-    tracing::debug!("listening on {}", listener.local_addr().unwrap());
-
-    axum::serve(listener, app).await.unwrap();
-}
-
-async fn styles() -> impl IntoResponse {
-    let mut headers = HeaderMap::new();
-    headers.insert(CONTENT_TYPE, HeaderValue::from_str("text/css").unwrap());
-
-    let mut file = File::open("templates/tailwind_style.css").await.unwrap();
-
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).await.unwrap();
-
-    (headers, contents)
-}
-
-async fn index() -> impl IntoResponse {
     // different root path depending on my OS
     let root = match std::env::consts::OS {
         "windows" => r"C:\Temp\Endsong\",
@@ -65,6 +35,40 @@ async fn index() -> impl IntoResponse {
         .sum_different_capitalization()
         .filter(30, TimeDelta::try_seconds(10).unwrap());
 
+    let state = Arc::new(AppState {
+        entries: Arc::new(RwLock::new(entries)),
+    });
+
+    let app = Router::new()
+        .route("/", get(index))
+        .route("/styles.css", get(styles))
+        .with_state(state);
+
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+        .await
+        .unwrap();
+
+    tracing::debug!("listening on {}", listener.local_addr().unwrap());
+
+    axum::serve(listener, app).await.unwrap();
+}
+
+async fn styles() -> impl IntoResponse {
+    tracing::debug!("GET /styles");
+    let mut headers = HeaderMap::new();
+    headers.insert(CONTENT_TYPE, HeaderValue::from_str("text/css").unwrap());
+
+    let mut file = File::open("templates/tailwind_style.css").await.unwrap();
+
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).await.unwrap();
+
+    (headers, contents)
+}
+
+async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    tracing::debug!("GET /");
+    let entries = state.entries.read().await;
     Index {
         total_listened: gather::listening_time(&entries),
         playcount: gather::all_plays(&entries),
@@ -78,8 +82,7 @@ struct Index {
     playcount: usize,
 }
 
-// no worky bc using Rc<str> in `endsong`
-// #[derive(Clone)]
-// struct Data {
-//     entries: Arc<RwLock<SongEntries>>,
-// }
+#[derive(Clone)]
+struct AppState {
+    entries: Arc<RwLock<SongEntries>>,
+}
