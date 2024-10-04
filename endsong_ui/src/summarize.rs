@@ -1,7 +1,7 @@
 //! Generates HTML page summaries of aspects
 
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use endsong::prelude::*;
 use itertools::Itertools;
@@ -12,13 +12,13 @@ use rinja::Template;
 #[template(path = "artist.html", print = "none")]
 struct ArtistSummary {
     /// Artist name
-    name: Rc<str>,
+    name: Arc<str>,
     /// Number of top songs/albums to be displayed
     top: usize,
     /// Array of top song names with their playcount
-    songs: Vec<(Rc<str>, usize)>,
+    songs: Vec<(Arc<str>, usize)>,
     /// Array of top album names with their playcount
-    albums: Vec<(Rc<str>, usize)>,
+    albums: Vec<(Arc<str>, usize)>,
     /// Count of this artist's plays
     plays: usize,
     /// Total time listend to this artist
@@ -95,7 +95,7 @@ pub fn artist(entries: &SongEntries, artist: &Artist) {
         .collect();
 
     let page = ArtistSummary {
-        name: std::rc::Rc::clone(&artist.name),
+        name: Arc::clone(&artist.name),
         top,
         songs,
         albums,
@@ -176,7 +176,7 @@ fn write_and_open_summary<S: Template>(summary: S, name: &str) {
 fn get_sorted_playcount_list<Asp: Music>(
     map: HashMap<Asp, usize>,
     top: usize,
-) -> Vec<(Rc<str>, usize)> {
+) -> Vec<(Arc<str>, usize)> {
     map.into_iter()
         .sorted_unstable_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)))
         .take(top)

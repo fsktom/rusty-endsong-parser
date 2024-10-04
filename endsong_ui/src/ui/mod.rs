@@ -5,7 +5,7 @@ mod help;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt::Display;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use endsong::prelude::*;
 use itertools::Itertools;
@@ -69,7 +69,7 @@ enum UiError {
 #[derive(Helper, Hinter, Validator)]
 struct ShellHelper {
     /// List containing all the possible completes for Tab
-    completer_list: Vec<Rc<str>>,
+    completer_list: Vec<Arc<str>>,
 }
 impl ShellHelper {
     /// Creates a new [`ShellHelper`]
@@ -125,7 +125,7 @@ impl ShellHelper {
 
     /// Changes tab-complete to the given list of valid inputs - list should be unsorted
     /// because it will be sorted here anyway
-    fn complete_list(&mut self, completer_list: Vec<Rc<str>>) {
+    fn complete_list(&mut self, completer_list: Vec<Arc<str>>) {
         self.completer_list = completer_list;
         self.completer_list.sort_unstable();
     }
@@ -156,7 +156,7 @@ impl Highlighter for ShellHelper {
     }
 }
 impl Completer for ShellHelper {
-    type Candidate = Rc<str>;
+    type Candidate = Arc<str>;
 
     fn complete(
         &self,
@@ -170,7 +170,7 @@ impl Completer for ShellHelper {
             .iter()
             // to make the tab-complete case-insensitive
             .filter(|possible| possible.to_lowercase().starts_with(&word.to_lowercase()))
-            .map(Rc::clone)
+            .map(Arc::clone)
             .collect_vec();
         // assumes no escape characters...
         Ok((0, possibilities))
@@ -208,11 +208,11 @@ impl Display for Color {
     }
 }
 
-/// Converts a collection of [`&str`][str]s into a [`Vec<Rc<str>>`]
+/// Converts a collection of [`&str`][str]s into a [`Vec<Arc<str>>`]
 /// to be later used in [`ShellHelper::complete_list`]
 /// for tab auto-completion
-fn string_vec(slice: &[&str]) -> Vec<Rc<str>> {
-    slice.iter().map(|s| Rc::from(*s)).collect_vec()
+fn string_vec(slice: &[&str]) -> Vec<Arc<str>> {
+    slice.iter().map(|s| Arc::from(*s)).collect_vec()
 }
 
 /// Starts the CLI/shell instance
@@ -1352,7 +1352,7 @@ fn read_artist(
     // prompt: artist name exact
     rl.helper_mut()
         .unwrap()
-        .complete_list(artists.iter().map(|art| Rc::clone(&art.name)).collect());
+        .complete_list(artists.iter().map(|art| Arc::clone(&art.name)).collect());
     let usr_input_art = rl.readline(PROMPT_MAIN)?;
     artists
         .into_iter()
@@ -1389,7 +1389,7 @@ fn read_album(
     // prompt: artist name exact
     rl.helper_mut()
         .unwrap()
-        .complete_list(albums.iter().map(|alb| Rc::clone(&alb.name)).collect());
+        .complete_list(albums.iter().map(|alb| Arc::clone(&alb.name)).collect());
     let usr_input_alb = rl.readline(PROMPT_MAIN)?;
     albums
         .into_iter()
@@ -1428,7 +1428,7 @@ fn read_song(
     // prompt: artist name exact
     rl.helper_mut()
         .unwrap()
-        .complete_list(songs.iter().map(|som| Rc::clone(&som.name)).collect());
+        .complete_list(songs.iter().map(|som| Arc::clone(&som.name)).collect());
     let usr_input_son = rl.readline(PROMPT_MAIN)?;
     songs
         .into_iter()

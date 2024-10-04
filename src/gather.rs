@@ -43,7 +43,7 @@
 //! ```
 
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use chrono::TimeDelta;
 use itertools::Itertools;
@@ -79,12 +79,12 @@ pub fn songs_summed_across_albums(entries: &[SongEntry]) -> HashMap<Song, usize>
     // had the highest amount of plays from
     let mut song_versions: HashMap<Song, Vec<(Song, usize)>> = HashMap::with_capacity(songs.len());
 
-    let bogus_album = Rc::from("");
+    let bogus_album = Arc::from("");
     for (song, plays_song) in songs {
         let song_bogus_album = Song::new(
-            Rc::from(song.name.to_lowercase()),
-            Rc::clone(&bogus_album),
-            Rc::clone(&song.album.artist.name),
+            Arc::from(song.name.to_lowercase()),
+            Arc::clone(&bogus_album),
+            Arc::clone(&song.album.artist.name),
         );
 
         song_versions
@@ -146,12 +146,12 @@ pub fn songs_from_artist_summed_across_albums(
     // had the highest amount of plays from
     let mut song_versions: HashMap<Song, Vec<(Song, usize)>> = HashMap::with_capacity(songs.len());
 
-    let bogus_album = Rc::from("");
+    let bogus_album = Arc::from("");
     for (song, plays_song) in songs {
         let song_bogus_album = Song::new(
-            Rc::from(song.name.to_lowercase()),
-            Rc::clone(&bogus_album),
-            Rc::clone(&artist.name),
+            Arc::from(song.name.to_lowercase()),
+            Arc::clone(&bogus_album),
+            Arc::clone(&artist.name),
         );
 
         song_versions

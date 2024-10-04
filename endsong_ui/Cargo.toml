@@ -8,13 +8,16 @@ edition = "2021"
 [dependencies]
 chrono = "0.4"
 endsong = { path = ".." }
-rustyline = { version = "14.*", features = ["derive"] }
+# rustyline = { version = "14.*", features = ["derive"] }
+rustyline = { git = "https://github.com/fsktom/rustyline", rev = "b01aae5", features = [
+    "derive",
+] }
 plotly = "0.10"
 itertools = "0.13"
 textwrap = "0.16"
 thiserror = "1.0"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-endsong_macros = { path = "endsong_macros"}
+endsong_macros = { path = "endsong_macros" }
 rinja = "0.3"
 
 [dev-dependencies]

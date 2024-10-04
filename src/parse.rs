@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use std::rc::Rc;
+use std::sync::Arc;
 use tracing::instrument;
 
 use chrono::{DateTime, Local, TimeDelta, TimeZone};
@@ -130,9 +130,9 @@ pub fn parse<P: AsRef<Path> + std::fmt::Debug>(paths: &[P]) -> Result<Vec<SongEn
     // to prevent reallocations?
     let mut song_entries: Vec<SongEntry> = Vec::with_capacity(16_000 * paths.len());
 
-    let mut song_names: HashMap<String, Rc<str>> = HashMap::with_capacity(10_000);
-    let mut album_names: HashMap<String, Rc<str>> = HashMap::with_capacity(10_000);
-    let mut artist_names: HashMap<String, Rc<str>> = HashMap::with_capacity(5_000);
+    let mut song_names: HashMap<String, Arc<str>> = HashMap::with_capacity(10_000);
+    let mut album_names: HashMap<String, Arc<str>> = HashMap::with_capacity(10_000);
+    let mut artist_names: HashMap<String, Arc<str>> = HashMap::with_capacity(5_000);
 
     let mut timestamps: HashSet<DateTime<Local>> = HashSet::with_capacity(16_000 * paths.len());
 
@@ -173,9 +173,9 @@ pub fn parse<P: AsRef<Path> + std::fmt::Debug>(paths: &[P]) -> Result<Vec<SongEn
 #[instrument]
 fn parse_single<P: AsRef<Path> + std::fmt::Debug>(
     path: P,
-    song_names: &mut HashMap<String, Rc<str>>,
-    album_names: &mut HashMap<String, Rc<str>>,
-    artist_names: &mut HashMap<String, Rc<str>>,
+    song_names: &mut HashMap<String, Arc<str>>,
+    album_names: &mut HashMap<String, Arc<str>>,
+    artist_names: &mut HashMap<String, Arc<str>>,
     timestamps: &mut HashSet<DateTime<Local>>,
 ) -> Result<Vec<SongEntry>, SingleParseError> {
     // https://github.com/serde-rs/json/issues/160#issuecomment-253446892
@@ -197,9 +197,9 @@ fn parse_single<P: AsRef<Path> + std::fmt::Debug>(
 /// Converts the genral [`Entry`] to a more specific [`SongEntry`]
 fn entry_to_songentry(
     entry: Entry,
-    song_names: &mut HashMap<String, Rc<str>>,
-    album_names: &mut HashMap<String, Rc<str>>,
-    artist_names: &mut HashMap<String, Rc<str>>,
+    song_names: &mut HashMap<String, Arc<str>>,
+    album_names: &mut HashMap<String, Arc<str>>,
+    artist_names: &mut HashMap<String, Arc<str>>,
     timestamps: &mut HashSet<DateTime<Local>>,
 ) -> Option<SongEntry> {
     let timestamp = parse_date(&entry.ts);
@@ -212,9 +212,9 @@ fn entry_to_songentry(
     // ? to remove podcast entries
     // if the track is None, so are album and artist
 
-    let track = map_rc_name(song_names, &entry.master_metadata_track_name?);
-    let album = map_rc_name(album_names, &entry.master_metadata_album_album_name?);
-    let artist = map_rc_name(artist_names, &entry.master_metadata_album_artist_name?);
+    let track = map_arc_name(song_names, &entry.master_metadata_track_name?);
+    let album = map_arc_name(album_names, &entry.master_metadata_album_album_name?);
+    let artist = map_arc_name(artist_names, &entry.master_metadata_album_artist_name?);
 
     Some(SongEntry {
         timestamp,
@@ -227,16 +227,16 @@ fn entry_to_songentry(
     })
 }
 
-/// Checks if the given `name` is in the `map` and does [`Rc::clone`] on it
+/// Checks if the given `name` is in the `map` and does [`Arc::clone`] on it
 ///
 /// If it's not in the map, it clones the String value into an
-/// [`Rc`] and inserts it into the map
-fn map_rc_name(map: &mut HashMap<String, Rc<str>>, name: &str) -> Rc<str> {
+/// [`Arc`] and inserts it into the map
+fn map_arc_name(map: &mut HashMap<String, Arc<str>>, name: &str) -> Arc<str> {
     if let Some(name_rc) = map.get(name) {
-        Rc::clone(name_rc)
+        Arc::clone(name_rc)
     } else {
-        map.insert(name.to_string(), Rc::from(name));
-        Rc::clone(map.get(name).unwrap())
+        map.insert(name.to_string(), Arc::from(name));
+        Arc::clone(map.get(name).unwrap())
     }
 }
 

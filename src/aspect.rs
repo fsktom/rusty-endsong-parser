@@ -43,11 +43,11 @@
 //! You can also freely create insances of e.g. [`Artist`] and [`Album`] from [`Song`] using its [`From`] impls.
 //! See the specific struct [`From`] and [`AsRef`] impls for more info.
 //!
-//! Cloning each aspect or using [`From`] another aspect is O(1) because they use [`Rc`] internally.
+//! Cloning each aspect or using [`From`] another aspect is O(1) because they use [`Arc`] internally.
 
 use std::cmp::Ordering;
 use std::fmt::Display;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use unicase::UniCase;
 
@@ -65,8 +65,8 @@ pub trait Music: Display + Clone + Eq + Ord {
     fn is_entry_ignore_case(&self, entry: &SongEntry) -> bool;
 
     /// Returns the aspect's name (i.e. artist/album/song name)
-    /// by [`Rc::clone`]
-    fn name(&self) -> Rc<str>;
+    /// by [`Arc::clone`]
+    fn name(&self) -> Arc<str>;
 }
 
 /// Trait used to accept only [`Artist`] and [`Album`]
@@ -80,7 +80,7 @@ pub trait HasSongs: Music {}
 #[derive(PartialEq, Eq, Hash, Debug, PartialOrd, Ord)]
 pub struct Artist {
     /// Name of the artist
-    pub name: Rc<str>,
+    pub name: Arc<str>,
 }
 impl Artist {
     /// Creates an instance of Artist
@@ -88,7 +88,7 @@ impl Artist {
     /// Usually, you don't want to use this yourself, but rather use
     /// [`SongEntries::find`][crate::entry::SongEntries::find] to guarantee
     /// it's in the dataset
-    pub fn new<S: Into<Rc<str>>>(artist_name: S) -> Artist {
+    pub fn new<S: Into<Arc<str>>>(artist_name: S) -> Artist {
         Artist {
             name: artist_name.into(),
         }
@@ -96,10 +96,10 @@ impl Artist {
 }
 impl Clone for Artist {
     /// Clones the artist
-    /// with an [`Rc`], so cost of clone is O(1)
+    /// with an [`Arc`], so cost of clone is O(1)
     fn clone(&self) -> Self {
         Artist {
-            name: Rc::clone(&self.name),
+            name: Arc::clone(&self.name),
         }
     }
 }
@@ -111,21 +111,21 @@ impl Display for Artist {
 }
 impl From<&Artist> for Artist {
     /// Clones the artist
-    /// with an [`Rc`], so cost of clone is O(1)
+    /// with an [`Arc`], so cost of clone is O(1)
     fn from(artist: &Artist) -> Self {
         artist.clone()
     }
 }
 impl From<&Album> for Artist {
     /// Clones the artist of `alb`
-    /// with an [`Rc`], so cost of clone is O(1)
+    /// with an [`Arc`], so cost of clone is O(1)
     fn from(alb: &Album) -> Self {
         alb.artist.clone()
     }
 }
 impl From<&Song> for Artist {
     /// Clones the artist of `son`
-    /// with an [`Rc`], so cost of clone is O(1)
+    /// with an [`Arc`], so cost of clone is O(1)
     fn from(son: &Song) -> Self {
         son.album.artist.clone()
     }
@@ -133,11 +133,11 @@ impl From<&Song> for Artist {
 impl From<&SongEntry> for Artist {
     /// Creates an instance of [`Artist`] from a ref to [`SongEntry`]
     ///
-    /// Clones the artist name from `entry` with an [`Rc`],
+    /// Clones the artist name from `entry` with an [`Arc`],
     /// so cost of clone is O(1)
     fn from(entry: &SongEntry) -> Self {
         Artist {
-            name: Rc::clone(&entry.artist),
+            name: Arc::clone(&entry.artist),
         }
     }
 }
@@ -159,8 +159,8 @@ impl Music for Artist {
     fn is_entry_ignore_case(&self, entry: &SongEntry) -> bool {
         UniCase::new(&entry.artist) == UniCase::new(&self.name)
     }
-    fn name(&self) -> Rc<str> {
-        Rc::clone(&self.name)
+    fn name(&self) -> Arc<str> {
+        Arc::clone(&self.name)
     }
 }
 impl HasSongs for Artist {}
@@ -173,7 +173,7 @@ impl HasSongs for Artist {}
 #[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Album {
     /// Name of the album
-    pub name: Rc<str>,
+    pub name: Arc<str>,
     /// Artist of the album
     pub artist: Artist,
 }
@@ -183,7 +183,7 @@ impl Album {
     /// Usually, you don't want to use this yourself, but rather use
     /// [`SongEntries::find`][crate::entry::SongEntries::find] to guarantee
     /// it's in the dataset
-    pub fn new<S: Into<Rc<str>>>(album_name: S, artist_name: S) -> Album {
+    pub fn new<S: Into<Arc<str>>>(album_name: S, artist_name: S) -> Album {
         Album {
             name: album_name.into(),
             artist: Artist::new(artist_name),
@@ -192,10 +192,10 @@ impl Album {
 }
 impl Clone for Album {
     /// Clones the album
-    /// with an [`Rc`], so cost of clone is O(1)
+    /// with an [`Arc`], so cost of clone is O(1)
     fn clone(&self) -> Self {
         Album {
-            name: Rc::clone(&self.name),
+            name: Arc::clone(&self.name),
             artist: self.artist.clone(),
         }
     }
@@ -222,14 +222,14 @@ impl Ord for Album {
     }
 }
 impl From<&Album> for Album {
-    /// Clones the album with an [`Rc`],
+    /// Clones the album with an [`Arc`],
     /// so cost of clone is O(1)
     fn from(album: &Album) -> Self {
         album.clone()
     }
 }
 impl From<&Song> for Album {
-    /// Clones the album of `son` with an [`Rc`],
+    /// Clones the album of `son` with an [`Arc`],
     /// so cost of clone is O(1)
     fn from(son: &Song) -> Self {
         son.album.clone()
@@ -238,11 +238,11 @@ impl From<&Song> for Album {
 impl From<&SongEntry> for Album {
     /// Creates an instance of [`Album`] from a ref to [`SongEntry`]
     ///
-    /// Clones the album and artist name from `entry` with an [`Rc`],
+    /// Clones the album and artist name from `entry` with an [`Arc`],
     /// so cost of clone is O(1)
     fn from(entry: &SongEntry) -> Self {
         Album {
-            name: Rc::clone(&entry.album),
+            name: Arc::clone(&entry.album),
             artist: Artist::from(entry),
         }
     }
@@ -271,8 +271,8 @@ impl Music for Album {
         self.artist.is_entry_ignore_case(entry)
             && UniCase::new(&entry.album) == UniCase::new(&self.name)
     }
-    fn name(&self) -> Rc<str> {
-        Rc::clone(&self.name)
+    fn name(&self) -> Arc<str> {
+        Arc::clone(&self.name)
     }
 }
 impl HasSongs for Album {}
@@ -285,10 +285,10 @@ impl HasSongs for Album {}
 #[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Song {
     /// Name of the song
-    pub name: Rc<str>,
+    pub name: Arc<str>,
     /// The album this song is from
     pub album: Album,
-    // pub id: Rc<str>,
+    // pub id: Arc<str>,
 }
 impl Song {
     /// Creates an instance of Song
@@ -296,7 +296,7 @@ impl Song {
     /// Usually, you don't want to use this yourself, but rather use
     /// [`SongEntries::find`][crate::entry::SongEntries::find] to guarantee
     /// it's in the dataset
-    pub fn new<S: Into<Rc<str>>>(song_name: S, album_name: S, artist_name: S) -> Song {
+    pub fn new<S: Into<Arc<str>>>(song_name: S, album_name: S, artist_name: S) -> Song {
         Song {
             name: song_name.into(),
             album: Album::new(album_name, artist_name),
@@ -312,10 +312,10 @@ impl Song {
 }
 impl Clone for Song {
     /// Clones the song
-    /// with an [`Rc`], so cost of clone is O(1)
+    /// with an [`Arc`], so cost of clone is O(1)
     fn clone(&self) -> Self {
         Song {
-            name: Rc::clone(&self.name),
+            name: Arc::clone(&self.name),
             album: self.album.clone(),
         }
     }
@@ -359,11 +359,11 @@ impl From<&Song> for Song {
 impl From<&SongEntry> for Song {
     /// Creates an instance of [`Song`] from a ref to [`SongEntry`]
     ///
-    /// Clones the song, album and artist name from `entry` with an [`Rc`],
+    /// Clones the song, album and artist name from `entry` with an [`Arc`],
     /// so cost of clone is O(1)
     fn from(entry: &SongEntry) -> Self {
         Song {
-            name: Rc::clone(&entry.track),
+            name: Arc::clone(&entry.track),
             album: Album::from(entry),
         }
     }
@@ -397,8 +397,8 @@ impl Music for Song {
         self.album.is_entry_ignore_case(entry)
             && UniCase::new(&entry.track) == UniCase::new(&self.name)
     }
-    fn name(&self) -> Rc<str> {
-        Rc::clone(&self.name)
+    fn name(&self) -> Arc<str> {
+        Arc::clone(&self.name)
     }
 }
 
@@ -413,7 +413,7 @@ mod tests {
         assert_eq!(
             Artist::new("Sabaton"),
             Artist {
-                name: Rc::from("Sabaton")
+                name: Arc::from("Sabaton")
             }
         );
 
@@ -424,7 +424,7 @@ mod tests {
         assert_eq!(
             Album::new("Coat of Arms", "Sabaton"),
             Album {
-                name: Rc::from("Coat of Arms"),
+                name: Arc::from("Coat of Arms"),
                 artist: Artist::new("Sabaton")
             }
         );
@@ -440,7 +440,7 @@ mod tests {
         assert_eq!(
             Song::new("The Final Solution", "Coat of Arms", "Sabaton"),
             Song {
-                name: Rc::from("The Final Solution"),
+                name: Arc::from("The Final Solution"),
                 album: Album::new("Coat of Arms", "Sabaton")
             }
         );
@@ -563,9 +563,9 @@ mod tests {
         let entry = SongEntry {
             timestamp: crate::parse_date("now").unwrap(),
             time_played: chrono::TimeDelta::zero(),
-            track: Rc::from("White Death"),
-            album: Rc::from("Coat of Arms"),
-            artist: Rc::from("Sabaton"),
+            track: Arc::from("White Death"),
+            album: Arc::from("Coat of Arms"),
+            artist: Arc::from("Sabaton"),
         };
 
         assert!(Artist::new("Sabaton").is_entry(&entry));

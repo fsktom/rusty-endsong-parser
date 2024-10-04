@@ -18,7 +18,7 @@
 use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use chrono::{DateTime, Local, TimeDelta};
 use itertools::Itertools;
@@ -46,11 +46,11 @@ pub struct SongEntry {
     /// for how long the song has been played
     pub time_played: TimeDelta,
     /// name of the song
-    pub track: Rc<str>,
+    pub track: Arc<str>,
     /// name of the album
-    pub album: Rc<str>,
+    pub album: Arc<str>,
     /// name of the artist
-    pub artist: Rc<str>,
+    pub artist: Arc<str>,
     // /// Spotify URI
     // pub id: String,
 }
@@ -171,18 +171,18 @@ impl SongEntries {
         let albums = self.iter().map(Album::from).unique().collect_vec();
 
         // key: lowercase album, value: all album names
-        let mut album_versions: HashMap<Album, Vec<Rc<str>>> = HashMap::new();
+        let mut album_versions: HashMap<Album, Vec<Arc<str>>> = HashMap::new();
 
         for alb in &albums {
             let lowercase_album = Album {
-                name: Rc::from(alb.name.to_lowercase()),
+                name: Arc::from(alb.name.to_lowercase()),
                 artist: alb.artist.clone(),
             };
 
             match album_versions.get_mut(&lowercase_album) {
-                Some(vec) => vec.push(Rc::clone(&alb.name)),
+                Some(vec) => vec.push(Arc::clone(&alb.name)),
                 None => {
-                    album_versions.insert(lowercase_album, vec![Rc::clone(&alb.name)]);
+                    album_versions.insert(lowercase_album, vec![Arc::clone(&alb.name)]);
                 }
             }
         }
@@ -190,11 +190,11 @@ impl SongEntries {
         // the last album in the vector is the one that will be kept
         // cause it's the most recent one
         // key: album, value: newest album name
-        let mut album_mappings: HashMap<Album, Rc<str>> = HashMap::with_capacity(albums.len());
+        let mut album_mappings: HashMap<Album, Arc<str>> = HashMap::with_capacity(albums.len());
 
         for alb in albums {
             let lowercase_album = Album {
-                name: Rc::from(alb.name.to_lowercase()),
+                name: Arc::from(alb.name.to_lowercase()),
                 artist: alb.artist.clone(),
             };
 
@@ -206,13 +206,13 @@ impl SongEntries {
                 continue;
             }
 
-            album_mappings.insert(alb, Rc::clone(versions.last().unwrap()));
+            album_mappings.insert(alb, Arc::clone(versions.last().unwrap()));
         }
 
         for entry in self.iter_mut() {
             let album = Album::from(&*entry);
             if let Some(new_alb) = album_mappings.get(&album) {
-                entry.album = Rc::clone(new_alb);
+                entry.album = Arc::clone(new_alb);
             }
         }
 
@@ -223,18 +223,18 @@ impl SongEntries {
         let songs = self.iter().map(Song::from).unique().collect_vec();
 
         // key: lowercase song, value: all song names
-        let mut song_versions: HashMap<Song, Vec<Rc<str>>> = HashMap::with_capacity(songs.len());
+        let mut song_versions: HashMap<Song, Vec<Arc<str>>> = HashMap::with_capacity(songs.len());
 
         for song in &songs {
             let lowercase_song = Song {
-                name: Rc::from(song.name.to_lowercase()),
+                name: Arc::from(song.name.to_lowercase()),
                 album: song.album.clone(),
             };
 
             match song_versions.get_mut(&lowercase_song) {
-                Some(vec) => vec.push(Rc::clone(&song.name)),
+                Some(vec) => vec.push(Arc::clone(&song.name)),
                 None => {
-                    song_versions.insert(lowercase_song, vec![Rc::clone(&song.name)]);
+                    song_versions.insert(lowercase_song, vec![Arc::clone(&song.name)]);
                 }
             }
         }
@@ -242,11 +242,11 @@ impl SongEntries {
         // the last song in the vector is the one that will be kept
         // cause it's the most recent one
         // key: song, value: newest song name
-        let mut song_mappings: HashMap<Song, Rc<str>> = HashMap::new();
+        let mut song_mappings: HashMap<Song, Arc<str>> = HashMap::new();
 
         for song in songs {
             let lowercase_song = Song {
-                name: Rc::from(song.name.to_lowercase()),
+                name: Arc::from(song.name.to_lowercase()),
                 album: song.album.clone(),
             };
 
@@ -256,13 +256,13 @@ impl SongEntries {
                 continue;
             }
 
-            song_mappings.insert(song, Rc::clone(versions.last().unwrap()));
+            song_mappings.insert(song, Arc::clone(versions.last().unwrap()));
         }
 
         for entry in self.iter_mut() {
             let song = Song::from(&*entry);
             if let Some(new_song) = song_mappings.get(&song) {
-                entry.track = Rc::clone(new_song);
+                entry.track = Arc::clone(new_song);
             }
         }
 
@@ -427,9 +427,9 @@ impl SongEntries {
 
     /// Returns a [`Vec`] with the names of all [`Artists`][Artist] in the dataset
     #[must_use]
-    pub fn artists(&self) -> Vec<Rc<str>> {
+    pub fn artists(&self) -> Vec<Arc<str>> {
         self.iter()
-            .map(|entry| Rc::clone(&entry.artist))
+            .map(|entry| Arc::clone(&entry.artist))
             .unique()
             .collect_vec()
     }
@@ -437,10 +437,10 @@ impl SongEntries {
     /// Returns a [`Vec`] with the names of the [`Albums`][Album]
     /// corresponding to the `artist`
     #[must_use]
-    pub fn albums(&self, artist: &Artist) -> Vec<Rc<str>> {
+    pub fn albums(&self, artist: &Artist) -> Vec<Arc<str>> {
         self.iter()
             .filter(|entry| artist.is_entry(entry))
-            .map(|entry| Rc::clone(&entry.album))
+            .map(|entry| Arc::clone(&entry.album))
             .unique()
             .collect_vec()
     }
@@ -448,10 +448,10 @@ impl SongEntries {
     /// Returns a [`Vec`] with the names of the [`Songs`][Song]
     /// corresponding to the `aspect`
     #[must_use]
-    pub fn songs<Asp: HasSongs>(&self, aspect: &Asp) -> Vec<Rc<str>> {
+    pub fn songs<Asp: HasSongs>(&self, aspect: &Asp) -> Vec<Arc<str>> {
         self.iter()
             .filter(|entry| aspect.is_entry(entry))
-            .map(|entry| Rc::clone(&entry.track))
+            .map(|entry| Arc::clone(&entry.track))
             .unique()
             .collect_vec()
     }
