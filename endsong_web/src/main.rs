@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     extract::State,
-    http::{header::CONTENT_TYPE, HeaderMap, HeaderValue},
+    http::{header::CONTENT_TYPE, HeaderMap, HeaderValue, StatusCode},
     response::IntoResponse,
     routing::get,
     Router,
@@ -11,6 +11,11 @@ use endsong::prelude::*;
 use rinja_axum::Template;
 use tokio::{fs::File, io::AsyncReadExt, sync::RwLock};
 use tracing_subscriber::filter::{EnvFilter, LevelFilter};
+
+#[derive(Clone)]
+struct AppState {
+    entries: Arc<RwLock<SongEntries>>,
+}
 
 #[tokio::main]
 async fn main() {
@@ -42,7 +47,8 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/styles.css", get(styles))
-        .with_state(state);
+        .with_state(state)
+        .fallback(not_found);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
@@ -53,6 +59,19 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
+/// [`Template`] for [`not_found`]
+#[derive(Template)]
+#[template(path = "404.html", print = "none")]
+struct NotFound;
+/// 404
+async fn not_found() -> impl IntoResponse {
+    (StatusCode::NOT_FOUND, NotFound {})
+}
+
+/// GET `/styles` - CSS
+///
+/// Idk yet how, but should be cached somehow for the future so that
+/// it isn't requested on each load in full? idk
 async fn styles() -> impl IntoResponse {
     tracing::debug!("GET /styles");
     let mut headers = HeaderMap::new();
@@ -66,6 +85,14 @@ async fn styles() -> impl IntoResponse {
     (headers, contents)
 }
 
+/// [`Template`] for [`index`]
+#[derive(Template)]
+#[template(path = "index.html", print = "none")]
+struct Index {
+    total_listened: TimeDelta,
+    playcount: usize,
+}
+/// GET `/`
 async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     tracing::debug!("GET /");
     let entries = state.entries.read().await;
@@ -73,16 +100,4 @@ async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         total_listened: gather::listening_time(&entries),
         playcount: gather::all_plays(&entries),
     }
-}
-
-#[derive(Template)]
-#[template(path = "index.html", print = "none")]
-struct Index {
-    total_listened: TimeDelta,
-    playcount: usize,
-}
-
-#[derive(Clone)]
-struct AppState {
-    entries: Arc<RwLock<SongEntries>>,
 }

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Endsong Web</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="flex flex-col items-center justify-evenly gap-4 bg-slate-100">
+    <header class="flex w-full items-center justify-around bg-slate-200 p-6">
+      <h1 class="text-2xl">Endsong Web</h1>
+      <nav>
+        <ul class="flex gap-8">
+          <li><a class="p-2 text-lg" href="/">Home</a></li>
+          <li><a class="p-2 text-lg" href="/artists">Artists</a></li>
+          <li><a class="p-2 text-lg" href="/albums">Albums</a></li>
+          <li><a class="p-2 text-lg" href="/songs">Songs</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      {% block content %}
+      <p>Placeholder</p>
+      {% endblock %}
+    </main>
+    <footer></footer>
+  </body>
+</html>

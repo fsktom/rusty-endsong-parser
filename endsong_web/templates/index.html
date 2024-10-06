@@ -1,20 +1,8 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Endsong Web</title>
-    <link rel="stylesheet" href="/styles.css" />
-  </head>
-  <body class="flex flex-col items-center justify-evenly gap-4 bg-slate-100">
-    <h1 class="text-2xl">ENDSONG WEB v1</h1>
-    <p class="text-xl">
-      You've listened to {{ playcount }} songs for a total of
-      <time
-        datetime="{{ total_listened
-      }}"
-        >{{ total_listened.num_minutes() }} minutes</time
-      >
-    </p>
-  </body>
-</html>
+{% extends "base.html" %} {% block content %}
+<p class="text-xl">
+  You've listened to {{ playcount }} songs for a total of
+  <time datetime="{{ total_listened }}"
+    >{{ total_listened.num_minutes() }} minutes</time
+  >
+</p>
+{% endblock %}
