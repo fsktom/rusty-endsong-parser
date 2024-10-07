@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Endsong Web</title>
+    <title>{% block title %}Endsong Web{% endblock %}- Endsong Web</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body class="flex flex-col items-center justify-evenly gap-4 bg-slate-100">
@@ -18,7 +18,7 @@
         </ul>
       </nav>
     </header>
-    <main>
+    <main class="flex w-full flex-col items-center gap-4">
       {% block content %}
       <p>Placeholder</p>
       {% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+<!--  -->
+{% block title %} Artists {% endblock %}
+<!--  -->
+{% block content %}
+<ul>
+  {% for artist in artist_names %}
+  <li><a href="/artist/{{ artist }}">{{ artist }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}

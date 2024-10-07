@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+<!--  -->
+{% block title %} {{ artist.name }} {% endblock %}
+<!--  -->
+{% block content %}
+<h2 class="text-2xl">{{ artist.name }}</h2>
+<section class="flex">
+  <article
+    class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow"
+  >
+    <h2 class="self-center text-xl font-bold">General info</h2>
+    <ul class="list-none">
+      <li>Playcount: {{ plays }}</li>
+      <li>
+        Time spent listening:
+        <time datetime="{{ time_played }}"
+          >{{ time_played }}</time
+        >
+      </li>
+    </ul>
+  </article>
+</section>
+{% endblock %}

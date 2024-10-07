@@ -426,6 +426,7 @@ impl SongEntries {
     }
 
     /// Returns a [`Vec`] with the names of all [`Artists`][Artist] in the dataset
+    /// (unsorted!)
     #[must_use]
     pub fn artists(&self) -> Vec<Arc<str>> {
         self.iter()

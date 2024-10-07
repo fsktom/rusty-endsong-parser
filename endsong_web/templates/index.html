@@ -1,4 +1,8 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+<!--  -->
+{% block title %} Home {% endblock %}
+<!--  -->
+{% block content %}
 <p class="text-xl">
   You've listened to {{ playcount }} songs for a total of
   <time datetime="{{ total_listened }}"

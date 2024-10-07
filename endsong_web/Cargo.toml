@@ -5,7 +5,9 @@ edition = "2021"
 
 [dependencies]
 axum = "0.7"
+tower-http = { version = "0.6", features = ["compression-br"] }
 endsong = { path = ".." }
+itertools = "0.13"
 rinja = { version = "0.3", features = ["with-axum"] }
 rinja_axum = "0.3"
 tokio = { version = "1.40", features = ["full"] }

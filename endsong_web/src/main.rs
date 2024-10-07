@@ -1,15 +1,18 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::State,
+    extract::{Path, State},
     http::{header::CONTENT_TYPE, HeaderMap, HeaderValue, StatusCode},
-    response::IntoResponse,
+    response::{IntoResponse, Response},
     routing::get,
     Router,
 };
 use endsong::prelude::*;
+use itertools::Itertools;
 use rinja_axum::Template;
 use tokio::{fs::File, io::AsyncReadExt, sync::RwLock};
+use tower_http::compression::CompressionLayer;
+use tracing::debug;
 use tracing_subscriber::filter::{EnvFilter, LevelFilter};
 
 #[derive(Clone)]
@@ -44,17 +47,22 @@ async fn main() {
         entries: Arc::new(RwLock::new(entries)),
     });
 
+    let compression = CompressionLayer::new().br(true);
+
     let app = Router::new()
         .route("/", get(index))
         .route("/styles.css", get(styles))
+        .route("/artists", get(artists))
+        .route("/artist/:artist_name", get(artist))
         .with_state(state)
-        .fallback(not_found);
+        .fallback(not_found)
+        .layer(compression);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
         .unwrap();
 
-    tracing::debug!("listening on {}", listener.local_addr().unwrap());
+    debug!("listening on {}", listener.local_addr().unwrap());
 
     axum::serve(listener, app).await.unwrap();
 }
@@ -65,6 +73,7 @@ async fn main() {
 struct NotFound;
 /// 404
 async fn not_found() -> impl IntoResponse {
+    debug!("404");
     (StatusCode::NOT_FOUND, NotFound {})
 }
 
@@ -73,7 +82,7 @@ async fn not_found() -> impl IntoResponse {
 /// Idk yet how, but should be cached somehow for the future so that
 /// it isn't requested on each load in full? idk
 async fn styles() -> impl IntoResponse {
-    tracing::debug!("GET /styles");
+    debug!("GET /styles");
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_str("text/css").unwrap());
 
@@ -94,10 +103,64 @@ struct Index {
 }
 /// GET `/`
 async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    tracing::debug!("GET /");
+    debug!("GET /");
     let entries = state.entries.read().await;
     Index {
         total_listened: gather::listening_time(&entries),
         playcount: gather::all_plays(&entries),
+    }
+}
+
+/// [`Template`] for [`artists`]
+#[derive(Template)]
+#[template(path = "artists.html", print = "none")]
+struct Artists {
+    artist_names: Vec<Arc<str>>,
+}
+/// GET `/artists`
+///
+/// List of artists
+async fn artists(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    debug!("GET /artists");
+    let entries = state.entries.read().await;
+
+    let artist_names = entries.artists().into_iter().sorted_unstable().collect();
+
+    Artists { artist_names }
+}
+
+/// [`Template`] for [`artist`]
+#[derive(Template)]
+#[template(path = "artist.html", print = "none")]
+struct ArtistPage {
+    artist: Artist,
+    plays: usize,
+    time_played: TimeDelta,
+}
+/// GET `/artist/:artist_name`
+///
+/// Artist page
+///
+/// Returns an [`ArtistPage`] with a valid `artist_name`
+/// and [`not_found`] if it's not in the dataset
+async fn artist(State(state): State<Arc<AppState>>, Path(artist_name): Path<String>) -> Response {
+    debug!("GET /artist/{}", artist_name);
+    let entries = state.entries.read().await;
+
+    match entries.find().artist(&artist_name) {
+        Some(artist) => {
+            let artist = artist[0].clone();
+            ArtistPage {
+                plays: gather::plays(&entries, &artist),
+                time_played: entries
+                    .iter()
+                    .filter(|e| artist.is_entry(e))
+                    .map(|e| e.time_played)
+                    .sum(),
+                artist,
+            }
+            .into_response()
+        }
+        None => not_found().await.into_response(),
     }
 }
