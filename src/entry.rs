@@ -397,7 +397,7 @@ impl SongEntries {
         let actual_time_span = match time_span {
             // maximum duration is whole dataset?
             x if x >= last - first => {
-                return (gather::listening_time(self), first, last);
+                return (gather::total_listening_time(self), first, last);
             }
             // minimum duration is 1 day
             x if x < ONE_DAY => ONE_DAY,
@@ -413,7 +413,7 @@ impl SongEntries {
         let mut end = end_max;
 
         while end <= last {
-            let current = gather::listening_time(self.between(&start, &end));
+            let current = gather::total_listening_time(self.between(&start, &end));
             if current > highest {
                 highest = current;
                 start_max = start;
@@ -425,17 +425,17 @@ impl SongEntries {
         (highest, start_max, end_max)
     }
 
-    /// Returns a [`Vec`] with the names of all [`Artists`][Artist] in the dataset
-    /// (unsorted!)
+    /// Returns a sorted [`Vec`] with the names of all [`Artists`][Artist] in the dataset
     #[must_use]
     pub fn artists(&self) -> Vec<Arc<str>> {
         self.iter()
             .map(|entry| Arc::clone(&entry.artist))
             .unique()
+            .sorted_unstable()
             .collect_vec()
     }
 
-    /// Returns a [`Vec`] with the names of the [`Albums`][Album]
+    /// Returns a sorted [`Vec`] with the names of the [`Albums`][Album]
     /// corresponding to the `artist`
     #[must_use]
     pub fn albums(&self, artist: &Artist) -> Vec<Arc<str>> {
@@ -443,10 +443,11 @@ impl SongEntries {
             .filter(|entry| artist.is_entry(entry))
             .map(|entry| Arc::clone(&entry.album))
             .unique()
+            .sorted_unstable()
             .collect_vec()
     }
 
-    /// Returns a [`Vec`] with the names of the [`Songs`][Song]
+    /// Returns a sorted [`Vec`] with the names of the [`Songs`][Song]
     /// corresponding to the `aspect`
     #[must_use]
     pub fn songs<Asp: HasSongs>(&self, aspect: &Asp) -> Vec<Arc<str>> {
@@ -454,6 +455,7 @@ impl SongEntries {
             .filter(|entry| aspect.is_entry(entry))
             .map(|entry| Arc::clone(&entry.track))
             .unique()
+            .sorted_unstable()
             .collect_vec()
     }
 

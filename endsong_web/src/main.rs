@@ -1,19 +1,21 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, State},
-    http::{header::CONTENT_TYPE, HeaderMap, HeaderValue, StatusCode},
+    extract::{Path, Query, State},
+    http::StatusCode,
     response::{IntoResponse, Response},
     routing::get,
     Router,
 };
 use endsong::prelude::*;
-use itertools::Itertools;
 use rinja_axum::Template;
-use tokio::{fs::File, io::AsyncReadExt, sync::RwLock};
+use tokio::sync::RwLock;
 use tower_http::compression::CompressionLayer;
 use tracing::debug;
 use tracing_subscriber::filter::{EnvFilter, LevelFilter};
+
+/// Tailwind-generated CSS used on this web page
+const STYLING: &str = include_str!("../templates/tailwind_style.css");
 
 #[derive(Clone)]
 struct AppState {
@@ -74,6 +76,7 @@ struct NotFound;
 /// 404
 async fn not_found() -> impl IntoResponse {
     debug!("404");
+
     (StatusCode::NOT_FOUND, NotFound {})
 }
 
@@ -83,15 +86,8 @@ async fn not_found() -> impl IntoResponse {
 /// it isn't requested on each load in full? idk
 async fn styles() -> impl IntoResponse {
     debug!("GET /styles");
-    let mut headers = HeaderMap::new();
-    headers.insert(CONTENT_TYPE, HeaderValue::from_str("text/css").unwrap());
 
-    let mut file = File::open("templates/tailwind_style.css").await.unwrap();
-
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).await.unwrap();
-
-    (headers, contents)
+    axum_extra::response::Css(STYLING)
 }
 
 /// [`Template`] for [`index`]
@@ -104,9 +100,11 @@ struct Index {
 /// GET `/`
 async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     debug!("GET /");
+
     let entries = state.entries.read().await;
+
     Index {
-        total_listened: gather::listening_time(&entries),
+        total_listened: gather::total_listening_time(&entries),
         playcount: gather::all_plays(&entries),
     }
 }
@@ -122,45 +120,88 @@ struct Artists {
 /// List of artists
 async fn artists(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     debug!("GET /artists");
+
     let entries = state.entries.read().await;
 
-    let artist_names = entries.artists().into_iter().sorted_unstable().collect();
+    let artist_names = entries.artists();
 
     Artists { artist_names }
 }
 
+/// To choose an artist if there are multiple with same capitalization
+/// (in my dataset tia)
+#[derive(serde::Deserialize)]
+struct ArtistQuery {
+    id: usize,
+}
+/// [`Template`] for if there are multiple artist with different
+/// capitalization in [`artist`]
+#[derive(Template)]
+#[template(path = "artist_selection.html", print = "none")]
+struct ArtistSelection {
+    artists: Vec<Artist>,
+}
 /// [`Template`] for [`artist`]
 #[derive(Template)]
 #[template(path = "artist.html", print = "none")]
-struct ArtistPage {
-    artist: Artist,
+struct ArtistPage<'a> {
+    artist: &'a Artist,
     plays: usize,
     time_played: TimeDelta,
 }
-/// GET `/artist/:artist_name`
+/// GET `/artist/:artist_name(?id=usize)`
 ///
 /// Artist page
 ///
-/// Returns an [`ArtistPage`] with a valid `artist_name`
+/// Returns an [`ArtistPage`] with a valid `artist_name`,
+/// an [`ArtistSelection`] if there are multiple artists with this name
+/// but different capitalization,
 /// and [`not_found`] if it's not in the dataset
-async fn artist(State(state): State<Arc<AppState>>, Path(artist_name): Path<String>) -> Response {
-    debug!("GET /artist/{}", artist_name);
+async fn artist(
+    State(state): State<Arc<AppState>>,
+    Path(artist_name): Path<String>,
+    options: Option<Query<ArtistQuery>>,
+) -> Response {
+    debug!(
+        artist_name = artist_name,
+        query = options.is_some(),
+        "GET /artist/:artist_name(?query)"
+    );
+
     let entries = state.entries.read().await;
 
-    match entries.find().artist(&artist_name) {
-        Some(artist) => {
-            let artist = artist[0].clone();
-            ArtistPage {
-                plays: gather::plays(&entries, &artist),
-                time_played: entries
-                    .iter()
-                    .filter(|e| artist.is_entry(e))
-                    .map(|e| e.time_played)
-                    .sum(),
-                artist,
-            }
-            .into_response()
-        }
-        None => not_found().await.into_response(),
+    let Some(artists) = entries.find().artist(&artist_name) else {
+        return not_found().await.into_response();
+    };
+
+    let artist = if artists.len() == 1 {
+        artists.first()
+    } else if let Some(Query(options)) = options {
+        artists.get(options.id)
+    } else {
+        None
+    };
+
+    let artist = if let Some(artist) = artist {
+        artist
+    } else {
+        // query if multiple artists with different capitalization
+        return ArtistSelection { artists }.into_response();
+    };
+
+    ArtistPage {
+        plays: gather::plays(&entries, artist),
+        time_played: gather::listening_time(&entries, artist),
+        artist,
+    }
+    .into_response()
+}
+
+mod filters {
+    use urlencoding::encode;
+
+    pub fn encodeurl(name: &str) -> rinja::Result<String> {
+        // bc of artists like AC/DC
+        Ok(encode(name).to_string())
     }
 }

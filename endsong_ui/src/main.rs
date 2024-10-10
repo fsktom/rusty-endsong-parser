@@ -105,8 +105,8 @@ fn test(entries: &SongEntries) {
     print::aspect_date(entries, &final_solution, &start_date, &end_date);
 
     assert_eq!(
-        gather::listening_time(entries),
-        gather::listening_time(entries.between(&entries.first_date(), &entries.last_date()))
+        gather::total_listening_time(entries),
+        gather::total_listening_time(entries.between(&entries.first_date(), &entries.last_date()))
     );
 
     let (time, start, end) = entries.max_listening_time(TimeDelta::try_weeks(26 * 9).unwrap());
@@ -114,7 +114,7 @@ fn test(entries: &SongEntries) {
 
     dbg!(gather::all_plays(entries.between(&start, &end)));
     print::time_played_date(entries, &start, &end);
-    dbg!(gather::listening_time(entries.between(&start, &end)).num_minutes());
+    dbg!(gather::total_listening_time(entries.between(&start, &end)).num_minutes());
 
     print::aspect(entries, &Album::new("Built To Last", "HammerFall"));
 }

@@ -13,3 +13,6 @@ rinja_axum = "0.3"
 tokio = { version = "1.40", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+axum-extra = "0.9"
+urlencoding = "2.1"
+serde = "1.0"

@@ -8,6 +8,7 @@ module.exports = {
     "./404.html",
     "./artists.html",
     "./artist.html",
+    "./artist_selection.html"
   ],
   theme: {
     extend: {},

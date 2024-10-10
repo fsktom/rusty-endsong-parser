@@ -236,6 +236,27 @@ pub fn all_plays(entries: &[SongEntry]) -> usize {
 
 /// Returns the total time listened
 #[must_use]
-pub fn listening_time(entries: &[SongEntry]) -> TimeDelta {
+pub fn total_listening_time(entries: &[SongEntry]) -> TimeDelta {
     entries.iter().map(|entry| entry.time_played).sum()
+}
+
+/// Counts up the listening time of an [`Artist`], [`Album`] or [`Song`]
+#[must_use]
+pub fn listening_time<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> TimeDelta {
+    entries
+        .iter()
+        .filter(|entry| aspect.is_entry(entry))
+        .map(|entry| entry.time_played)
+        .sum()
+}
+
+/// Counts up the plays of all [`Artists`][Artist],
+/// [`Albums`][Album] or [`Songs`][Song] in a collection
+#[must_use]
+pub fn listening_time_of_many<Asp: Music>(entries: &[SongEntry], aspects: &[Asp]) -> TimeDelta {
+    entries
+        .iter()
+        .filter(|entry| aspects.iter().any(|aspect| aspect.is_entry(entry)))
+        .map(|entry| entry.time_played)
+        .sum()
 }

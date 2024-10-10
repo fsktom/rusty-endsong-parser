@@ -54,11 +54,7 @@ pub fn artist(entries: &SongEntries, artist: &Artist) {
     let plays = gather::plays(entries, artist);
     let percentage_of_plays = format!("{:.2}", (plays as f64 / entries.len() as f64) * 100.0);
 
-    let time_played = entries
-        .iter()
-        .filter(|e| artist.is_entry(e))
-        .map(|e| e.time_played)
-        .sum();
+    let time_played = gather::listening_time(entries, artist);
 
     let first_listen = entries
         .iter()

@@ -123,11 +123,11 @@ impl ShellHelper {
         self.completer_list = string_vec(&["artist", "album", "song"]);
     }
 
-    /// Changes tab-complete to the given list of valid inputs - list should be unsorted
-    /// because it will be sorted here anyway
+    /// Changes tab-complete to the given list of valid inputs
     fn complete_list(&mut self, completer_list: Vec<Arc<str>>) {
         self.completer_list = completer_list;
-        self.completer_list.sort_unstable();
+        // sort instead of sort_unstable in case it's already sorted
+        self.completer_list.sort();
     }
 }
 impl Highlighter for ShellHelper {
