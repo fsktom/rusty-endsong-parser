@@ -5,7 +5,8 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::get,
-    Router,
+    routing::post,
+    Form, Router,
 };
 use endsong::prelude::*;
 use rinja_axum::Template;
@@ -15,7 +16,10 @@ use tracing::debug;
 use tracing_subscriber::filter::{EnvFilter, LevelFilter};
 
 /// Tailwind-generated CSS used on this web page
-const STYLING: &str = include_str!("../templates/tailwind_style.css");
+const STYLING: &str = include_str!("../static/tailwind_style.css");
+
+/// HTMX code (<https://htmx.org/docs/#installing>)
+const HTMX: &str = include_str!("../static/htmx.min.2.0.3.js");
 
 #[derive(Clone)]
 struct AppState {
@@ -54,7 +58,9 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/styles.css", get(styles))
+        .route("/htmx.js", get(htmx))
         .route("/artists", get(artists))
+        .route("/artists", post(artists_search))
         .route("/artist/:artist_name", get(artist))
         .with_state(state)
         .fallback(not_found)
@@ -90,6 +96,16 @@ async fn styles() -> impl IntoResponse {
     axum_extra::response::Css(STYLING)
 }
 
+/// GET `/htmx` - HTMX
+///
+/// Idk yet how, but should be cached somehow for the future so that
+/// it isn't requested on each load in full? idk
+async fn htmx() -> impl IntoResponse {
+    debug!("GET /htmx");
+
+    axum_extra::response::JavaScript(HTMX)
+}
+
 /// [`Template`] for [`index`]
 #[derive(Template)]
 #[template(path = "index.html", print = "none")]
@@ -112,20 +128,46 @@ async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
 /// [`Template`] for [`artists`]
 #[derive(Template)]
 #[template(path = "artists.html", print = "none")]
-struct Artists {
-    artist_names: Vec<Arc<str>>,
-}
+struct Artists {}
 /// GET `/artists`
 ///
-/// List of artists
-async fn artists(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+/// List of artists (HTML Template will call [`artists_search`] on-load)
+async fn artists() -> impl IntoResponse {
     debug!("GET /artists");
+
+    Artists {}
+}
+
+#[derive(serde::Deserialize)]
+struct ArtistsSearchForm {
+    search: String,
+}
+/// [`Template`] for [`artists_search`]
+#[derive(Template)]
+#[template(path = "artists_search.html", print = "none")]
+struct ArtistsSearch {
+    artist_names: Vec<Arc<str>>,
+}
+/// POST `/artists`
+///
+/// List of artists
+async fn artists_search(
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<ArtistsSearchForm>,
+) -> impl IntoResponse {
+    debug!(search = form.search, "POST /artists");
 
     let entries = state.entries.read().await;
 
-    let artist_names = entries.artists();
+    let lowercase_search = form.search.to_lowercase();
 
-    Artists { artist_names }
+    let artist_names = entries
+        .artists()
+        .into_iter()
+        .filter(|artist| artist.to_lowercase().contains(&lowercase_search))
+        .collect();
+
+    ArtistsSearch { artist_names }
 }
 
 /// To choose an artist if there are multiple with same capitalization

@@ -1,0 +1,3 @@
+{% for artist in artist_names %}
+<li><a href="/artist/{{ artist|encodeurl }}">{{ artist }}</a></li>
+{% endfor %}

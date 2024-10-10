@@ -3,9 +3,28 @@
 {% block title %} Artists {% endblock %}
 <!--  -->
 {% block content %}
-<ul>
-  {% for artist in artist_names %}
-  <li><a href="/artist/{{ artist|encodeurl }}">{{ artist }}</a></li>
-  {% endfor %}
-</ul>
+<section class="flex flex-col items-center gap-2">
+  <input
+    id="artist-search"
+    class="block rounded-lg border border-gray-300 bg-gray-50 p-2 text-lg text-gray-900"
+    type="search"
+    name="search"
+    placeholder="Artist name..."
+    hx-post="/artists"
+    hx-trigger="input changed, search, load"
+    hx-target="#search-results"
+  />
+  <ul id="search-results" class="flex flex-col items-center text-lg"></ul>
+</section>
+<script>
+  document.addEventListener("keydown", function (event) {
+    if (
+      (event.key === "s" || event.key === "/") &&
+      !event.target.matches("input, textarea")
+    ) {
+      event.preventDefault();
+      document.getElementById("artist-search").focus();
+    }
+  });
+</script>
 {% endblock %}
