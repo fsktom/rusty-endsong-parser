@@ -4,16 +4,19 @@
 <!--  -->
 {% block content %}
 <section class="flex flex-col items-center gap-2">
-  <input
-    id="artist-search"
-    class="block rounded-lg border border-gray-300 bg-gray-50 p-2 text-lg text-gray-900"
-    type="search"
-    name="search"
-    placeholder="Artist name..."
-    hx-post="/artists"
-    hx-trigger="input changed, search, load"
-    hx-target="#search-results"
-  />
+  <search class="flex items-center gap-1 border text-lg p-1 border-gray-700 rounded-s">
+    <label for="search">Artist search</label>
+    <input
+      id="artist-search"
+      class="block rounded-lg border border-gray-300 bg-gray-50 p-2 text-gray-900"
+      type="search"
+      name="search"
+      placeholder="Type here..."
+      hx-post="/artists"
+      hx-trigger="input changed, search, load"
+      hx-target="#search-results"
+    />
+  </search>
   <ul id="search-results" class="flex flex-col items-center text-lg"></ul>
 </section>
 <script>

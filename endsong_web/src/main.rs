@@ -1,30 +1,10 @@
-use std::sync::Arc;
+use endsong_web::*;
 
-use axum::{
-    extract::{Path, Query, State},
-    http::StatusCode,
-    response::{IntoResponse, Response},
-    routing::get,
-    routing::post,
-    Form, Router,
-};
+use axum::{routing::get, routing::post, Router};
 use endsong::prelude::*;
-use rinja_axum::Template;
-use tokio::sync::RwLock;
 use tower_http::compression::CompressionLayer;
 use tracing::debug;
 use tracing_subscriber::filter::{EnvFilter, LevelFilter};
-
-/// Tailwind-generated CSS used on this web page
-const STYLING: &str = include_str!("../static/tailwind_style.css");
-
-/// HTMX code (<https://htmx.org/docs/#installing>)
-const HTMX: &str = include_str!("../static/htmx.min.2.0.3.js");
-
-#[derive(Clone)]
-struct AppState {
-    entries: Arc<RwLock<SongEntries>>,
-}
 
 #[tokio::main]
 async fn main() {
@@ -49,19 +29,17 @@ async fn main() {
         .sum_different_capitalization()
         .filter(30, TimeDelta::try_seconds(10).unwrap());
 
-    let state = Arc::new(AppState {
-        entries: Arc::new(RwLock::new(entries)),
-    });
+    let state = AppState::new(entries);
 
     let compression = CompressionLayer::new().br(true);
 
     let app = Router::new()
         .route("/", get(index))
-        .route("/styles.css", get(styles))
-        .route("/htmx.js", get(htmx))
-        .route("/artists", get(artists))
-        .route("/artists", post(artists_search))
-        .route("/artist/:artist_name", get(artist))
+        .route("/styles.css", get(r#static::styles))
+        .route("/htmx.js", get(r#static::htmx))
+        .route("/artists", get(artists::base))
+        .route("/artists", post(artists::elements))
+        .route("/artist/:artist_name", get(artist::base))
         .with_state(state)
         .fallback(not_found)
         .layer(compression);
@@ -73,177 +51,4 @@ async fn main() {
     debug!("listening on {}", listener.local_addr().unwrap());
 
     axum::serve(listener, app).await.unwrap();
-}
-
-/// [`Template`] for [`not_found`]
-#[derive(Template)]
-#[template(path = "404.html", print = "none")]
-struct NotFound;
-/// 404
-async fn not_found() -> impl IntoResponse {
-    debug!("404");
-
-    (StatusCode::NOT_FOUND, NotFound {})
-}
-
-/// GET `/styles` - CSS
-///
-/// Idk yet how, but should be cached somehow for the future so that
-/// it isn't requested on each load in full? idk
-async fn styles() -> impl IntoResponse {
-    debug!("GET /styles");
-
-    axum_extra::response::Css(STYLING)
-}
-
-/// GET `/htmx` - HTMX
-///
-/// Idk yet how, but should be cached somehow for the future so that
-/// it isn't requested on each load in full? idk
-async fn htmx() -> impl IntoResponse {
-    debug!("GET /htmx");
-
-    axum_extra::response::JavaScript(HTMX)
-}
-
-/// [`Template`] for [`index`]
-#[derive(Template)]
-#[template(path = "index.html", print = "none")]
-struct Index {
-    total_listened: TimeDelta,
-    playcount: usize,
-}
-/// GET `/`
-async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    debug!("GET /");
-
-    let entries = state.entries.read().await;
-
-    Index {
-        total_listened: gather::total_listening_time(&entries),
-        playcount: gather::all_plays(&entries),
-    }
-}
-
-/// [`Template`] for [`artists`]
-#[derive(Template)]
-#[template(path = "artists.html", print = "none")]
-struct Artists {}
-/// GET `/artists`
-///
-/// List of artists (HTML Template will call [`artists_search`] on-load)
-async fn artists() -> impl IntoResponse {
-    debug!("GET /artists");
-
-    Artists {}
-}
-
-#[derive(serde::Deserialize)]
-struct ArtistsSearchForm {
-    search: String,
-}
-/// [`Template`] for [`artists_search`]
-#[derive(Template)]
-#[template(path = "artists_search.html", print = "none")]
-struct ArtistsSearch {
-    artist_names: Vec<Arc<str>>,
-}
-/// POST `/artists`
-///
-/// List of artists
-async fn artists_search(
-    State(state): State<Arc<AppState>>,
-    Form(form): Form<ArtistsSearchForm>,
-) -> impl IntoResponse {
-    debug!(search = form.search, "POST /artists");
-
-    let entries = state.entries.read().await;
-
-    let lowercase_search = form.search.to_lowercase();
-
-    let artist_names = entries
-        .artists()
-        .into_iter()
-        .filter(|artist| artist.to_lowercase().contains(&lowercase_search))
-        .collect();
-
-    ArtistsSearch { artist_names }
-}
-
-/// To choose an artist if there are multiple with same capitalization
-/// (in my dataset tia)
-#[derive(serde::Deserialize)]
-struct ArtistQuery {
-    id: usize,
-}
-/// [`Template`] for if there are multiple artist with different
-/// capitalization in [`artist`]
-#[derive(Template)]
-#[template(path = "artist_selection.html", print = "none")]
-struct ArtistSelection {
-    artists: Vec<Artist>,
-}
-/// [`Template`] for [`artist`]
-#[derive(Template)]
-#[template(path = "artist.html", print = "none")]
-struct ArtistPage<'a> {
-    artist: &'a Artist,
-    plays: usize,
-    time_played: TimeDelta,
-}
-/// GET `/artist/:artist_name(?id=usize)`
-///
-/// Artist page
-///
-/// Returns an [`ArtistPage`] with a valid `artist_name`,
-/// an [`ArtistSelection`] if there are multiple artists with this name
-/// but different capitalization,
-/// and [`not_found`] if it's not in the dataset
-async fn artist(
-    State(state): State<Arc<AppState>>,
-    Path(artist_name): Path<String>,
-    options: Option<Query<ArtistQuery>>,
-) -> Response {
-    debug!(
-        artist_name = artist_name,
-        query = options.is_some(),
-        "GET /artist/:artist_name(?query)"
-    );
-
-    let entries = state.entries.read().await;
-
-    let Some(artists) = entries.find().artist(&artist_name) else {
-        return not_found().await.into_response();
-    };
-
-    let artist = if artists.len() == 1 {
-        artists.first()
-    } else if let Some(Query(options)) = options {
-        artists.get(options.id)
-    } else {
-        None
-    };
-
-    let artist = if let Some(artist) = artist {
-        artist
-    } else {
-        // query if multiple artists with different capitalization
-        return ArtistSelection { artists }.into_response();
-    };
-
-    ArtistPage {
-        plays: gather::plays(&entries, artist),
-        time_played: gather::listening_time(&entries, artist),
-        artist,
-    }
-    .into_response()
-}
-
-mod filters {
-    use urlencoding::encode;
-
-    pub fn encodeurl(name: &str) -> rinja::Result<String> {
-        // bc of artists like AC/DC
-        Ok(encode(name).to_string())
-    }
 }
