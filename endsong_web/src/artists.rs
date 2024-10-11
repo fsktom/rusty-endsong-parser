@@ -54,7 +54,7 @@ pub async fn elements(
 ) -> impl IntoResponse {
     debug!(search = form.search, "POST /artists");
 
-    let artists = state.artists.read().await;
+    let artists = &state.artist_names;
 
     let lowercase_search = form.search.to_lowercase();
 

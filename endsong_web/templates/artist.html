@@ -3,18 +3,49 @@
 {% block title %} {{ artist.name }} {% endblock %}
 <!--  -->
 {% block content %}
-<h2 class="text-2xl">{{ artist.name }}</h2>
+<h2 class="text-2xl font-bold">{{ artist.name }}</h2>
 <section class="flex">
   <article
-    class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow dark:shadow-white"
+    class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow dark:shadow-none"
   >
-    <h2 class="self-center text-xl font-bold">General info</h2>
+    <h2 class="self-center text-xl font-semibold">General info</h2>
     <ul class="list-none">
       <li>Playcount: {{ plays }}</li>
       <li>
         Time spent listening:
-        <time datetime="{{ time_played }}">{{ time_played }}</time>
+        <ul class="ml-4 list-disc">
+          {% let minutes = time_played.num_minutes() %} {% let hours =
+          time_played.num_hours() %} {% let days = time_played.num_days() %}
+          <li>
+            <time datetime="{{ time_played }}"
+              >{{ minutes }} minute{{ minutes|pluralize }}</time
+            >
+          </li>
+          {% if hours != 0 %}
+          <li>
+            <time datetime="{{ time_played }}"
+              >or {{ hours }} hour{{ hours|pluralize }}</time
+            >
+          </li>
+          {% endif %} {% if days != 0 %}
+          <li>
+            <time datetime="{{ time_played }}"
+              >or {{ days }} day{{ days|pluralize }}</time
+            >
+          </li>
+          {% endif %}
+        </ul>
       </li>
+      <li>
+        First listen:
+        <time datetime="{{ first_listen }}">{{ first_listen }}</time>
+      </li>
+      <li>
+        Last listen:
+        <time datetime="{{ last_listen }}">{{ last_listen }}</time>
+      </li>
+      <li>% of total plays: {{ percentage_of_plays }}%</li>
+      <li>#{{ position }} artist of all time</li>
     </ul>
   </article>
 </section>

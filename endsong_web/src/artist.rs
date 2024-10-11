@@ -40,8 +40,16 @@ struct ArtistTemplate<'a> {
     artist: &'a Artist,
     /// This artist's playcount
     plays: usize,
+    /// Percentage of this artist's plays to the total playcount
+    percentage_of_plays: String,
     /// Time spent listening to this artist
     time_played: TimeDelta,
+    /// Date of first artist entry
+    first_listen: DateTime<Local>,
+    /// Date of most recent artist entry
+    last_listen: DateTime<Local>,
+    /// This artist's ranking compared to other artists (playcount)
+    position: usize,
 }
 /// GET `/artist/:artist_name(?id=usize)`
 ///
@@ -52,6 +60,11 @@ struct ArtistTemplate<'a> {
 /// multiple artists with this name
 /// but different capitalization,
 /// and [`not_found`] if it's not in the dataset
+#[expect(clippy::cast_precision_loss, reason = "necessary for % calc")]
+#[expect(
+    clippy::missing_panics_doc,
+    reason = "unwraps which should never panic"
+)]
 pub async fn base(
     State(state): State<Arc<AppState>>,
     Path(artist_name): Path<String>,
@@ -63,7 +76,7 @@ pub async fn base(
         "GET /artist/:artist_name(?query)"
     );
 
-    let entries = state.entries.read().await;
+    let entries = &state.entries;
 
     let Some(artists) = entries.find().artist(&artist_name) else {
         return not_found().await.into_response();
@@ -82,9 +95,32 @@ pub async fn base(
         return ArtistSelectionTemplate { artists }.into_response();
     };
 
+    let (plays, position) = *state.artists.get(artist).unwrap();
+    let percentage_of_plays = format!(
+        "{:.2}",
+        (plays as f64 / gather::all_plays(entries) as f64) * 100.0
+    );
+
+    // unwrap ok bc already made sure artist exists earlier
+    let first_listen = entries
+        .iter()
+        .find(|entry| artist.is_entry(entry))
+        .unwrap()
+        .timestamp;
+    let last_listen = entries
+        .iter()
+        .rev()
+        .find(|entry| artist.is_entry(entry))
+        .unwrap()
+        .timestamp;
+
     ArtistTemplate {
-        plays: gather::plays(&entries, artist),
-        time_played: gather::listening_time(&entries, artist),
+        plays,
+        position,
+        percentage_of_plays,
+        time_played: gather::listening_time(entries, artist),
+        first_listen,
+        last_listen,
         artist,
     }
     .into_response()

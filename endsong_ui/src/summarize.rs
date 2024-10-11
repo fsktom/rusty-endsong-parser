@@ -52,7 +52,10 @@ pub fn artist(entries: &SongEntries, artist: &Artist) {
     let albums = get_sorted_playcount_list(album_map, top);
 
     let plays = gather::plays(entries, artist);
-    let percentage_of_plays = format!("{:.2}", (plays as f64 / entries.len() as f64) * 100.0);
+    let percentage_of_plays = format!(
+        "{:.2}",
+        (plays as f64 / gather::all_plays(entries) as f64) * 100.0
+    );
 
     let time_played = gather::listening_time(entries, artist);
 
