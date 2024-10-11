@@ -11,6 +11,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use endsong::prelude::*;
+use plotly::{Layout, Plot, Scatter};
 use rinja_axum::Template;
 use serde::Deserialize;
 use tracing::debug;
@@ -124,4 +125,139 @@ pub async fn base(
         artist,
     }
     .into_response()
+}
+
+/// GET `/artist/:artist_name(?id=usize)/absolute_plot`
+///
+/// Has to be in-lined in another base.html-derived template
+pub async fn absolute_plot(
+    State(state): State<Arc<AppState>>,
+    Path(artist_name): Path<String>,
+    options: Option<Query<ArtistQuery>>,
+) -> Response {
+    debug!(
+        artist_name = artist_name,
+        query = options.is_some(),
+        "GET /artist/:artist_name(?query)/absolute_plot"
+    );
+
+    let entries = &state.entries;
+
+    let Some(artists) = entries.find().artist(&artist_name) else {
+        return not_found().await.into_response();
+    };
+
+    let artist = if artists.len() == 1 {
+        artists.first()
+    } else if let Some(Query(options)) = options {
+        artists.get(options.id)
+    } else {
+        None
+    };
+
+    let Some(artist) = artist else {
+        // query if multiple artists with different capitalization
+        return ArtistSelectionTemplate { artists }.into_response();
+    };
+
+    // see endsong_ui::trace::absolute
+    let mut times = Vec::<String>::with_capacity(entries.len());
+    let mut plays = Vec::<usize>::with_capacity(entries.len());
+
+    // since each date represents a single listen, we can just count up
+    let mut artist_plays = 0;
+
+    for entry in entries.iter().filter(|entry| artist.is_entry(entry)) {
+        artist_plays += 1;
+        times.push(entry.timestamp.format("%Y-%m-%d %H:%M").to_string());
+        plays.push(artist_plays);
+    }
+
+    let trace = Scatter::new(times, plays).name(artist);
+
+    let mut plot = Plot::new();
+    plot.add_trace(trace);
+
+    let layout = Layout::new()
+        .template(plotly::layout::themes::PLOTLY_DARK.clone())
+        .title(format!("{artist} | absolute plays"));
+    plot.set_layout(layout);
+
+    let plot_html = plot.to_inline_html(Some("artist-absolute-plot"));
+
+    axum_extra::response::Html(plot_html).into_response()
+}
+
+/// GET `/artist/:artist_name(?id=usize)/relative_plot`
+///
+/// Has to be in-lined in another base.html-derived template
+pub async fn relative_plot(
+    State(state): State<Arc<AppState>>,
+    Path(artist_name): Path<String>,
+    options: Option<Query<ArtistQuery>>,
+) -> Response {
+    debug!(
+        artist_name = artist_name,
+        query = options.is_some(),
+        "GET /artist/:artist_name(?query)/relative_plot"
+    );
+
+    let entries = &state.entries;
+
+    let Some(artists) = entries.find().artist(&artist_name) else {
+        return not_found().await.into_response();
+    };
+
+    let artist = if artists.len() == 1 {
+        artists.first()
+    } else if let Some(Query(options)) = options {
+        artists.get(options.id)
+    } else {
+        None
+    };
+
+    let Some(artist) = artist else {
+        // query if multiple artists with different capitalization
+        return ArtistSelectionTemplate { artists }.into_response();
+    };
+
+    // see endsong_ui::trace::relative_to_all
+    let mut times = Vec::<String>::with_capacity(entries.len());
+    // percentages relative to the sum of all plays
+    let mut plays = Vec::<f64>::with_capacity(entries.len());
+
+    let mut artist_plays = 0.0;
+    let mut all_plays = 0.0;
+
+    // the plot should start at the first time the aspect is played
+    let mut artist_found = false;
+
+    for entry in entries.iter() {
+        all_plays += 1.0;
+
+        if artist.is_entry(entry) {
+            artist_found = true;
+            artist_plays += 1.0;
+        }
+        if artist_found {
+            times.push(entry.timestamp.format("%Y-%m-%d %H:%M").to_string());
+            // *100 so that the percentage is easier to read...
+            plays.push(100.0 * (artist_plays / all_plays));
+        }
+    }
+
+    let title = format!("{artist} | relative to all plays");
+    let trace = Scatter::new(times, plays).name(title);
+
+    let mut plot = Plot::new();
+    plot.add_trace(trace);
+
+    let layout = Layout::new()
+        .template(plotly::layout::themes::PLOTLY_DARK.clone())
+        .title(format!("{artist} | relative to all plays"));
+    plot.set_layout(layout);
+
+    let plot_html = plot.to_inline_html(Some("artist-relative-plot"));
+
+    axum_extra::response::Html(plot_html).into_response()
 }

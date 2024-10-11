@@ -2,15 +2,7 @@
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./base.html",
-    "./index.html",
-    "./404.html",
-    "./artists.html",
-    "./artists_search.html",
-    "./artist.html",
-    "./artist_selection.html",
-  ],
+  content: ["./*.html"],
   theme: {
     extend: {},
   },

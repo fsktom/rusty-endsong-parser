@@ -16,3 +16,4 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum-extra = "0.9"
 urlencoding = "2.1"
 serde = "1.0"
+plotly = { version = "0.10", features = ["with-axum"] }

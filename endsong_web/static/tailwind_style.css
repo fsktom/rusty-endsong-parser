@@ -554,6 +554,14 @@ video {
   display: none;
 }
 
+.absolute {
+  position: absolute;
+}
+
+.relative {
+  position: relative;
+}
+
 .ml-4 {
   margin-left: 1rem;
 }
@@ -566,20 +574,20 @@ video {
   display: flex;
 }
 
-.list-item {
-  display: list-item;
+.w-2\/3 {
+  width: 66.666667%;
 }
 
 .w-full {
   width: 100%;
 }
 
-.list-none {
-  list-style-type: none;
-}
-
 .list-disc {
   list-style-type: disc;
+}
+
+.list-none {
+  list-style-type: none;
 }
 
 .flex-col {
@@ -760,10 +768,5 @@ https://www.joshwcomeau.com/css/interactive-guide-to-flexbox/
     --tw-shadow: 0 0 #0000;
     --tw-shadow-colored: 0 0 #0000;
     box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-  }
-
-  .dark\:shadow-white {
-    --tw-shadow-color: #fff;
-    --tw-shadow: var(--tw-shadow-colored);
   }
 }

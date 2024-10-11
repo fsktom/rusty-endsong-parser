@@ -56,9 +56,18 @@ async fn main() {
         .route("/", get(index))
         .route("/styles.css", get(r#static::styles))
         .route("/htmx.js", get(r#static::htmx))
+        .route("/plotly.js", get(r#static::plotly))
         .route("/artists", get(artists::base))
         .route("/artists", post(artists::elements))
         .route("/artist/:artist_name", get(artist::base))
+        .route(
+            "/artist/:artist_name/absolute_plot",
+            get(artist::absolute_plot),
+        )
+        .route(
+            "/artist/:artist_name/relative_plot",
+            get(artist::relative_plot),
+        )
         .with_state(state)
         .fallback(not_found)
         .layer(compression);
