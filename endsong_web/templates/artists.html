@@ -4,11 +4,13 @@
 <!--  -->
 {% block content %}
 <section class="flex flex-col items-center gap-2">
-  <search class="flex items-center gap-1 border text-lg p-1 border-gray-700 rounded-s">
+  <search
+    class="flex items-center gap-1 rounded-s border border-gray-700 p-1 text-lg"
+  >
     <label for="search">Artist search</label>
     <input
       id="artist-search"
-      class="block rounded-lg border border-gray-300 bg-gray-50 p-2 text-gray-900"
+      class="block rounded-lg border border-gray-300 bg-gray-50 p-2 text-gray-900 dark:bg-gray-950 dark:text-gray-100"
       type="search"
       name="search"
       placeholder="Type here..."
