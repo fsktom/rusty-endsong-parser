@@ -1,4 +1,4 @@
-//! Contains templates for `/artists`` routes
+//! Contains templates for `/artists` routes
 
 use crate::AppState;
 
@@ -25,8 +25,10 @@ pub async fn base() -> impl IntoResponse {
     BaseTemplate {}
 }
 
+/// [`Form`] arguments sent by an `input` used in [`elements`]
 #[derive(Deserialize)]
 pub struct ArtistListForm {
+    /// Search query
     search: String,
 }
 /// [`Template`] for [`elements`]
@@ -40,6 +42,7 @@ pub struct ArtistListForm {
 #[derive(Template)]
 #[template(in_doc = true, ext = "html", print = "none")]
 struct ElementsTemplate {
+    /// List of arist names constrained by the query
     artist_names: Vec<Arc<str>>,
 }
 /// POST `/artists`
@@ -64,11 +67,16 @@ pub async fn elements(
     ElementsTemplate { artist_names }
 }
 
+/// Cistom filters used in [`rinja`] templates
 mod filters {
     use urlencoding::encode;
 
+    /// Custom URL encoding
+    ///
+    /// Mostly for encoding `/` in something like `AC/DC`
+    /// to make a working link
+    #[expect(clippy::unnecessary_wraps, reason = "required rinja syntax")]
     pub fn encodeurl(name: &str) -> rinja::Result<String> {
-        // bc of artists like AC/DC
         Ok(encode(name).to_string())
     }
 }

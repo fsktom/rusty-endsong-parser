@@ -1,4 +1,23 @@
-use endsong_web::*;
+//! WEB
+
+// unsafe code is bad
+#![deny(unsafe_code)]
+// can be a pain, but it's worth it
+// don't forget to use #[expect(clippy::...)] when sensible
+#![warn(clippy::pedantic)]
+// because I want to be explicit when cloning is cheap
+#![warn(clippy::clone_on_ref_ptr)]
+// doc lints, checked when compiling/running clippy
+#![warn(missing_docs, clippy::missing_docs_in_private_items)]
+// other doc lints, only checked when building docs
+// https://doc.rust-lang.org/rustdoc/lints.html
+// other good ones are warn by default
+#![warn(rustdoc::missing_crate_level_docs, rustdoc::unescaped_backticks)]
+// https://blog.rust-lang.org/2024/09/05/Rust-1.81.0.html#expectlint
+#![warn(clippy::allow_attributes_without_reason)]
+#![warn(clippy::allow_attributes)]
+
+use endsong_web::{artist, artists, index, not_found, r#static, AppState};
 
 use axum::{routing::get, routing::post, Router};
 use endsong::prelude::*;

@@ -1,6 +1,8 @@
 //! Contains templates for `/artist` route
 
-use crate::*;
+#![allow(clippy::module_name_repetitions, reason = "looks nicer")]
+
+use crate::{not_found, AppState};
 
 use std::sync::Arc;
 
@@ -17,21 +19,28 @@ use tracing::debug;
 /// (in my dataset tia)
 #[derive(Deserialize)]
 pub struct ArtistQuery {
+    /// The artist's index in the [`Vec`] returned by [`find::artist`]
     id: usize,
 }
 /// [`Template`] for if there are multiple artist with different
-/// capitalization in [`artist`]
+/// capitalization in [`base`]
 #[derive(Template)]
 #[template(path = "artist_selection.html", print = "none")]
 struct ArtistSelectionTemplate {
+    /// Artists with same name, but different capitalization
+    ///
+    /// See [`find::artist`]
     artists: Vec<Artist>,
 }
-/// [`Template`] for [`artist`]
+/// [`Template`] for [`base`]
 #[derive(Template)]
 #[template(path = "artist.html", print = "none")]
 struct ArtistTemplate<'a> {
+    /// Reference to the given artist
     artist: &'a Artist,
+    /// This artist's playcount
     plays: usize,
+    /// Time spent listening to this artist
     time_played: TimeDelta,
 }
 /// GET `/artist/:artist_name(?id=usize)`
@@ -68,9 +77,7 @@ pub async fn base(
         None
     };
 
-    let artist = if let Some(artist) = artist {
-        artist
-    } else {
+    let Some(artist) = artist else {
         // query if multiple artists with different capitalization
         return ArtistSelectionTemplate { artists }.into_response();
     };
