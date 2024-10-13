@@ -52,40 +52,25 @@
 <section class="flex w-2/3 flex-col gap-4">
   <article class="flex flex-col">
     <button
-      id="absolute-plot-button"
       class="self-center"
       type="submit"
-      hx-target="#absolute-plot"
+      hx-target="this"
+      hx-swap="outerHTML"
       hx-get="/artist/{{ artist.name }}/absolute_plot"
     >
       Show absolute plot
     </button>
-    <figure id="absolute-plot"></figure>
   </article>
   <article class="flex flex-col">
     <button
-      id="relative-plot-button"
       class="self-center"
       type="submit"
-      hx-target="#relative-plot"
+      hx-target="this"
+      hx-swap="outerHTML"
       hx-get="/artist/{{ artist.name }}/relative_plot"
     >
       Show relative plot
     </button>
-    <figure id="relative-plot"></figure>
   </article>
 </section>
-<script>
-  // hide "show x plot" buttons on click
-  document
-    .getElementById("absolute-plot-button")
-    .addEventListener("click", function () {
-      this.style.display = "none";
-    });
-  document
-    .getElementById("relative-plot-button")
-    .addEventListener("click", function () {
-      this.style.display = "none";
-    });
-</script>
 {% endblock %}
