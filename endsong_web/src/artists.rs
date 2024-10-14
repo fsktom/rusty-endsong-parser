@@ -8,6 +8,7 @@ use axum::{
     extract::{Form, State},
     response::IntoResponse,
 };
+use endsong::prelude::*;
 use rinja::Template;
 use serde::Deserialize;
 use tracing::debug;
@@ -35,48 +36,45 @@ pub struct ArtistListForm {
 ///
 /// Template:
 /// ```rinja
-/// {% for artist in artist_names %}
-/// <li><a href="/artist/{{ artist|encodeurl }}">{{ artist }}</a></li>
+/// {% for (link, artist, plays) in artists %}
+/// <li><a href="{{ link }}">{{ artist.name }} | {{ plays }} plays</a></li>
 /// {% endfor %}
 /// ```
 #[derive(Template)]
 #[template(in_doc = true, ext = "html", print = "none")]
 struct ElementsTemplate {
-    /// List of arist names constrained by the query
-    artist_names: Vec<Arc<str>>,
+    /// List of artists constrained by the query
+    ///
+    /// Elements: Link to artist page, [`Artist`] instance, playcount
+    artists: Vec<(String, Artist, usize)>,
 }
 /// POST `/artists`
 ///
 /// List of artists
+#[expect(
+    clippy::missing_panics_doc,
+    reason = "will not panic since guaranteed artist in HashMap"
+)]
 pub async fn elements(
     State(state): State<Arc<AppState>>,
     Form(form): Form<ArtistListForm>,
 ) -> impl IntoResponse {
     debug!(search = form.search, "POST /artists");
 
-    let artists = &state.artist_names;
-
     let lowercase_search = form.search.to_lowercase();
 
-    let artist_names = artists
+    let artists = state
+        .artists
         .iter()
-        .filter(|artist| artist.to_lowercase().contains(&lowercase_search))
-        .cloned()
+        .filter(|artist| artist.name.to_lowercase().contains(&lowercase_search))
+        .map(|artist| {
+            (
+                format!("/artist/{artist}"),
+                artist.clone(),
+                state.artist_ranking.get(artist).unwrap().0,
+            )
+        })
         .collect();
 
-    ElementsTemplate { artist_names }
-}
-
-/// Cistom filters used in [`rinja`] templates
-mod filters {
-    use urlencoding::encode;
-
-    /// Custom URL encoding
-    ///
-    /// Mostly for encoding `/` in something like `AC/DC`
-    /// to make a working link
-    #[expect(clippy::unnecessary_wraps, reason = "required rinja syntax")]
-    pub fn encodeurl(name: &str) -> rinja::Result<String> {
-        Ok(encode(name).to_string())
-    }
+    ElementsTemplate { artists }
 }

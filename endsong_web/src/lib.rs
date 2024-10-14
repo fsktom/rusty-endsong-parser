@@ -36,16 +36,16 @@ use tracing::debug;
 pub struct AppState {
     /// Reference to the [`SongEntries`] instance used
     pub entries: Arc<SongEntries>,
-    /// Sorted (ascending alphabetically) list of all artist names in the dataset
-    pub artist_names: Arc<Vec<Arc<str>>>,
+    /// Sorted (ascending alphabetically) list of all artists in the dataset
+    pub artists: Arc<Vec<Artist>>,
     /// Map of artists with their playcount (.0) and their position/ranking descending (.1)
-    pub artists: Arc<HashMap<Artist, (usize, usize)>>,
+    pub artist_ranking: Arc<HashMap<Artist, (usize, usize)>>,
 }
 impl AppState {
     /// Creates a new [`AppState`] within an [`Arc`]
     #[must_use]
     pub fn new(entries: SongEntries) -> Arc<Self> {
-        let artists: HashMap<Artist, (usize, usize)> = gather::artists(&entries)
+        let artist_ranking: HashMap<Artist, (usize, usize)> = gather::artists(&entries)
             .into_iter()
             .sorted_unstable_by_key(|(art, plays)| (std::cmp::Reverse(*plays), art.clone()))
             .enumerate()
@@ -54,8 +54,15 @@ impl AppState {
             .collect();
 
         Arc::new(Self {
-            artists: Arc::new(artists),
-            artist_names: Arc::new(entries.artists()),
+            artist_ranking: Arc::new(artist_ranking),
+            artists: Arc::new(
+                entries
+                    .iter()
+                    .map(Artist::from)
+                    .unique()
+                    .sorted_unstable()
+                    .collect_vec(),
+            ),
             entries: Arc::new(entries),
         })
     }
@@ -91,4 +98,13 @@ pub async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         total_listened: gather::total_listening_time(entries),
         playcount: gather::all_plays(entries),
     }
+}
+
+/// Custom URL encoding
+///
+/// Mostly for encoding `/` in something like `AC/DC`
+/// to make a working link
+#[must_use]
+pub fn encode_url(name: &str) -> String {
+    urlencoding::encode(name).into_owned()
 }

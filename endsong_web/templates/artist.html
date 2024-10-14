@@ -49,6 +49,120 @@
     </ul>
   </article>
 </section>
+<section class="flex gap-16">
+  <article
+    class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow dark:shadow-none"
+  >
+    <h2 class="self-center text-xl font-semibold">Albums</h2>
+    <form class="flex items-center justify-center gap-4">
+      <div class="flex gap-1">
+        <input
+          type="radio"
+          name="top"
+          value="10"
+          id="top-albums-10"
+          checked
+          hx-target="#albums"
+          hx-trigger="click, load"
+          hx-post="{{ link_albums }}"
+        /><label for="top-albums-10">Top 10</label>
+      </div>
+      <div class="flex gap-1">
+        <input
+          type="radio"
+          name="top"
+          value="25"
+          id="top-albums-25"
+          hx-target="#albums"
+          hx-trigger="click"
+          hx-post="{{ link_albums }}"
+        /><label for="top-albums-25">Top 25</label>
+      </div>
+      <div class="flex gap-1">
+        <input
+          type="radio"
+          name="top"
+          value="10000"
+          id="top-albums-all"
+          hx-target="#albums"
+          hx-trigger="click"
+          hx-post="{{ link_albums }}"
+        /><label for="top-albums-all">All</label>
+      </div>
+    </form>
+    <ol class="list-decimal" id="albums"></ol>
+  </article>
+  <article
+    class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow dark:shadow-none"
+  >
+    <h2 class="self-center text-xl font-semibold">Songs</h2>
+    <div class="flex gap-1 self-center">
+      <input
+        type="checkbox"
+        name="sum_across_albums"
+        id="if_sum_across_albums"
+        hx-target="#songs"
+        hx-trigger="click"
+        hx-include="next input[type='radio']:checked"
+        hx-post="{{ link_songs }}"
+        checked
+      />
+      <label for="if_sum_across_albums">Sum plays across albums?</label>
+    </div>
+    <form class="flex items-center justify-center gap-4">
+      <div class="flex gap-1">
+        <input
+          type="radio"
+          name="top"
+          value="10"
+          id="top-songs-10"
+          checked
+          hx-target="#songs"
+          hx-trigger="click, load"
+          hx-include="#if_sum_across_albums"
+          hx-post="{{ link_songs }}"
+        /><label for="top-songs-10">Top 10</label>
+      </div>
+      <div class="flex gap-1">
+        <input
+          type="radio"
+          name="top"
+          value="25"
+          id="top-songs-25"
+          hx-target="#songs"
+          hx-trigger="click"
+          hx-include="#if_sum_across_albums"
+          hx-post="{{ link_songs }}"
+        /><label for="top-songs-25">Top 25</label>
+      </div>
+      <div class="flex gap-1">
+        <input
+          type="radio"
+          name="top"
+          value="50"
+          id="top-songs-50"
+          hx-target="#songs"
+          hx-trigger="click"
+          hx-include="#if_sum_across_albums"
+          hx-post="{{ link_songs }}"
+        /><label for="top-songs-50">Top 50</label>
+      </div>
+      <div class="flex gap-1">
+        <input
+          type="radio"
+          name="top"
+          value="10000"
+          id="top-songs-all"
+          hx-target="#songs"
+          hx-trigger="click"
+          hx-include="#if_sum_across_albums"
+          hx-post="{{ link_songs }}"
+        /><label for="top-songs-all">All</label>
+      </div>
+    </form>
+    <ol class="list-decimal" id="songs" hx-swap-oob="true"></ol>
+  </article>
+</section>
 <section class="flex w-2/3 flex-col gap-4">
   <article class="flex flex-col">
     <button
@@ -56,7 +170,7 @@
       type="submit"
       hx-target="this"
       hx-swap="outerHTML"
-      hx-get="/artist/{{ artist.name }}/absolute_plot"
+      hx-get="{{ link_absolute }}"
     >
       Show absolute plot
     </button>
@@ -67,7 +181,7 @@
       type="submit"
       hx-target="this"
       hx-swap="outerHTML"
-      hx-get="/artist/{{ artist.name }}/relative_plot"
+      hx-get="{{ link_relative }}"
     >
       Show relative plot
     </button>

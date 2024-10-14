@@ -60,6 +60,8 @@ async fn main() {
         .route("/artists", get(artists::base))
         .route("/artists", post(artists::elements))
         .route("/artist/:artist_name", get(artist::base))
+        .route("/artist/:artist_name/albums", post(artist::albums))
+        .route("/artist/:artist_name/songs", post(artist::songs))
         .route(
             "/artist/:artist_name/absolute_plot",
             get(artist::absolute_plot),

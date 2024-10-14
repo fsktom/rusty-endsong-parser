@@ -15,9 +15,9 @@ struct ArtistSummary {
     name: Arc<str>,
     /// Number of top songs/albums to be displayed
     top: usize,
-    /// Array of top song names with their playcount
+    /// List of top song names with their playcount sorted by the playcount descending
     songs: Vec<(Arc<str>, usize)>,
-    /// Array of top album names with their playcount
+    /// List of top album names with their playcount sorted by the playcount descending
     albums: Vec<(Arc<str>, usize)>,
     /// Count of this artist's plays
     plays: usize,
