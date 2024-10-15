@@ -18,6 +18,7 @@
 #![warn(clippy::allow_attributes)]
 #![allow(clippy::unused_async, reason = "axum handlers must be async")]
 
+pub mod album;
 pub mod artist;
 pub mod artists;
 pub mod r#static;

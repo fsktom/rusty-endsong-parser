@@ -30,11 +30,24 @@ pub struct ArtistQuery {
 /// capitalization in [`base`]
 #[derive(Template)]
 #[template(path = "artist_selection.html", print = "none")]
-struct ArtistSelectionTemplate {
+pub struct ArtistSelectionTemplate {
     /// Artists with same name, but different capitalization
     ///
     /// See [`find::artist`]
-    artists: Vec<Artist>,
+    pub artists: Vec<Artist>,
+    /// Link to the artist page (without `artist_id`)
+    pub link_base_artist: String,
+}
+impl ArtistSelectionTemplate {
+    /// Creates a new [`ArtistSelectionTemplate`] with generated `link_base_artist`
+    #[expect(clippy::missing_panics_doc, reason = "unwrap will never panic")]
+    #[must_use]
+    pub fn new(artists: Vec<Artist>) -> Self {
+        Self {
+            link_base_artist: format!("/artist/{}", encode_url(&artists.first().unwrap().name)),
+            artists,
+        }
+    }
 }
 /// [`Template`] for [`base`]
 #[derive(Template)]
@@ -104,7 +117,7 @@ pub async fn base(
 
     let Some(artist) = artist else {
         // query if multiple artists with different capitalization
-        return ArtistSelectionTemplate { artists }.into_response();
+        return ArtistSelectionTemplate::new(artists).into_response();
     };
 
     let (plays, position) = *state.artist_ranking.get(artist).unwrap();
@@ -190,7 +203,7 @@ pub async fn absolute_plot(
 
     let Some(artist) = artist else {
         // query if multiple artists with different capitalization
-        return ArtistSelectionTemplate { artists }.into_response();
+        return ArtistSelectionTemplate::new(artists).into_response();
     };
 
     // see endsong_ui::trace::absolute
@@ -251,7 +264,7 @@ pub async fn relative_plot(
 
     let Some(artist) = artist else {
         // query if multiple artists with different capitalization
-        return ArtistSelectionTemplate { artists }.into_response();
+        return ArtistSelectionTemplate::new(artists).into_response();
     };
 
     // see endsong_ui::trace::relative_to_all
@@ -362,7 +375,7 @@ pub async fn albums(
 
     let Some(artist) = artist else {
         // query if multiple artists with different capitalization
-        return ArtistSelectionTemplate { artists }.into_response();
+        return ArtistSelectionTemplate::new(artists).into_response();
     };
 
     let top = form.top.unwrap_or(1000);
@@ -450,7 +463,7 @@ pub async fn songs(
 
     let Some(artist) = artist else {
         // query if multiple artists with different capitalization
-        return ArtistSelectionTemplate { artists }.into_response();
+        return ArtistSelectionTemplate::new(artists).into_response();
     };
 
     let top = form.top.unwrap_or(1000);

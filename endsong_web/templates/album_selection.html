@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+<!--  -->
+{% block title %} Album Selection {% endblock %}
+<!--  -->
+{% block content %}
+<h2 class="text-2xl">Which album do you mean?</h2>
+<ul class="list-none">
+  {% for album in albums %}
+  <li>
+    <a href="{{ link_base_album }}?album_id={{ loop.index0 }}"
+      >{{ album.name }}</a
+    >
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -6,7 +6,11 @@
 <h2 class="text-2xl">Which artist do you mean?</h2>
 <ul class="list-none">
   {% for artist in artists %}
-  <li><a href="/artist/{{ artist.name }}?artist_id={{ loop.index0 }}">{{ artist.name }}</a></li>
+  <li>
+    <a href="{{ link_base_artist }}?artist_id={{ loop.index0 }}"
+      >{{ artist.name }}</a
+    >
+  </li>
   {% endfor %}
 </ul>
 {% endblock %}

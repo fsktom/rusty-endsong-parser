@@ -17,7 +17,7 @@
 #![warn(clippy::allow_attributes_without_reason)]
 #![warn(clippy::allow_attributes)]
 
-use endsong_web::{artist, artists, index, not_found, r#static, AppState};
+use endsong_web::{album, artist, artists, index, not_found, r#static, AppState};
 
 use axum::{routing::get, routing::post, Router};
 use endsong::prelude::*;
@@ -38,14 +38,14 @@ async fn main() {
         "macos" => "/Users/filip/Other/Endsong/",
         _ => "/mnt/c/temp/Endsong/",
     };
-    let last: u8 = 0;
+    let last: u8 = 9;
     let paths: Vec<String> = (0..=last)
         .map(|i| format!("{root}endsong_{i}.json"))
         .collect();
 
     let entries = SongEntries::new(&paths)
         .unwrap_or_else(|e| panic!("{e}"))
-        .sum_different_capitalization()
+        // .sum_different_capitalization()
         .filter(30, TimeDelta::try_seconds(10).unwrap());
 
     let state = AppState::new(entries);
@@ -70,6 +70,7 @@ async fn main() {
             "/artist/:artist_name/relative_plot",
             get(artist::relative_plot),
         )
+        .route("/album/:artist_name/:album_name", get(album::base))
         .with_state(state)
         .fallback(not_found)
         .layer(compression);
