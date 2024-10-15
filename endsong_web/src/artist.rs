@@ -2,7 +2,7 @@
 
 #![allow(clippy::module_name_repetitions, reason = "looks nicer")]
 
-use crate::{encode_url, not_found, AppState, ArtistInfo};
+use crate::{not_found, AppState, ArtistInfo, UrlEncoding};
 
 use std::sync::Arc;
 
@@ -44,7 +44,7 @@ impl ArtistSelectionTemplate {
     #[must_use]
     pub fn new(artists: Vec<Artist>) -> Self {
         Self {
-            link_base_artist: format!("/artist/{}", encode_url(&artists.first().unwrap().name)),
+            link_base_artist: format!("/artist/{}", &artists.first().unwrap().encode()),
             artists,
         }
     }
@@ -144,7 +144,7 @@ pub async fn base(
         .unwrap()
         .timestamp;
 
-    let encoded_artist = encode_url(&artist.name);
+    let encoded_artist = artist.encode();
     let (link_albums, link_songs, link_absolute, link_relative) =
         if let Some(artist_id) = options.artist_id {
             (
@@ -388,15 +388,11 @@ pub async fn albums(
         if let Some(artist_id) = options.artist_id {
             format!(
                 "/album/{}/{}?artist_id={artist_id}",
-                encode_url(&album.artist.name),
-                encode_url(&album.name)
+                album.artist.encode(),
+                album.encode()
             )
         } else {
-            format!(
-                "/album/{}/{}",
-                encode_url(&album.artist.name),
-                encode_url(&album.name)
-            )
+            format!("/album/{}/{}", album.artist.encode(), album.encode())
         }
     };
 
@@ -476,15 +472,11 @@ pub async fn songs(
         if let Some(artist_id) = options.artist_id {
             format!(
                 "/song/{}/{}?artist_id={artist_id}",
-                encode_url(&song.album.artist.name),
-                encode_url(&song.name)
+                song.album.artist.encode(),
+                song.encode()
             )
         } else {
-            format!(
-                "/song/{}/{}",
-                encode_url(&song.album.artist.name),
-                encode_url(&song.name)
-            )
+            format!("/song/{}/{}", song.album.artist.encode(), song.encode())
         }
     };
 

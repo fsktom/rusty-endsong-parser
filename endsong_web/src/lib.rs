@@ -57,7 +57,7 @@ impl AppState {
             .enumerate()
         {
             artist_info.entry(artist.clone()).or_insert(ArtistInfo {
-                link: Arc::from(format!("/artist/{}", encode_url(artist.as_ref()))),
+                link: Arc::from(format!("/artist/{}", artist.encode())),
                 plays: *plays,
                 duration: *duration,
                 // bc enumerate starts with 0
@@ -244,12 +244,25 @@ pub async fn top_artists(
     TopArtistsTempate { artists }
 }
 
+/// Helper trait for encoding aspect names to make them work in URLs
+pub trait UrlEncoding {
+    /// Encodes it for URL usage
+    fn encode(&self) -> String;
+}
+/// Auto implements this trait for [`Artist`], [`Album`] and [`Song`]
+impl<Aspect: Music> UrlEncoding for Aspect {
+    /// Encodes the aspect's `name` for URL usage
+    fn encode(&self) -> String {
+        encode_url(self.as_ref())
+    }
+}
+
 /// Custom URL encoding
 ///
 /// Mostly for encoding `/` in something like `AC/DC`
 /// to make a working link
 #[must_use]
-pub fn encode_url(name: &str) -> String {
+fn encode_url(name: &str) -> String {
     urlencoding::encode(name).into_owned()
 }
 

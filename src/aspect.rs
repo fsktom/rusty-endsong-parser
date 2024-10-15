@@ -55,7 +55,7 @@ use crate::entry::SongEntry;
 
 /// Used for functions that accept either
 /// a [`Song`], [`Album`] or [`Artist`] struct
-pub trait Music: Display + Clone + Eq + Ord {
+pub trait Music: Display + Clone + Eq + Ord + AsRef<str> {
     /// Checks if a [`SongEntry`] is a [`Music`]
     fn is_entry(&self, entry: &SongEntry) -> bool;
 
