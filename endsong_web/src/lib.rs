@@ -181,14 +181,14 @@ pub async fn top_artists(
                 )
             })
             .collect(),
-        Sorting::Minutes => gather::artists(entries)
+        Sorting::Minutes => gather::artists_with_duration(entries)
             .into_iter()
-            .map(|(artist, plays)| {
+            .map(|(artist, (plays, duration))| {
                 (
                     format!("/artist/{artist}"),
                     artist.clone(),
                     plays,
-                    gather::listening_time(entries, &artist).num_minutes(),
+                    duration.num_minutes(),
                 )
             })
             .sorted_unstable_by(|a, b| b.3.cmp(&a.3).then_with(|| a.1.cmp(&b.1)))

@@ -207,6 +207,21 @@ pub fn artists(entries: &[SongEntry]) -> HashMap<Artist, usize> {
     entries.iter().map(Artist::from).counts()
 }
 
+/// Returns a map with all [`Artists`][Artist], their playcount and time listened
+#[must_use]
+pub fn artists_with_duration(entries: &[SongEntry]) -> HashMap<Artist, (usize, TimeDelta)> {
+    let mut map = HashMap::with_capacity(entries.len() / 100);
+
+    for entry in entries {
+        let artist = Artist::from(entry);
+        let e: &mut (usize, TimeDelta) = map.entry(artist).or_default();
+        e.0 += 1;
+        e.1 += entry.time_played;
+    }
+
+    map
+}
+
 /// Counts up the plays of an [`Artist`], [`Album`] or [`Song`]
 #[must_use]
 pub fn plays<Asp: Music>(entries: &[SongEntry], aspect: &Asp) -> usize {
