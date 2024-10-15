@@ -2,7 +2,7 @@
 
 #![allow(clippy::module_name_repetitions, reason = "looks nicer")]
 
-use crate::{encode_url, not_found, AppState};
+use crate::{encode_url, not_found, AppState, ArtistInfo};
 
 use std::sync::Arc;
 
@@ -55,18 +55,16 @@ impl ArtistSelectionTemplate {
 struct ArtistTemplate<'a> {
     /// Reference to the given artist
     artist: &'a Artist,
-    /// This artist's playcount
-    plays: usize,
+    /// Some info on the artist
+    info: ArtistInfo,
     /// Percentage of this artist's plays to the total playcount
     percentage_of_plays: String,
-    /// Time spent listening to this artist
-    time_played: TimeDelta,
+    /// Percentage of this artist's playtime to the total time played
+    percentage_of_duration: String,
     /// Date of first artist entry
     first_listen: DateTime<Local>,
     /// Date of most recent artist entry
     last_listen: DateTime<Local>,
-    /// This artist's ranking compared to other artists (playcount)
-    position: usize,
     /// Link to albums
     link_albums: String,
     /// Link to songs
@@ -120,10 +118,17 @@ pub async fn base(
         return ArtistSelectionTemplate::new(artists).into_response();
     };
 
-    let (plays, position) = *state.artist_ranking.get(artist).unwrap();
+    let info = state.artist_info.get(artist).unwrap().clone();
+
     let percentage_of_plays = format!(
         "{:.2}",
-        (plays as f64 / gather::all_plays(entries) as f64) * 100.0
+        (info.plays as f64 / gather::all_plays(entries) as f64) * 100.0
+    );
+    let percentage_of_duration = format!(
+        "{:.2}",
+        (info.duration.num_seconds() as f64
+            / gather::total_listening_time(entries).num_seconds() as f64)
+            * 100.0
     );
 
     // unwrap ok bc already made sure artist exists earlier
@@ -158,17 +163,16 @@ pub async fn base(
         };
 
     ArtistTemplate {
-        plays,
-        position,
+        artist,
+        info,
         percentage_of_plays,
-        time_played: gather::listening_time(entries, artist),
+        percentage_of_duration,
         first_listen,
         last_listen,
         link_albums,
         link_songs,
         link_absolute,
         link_relative,
-        artist,
     }
     .into_response()
 }

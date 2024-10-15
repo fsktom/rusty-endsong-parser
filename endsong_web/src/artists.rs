@@ -1,6 +1,6 @@
 //! Contains templates for `/artists` routes
 
-use crate::AppState;
+use crate::{AppState, ArtistInfo};
 
 use std::sync::Arc;
 
@@ -36,8 +36,14 @@ pub struct ArtistListForm {
 ///
 /// Template:
 /// ```rinja
-/// {% for (link, artist, plays) in artists %}
-/// <li><a href="{{ link }}">{{ artist.name }} | {{ plays }} plays</a></li>
+/// {% for (artist, info) in artists %}
+/// <li>
+/// <a href="{{ info.link }}"
+///   >{{ artist }} | {{ info.plays }} play{{ info.plays|pluralize }} | {{
+///   info.duration.num_minutes() }} minute{{
+///   info.duration.num_minutes()|pluralize }}</a
+/// >
+/// </li>
 /// {% endfor %}
 /// ```
 #[derive(Template)]
@@ -46,7 +52,7 @@ struct ElementsTemplate {
     /// List of artists constrained by the query
     ///
     /// Elements: Link to artist page, [`Artist`] instance, playcount
-    artists: Vec<(String, Artist, usize)>,
+    artists: Vec<(Artist, ArtistInfo)>,
 }
 /// POST `/artists`
 ///
@@ -69,9 +75,8 @@ pub async fn elements(
         .filter(|artist| artist.name.to_lowercase().contains(&lowercase_search))
         .map(|artist| {
             (
-                format!("/artist/{artist}"),
                 artist.clone(),
-                state.artist_ranking.get(artist).unwrap().0,
+                state.artist_info.get(artist).unwrap().clone(),
             )
         })
         .collect();

@@ -10,26 +10,29 @@
   >
     <h2 class="self-center text-xl font-semibold">General info</h2>
     <ul class="list-none">
-      <li>Playcount: {{ plays }}</li>
+      <li>Playcount: {{ info.plays }}</li>
       <li>
         Time spent listening:
         <ul class="ml-4 list-disc">
-          {% let minutes = time_played.num_minutes() %} {% let hours =
-          time_played.num_hours() %} {% let days = time_played.num_days() %}
+          {% let minutes = info.duration.num_minutes() %}
+          <!--  -->
+          {% let hours = info.duration.num_hours() %}
+          <!--  -->
+          {% let days = info.duration.num_days() %}
           <li>
-            <time datetime="{{ time_played }}"
+            <time datetime="{{ info.duration }}"
               >{{ minutes }} minute{{ minutes|pluralize }}</time
             >
           </li>
           {% if hours != 0 %}
           <li>
-            <time datetime="{{ time_played }}"
+            <time datetime="{{ info.duration }}"
               >or {{ hours }} hour{{ hours|pluralize }}</time
             >
           </li>
           {% endif %} {% if days != 0 %}
           <li>
-            <time datetime="{{ time_played }}"
+            <time datetime="{{ info.duration }}"
               >or {{ days }} day{{ days|pluralize }}</time
             >
           </li>
@@ -45,7 +48,9 @@
         <time datetime="{{ last_listen }}">{{ last_listen }}</time>
       </li>
       <li>% of total plays: {{ percentage_of_plays }}%</li>
-      <li>#{{ position }} artist of all time</li>
+      <li>% of total listening time: {{ percentage_of_duration }}%</li>
+      <li>#{{ info.position_plays }} artist by plays</li>
+      <li>#{{ info.position_duration }} artist by time listened</li>
     </ul>
   </article>
 </section>

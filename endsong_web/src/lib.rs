@@ -40,23 +40,45 @@ pub struct AppState {
     pub entries: Arc<SongEntries>,
     /// Sorted (ascending alphabetically) list of all artists in the dataset
     pub artists: Arc<Vec<Artist>>,
-    /// Map of artists with their playcount (.0) and their position/ranking descending (.1)
-    pub artist_ranking: Arc<HashMap<Artist, (usize, usize)>>,
+    /// Map of artists with the link to thoer page, their playcount their position/ranking descending
+    pub artist_info: Arc<HashMap<Artist, ArtistInfo>>,
 }
 impl AppState {
     /// Creates a new [`AppState`] within an [`Arc`]
     #[must_use]
     pub fn new(entries: SongEntries) -> Arc<Self> {
-        let artist_ranking: HashMap<Artist, (usize, usize)> = gather::artists(&entries)
-            .into_iter()
-            .sorted_unstable_by_key(|(art, plays)| (std::cmp::Reverse(*plays), art.clone()))
+        let mut artist_info: HashMap<Artist, ArtistInfo> =
+            HashMap::with_capacity(entries.len() / 100);
+
+        let artists_with_duration = gather::artists_with_duration(&entries);
+        for (position, (artist, (plays, duration))) in artists_with_duration
+            .iter()
+            .sorted_unstable_by_key(|(art, (plays, _))| (std::cmp::Reverse(*plays), *art))
             .enumerate()
-            // bc enumeration starts with 0 :P
-            .map(|(position, (art, plays))| (art, (plays, position + 1)))
-            .collect();
+        {
+            artist_info.entry(artist.clone()).or_insert(ArtistInfo {
+                link: Arc::from(format!("/artist/{artist}")),
+                plays: *plays,
+                duration: *duration,
+                // bc enumerate starts with 0
+                position_plays: position + 1,
+                position_duration: 0,
+            });
+        }
+        for (position, (artist, _)) in artists_with_duration
+            .into_iter()
+            .sorted_unstable_by_key(|(art, (_, duration))| {
+                (std::cmp::Reverse(*duration), art.clone())
+            })
+            .enumerate()
+        {
+            artist_info
+                .entry(artist)
+                .and_modify(|e| e.position_duration = position + 1);
+        }
 
         Arc::new(Self {
-            artist_ranking: Arc::new(artist_ranking),
+            artist_info: Arc::new(artist_info),
             artists: Arc::new(
                 entries
                     .iter()
@@ -68,6 +90,21 @@ impl AppState {
             entries: Arc::new(entries),
         })
     }
+}
+
+/// Used in [`AppState`] for artist in a [`HashMap`]
+#[derive(Clone)]
+pub struct ArtistInfo {
+    /// Link to the artist page (i.e. `/artist/[:artist_name]`)
+    link: Arc<str>,
+    /// This artist's playcount
+    plays: usize,
+    /// Position in regards to the playcount
+    position_plays: usize,
+    /// Total time listened to this aritst
+    duration: TimeDelta,
+    /// Position in regards to the time listened
+    position_duration: usize,
 }
 
 /// [`Template`] for [`not_found`]
@@ -142,17 +179,27 @@ pub struct TopArtistsForm {
 /// [`Template`] for [`top_artists`]
 ///
 /// ```rinja
-/// {% for (link, artist, plays, minutes) in artists %}
-/// <li class="ml-7"><a href="{{ link }}">{{ artist }} | {{ plays }} play{{ plays|pluralize }} | {{ minutes }} minute{{ minutes|pluralize }}</a></li>
+/// {% for (artist, info) in artists %}
+/// <li class="ml-7">
+///   <a href="{{ info.link }}"
+///     >{{ artist }} | {{ info.plays }} play{{ info.plays|pluralize }} | {{
+///     info.duration.num_minutes() }} minute{{
+///     info.duration.num_minutes()|pluralize }}</a
+///   >
+/// </li>
 /// {% endfor %}
 /// ```
 #[derive(Template)]
 #[template(in_doc = true, ext = "html", print = "none")]
 struct TopArtistsTempate {
-    /// Elements: link to artist page, [`Artist`] instance, play count, number of minutes
-    artists: Vec<(String, Artist, usize, i64)>,
+    /// List of [`Artist`]s with their info
+    artists: Vec<(Artist, ArtistInfo)>,
 }
 /// POST `/top_artists[?top=usize][&sort=String]`
+#[expect(
+    clippy::missing_panics_doc,
+    reason = "unwraps which should never panic"
+)]
 pub async fn top_artists(
     State(state): State<Arc<AppState>>,
     Form(form): Form<TopArtistsForm>,
@@ -163,35 +210,31 @@ pub async fn top_artists(
         "POST /top_artists[?top=usize][&sort=Sorting]"
     );
 
-    let entries = &state.entries;
-
     let top = form.top.unwrap_or(10000);
 
     let artists = match form.sort {
-        Sorting::Plays => gather::artists(entries)
-            .into_iter()
-            .sorted_unstable_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)))
+        Sorting::Plays => state
+            .artists
+            .iter()
+            .map(|artist| {
+                (
+                    artist.clone(),
+                    state.artist_info.get(artist).unwrap().clone(),
+                )
+            })
+            .sorted_unstable_by(|a, b| b.1.plays.cmp(&a.1.plays).then_with(|| a.0.cmp(&b.0)))
             .take(top)
-            .map(|(artist, plays)| {
-                (
-                    format!("/artist/{artist}"),
-                    artist.clone(),
-                    plays,
-                    gather::listening_time(entries, &artist).num_minutes(),
-                )
-            })
             .collect(),
-        Sorting::Minutes => gather::artists_with_duration(entries)
-            .into_iter()
-            .map(|(artist, (plays, duration))| {
+        Sorting::Minutes => state
+            .artists
+            .iter()
+            .map(|artist| {
                 (
-                    format!("/artist/{artist}"),
                     artist.clone(),
-                    plays,
-                    duration.num_minutes(),
+                    state.artist_info.get(artist).unwrap().clone(),
                 )
             })
-            .sorted_unstable_by(|a, b| b.3.cmp(&a.3).then_with(|| a.1.cmp(&b.1)))
+            .sorted_unstable_by(|a, b| b.1.duration.cmp(&a.1.duration).then_with(|| a.0.cmp(&b.0)))
             .take(top)
             .collect(),
     };
