@@ -86,7 +86,7 @@ pub async fn base(
         album_name = album_name,
         artist_id = options.artist_id,
         album_id = options.album_id,
-        "/album/[:artist_name]/[:album_name][?artist_id=usize][?album_id=usize]"
+        "GET /album/[:artist_name]/[:album_name][?artist_id=usize][?album_id=usize]"
     );
 
     let entries = &state.entries;

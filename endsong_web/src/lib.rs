@@ -26,10 +26,11 @@ pub mod r#static;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use axum::{extract::State, http::StatusCode, response::IntoResponse};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Form};
 use endsong::prelude::*;
 use itertools::Itertools;
 use rinja::Template;
+use serde::{Deserialize, Deserializer};
 use tracing::debug;
 
 /// State shared across all handlers
@@ -99,6 +100,103 @@ pub async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         total_listened: gather::total_listening_time(entries),
         playcount: gather::all_plays(entries),
     }
+}
+
+/// Whether to sort by playcount or time listened
+#[derive(Debug)]
+enum Sorting {
+    /// Sort by playcount
+    Plays,
+    /// Sort by time listened
+    Minutes,
+}
+impl std::fmt::Display for Sorting {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Plays => write!(f, "plays"),
+            Self::Minutes => write!(f, "minutes"),
+        }
+    }
+}
+impl<'de> Deserialize<'de> for Sorting {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+
+        match s.as_str() {
+            "minutes" => Ok(Self::Minutes),
+            _ => Ok(Self::Plays),
+        }
+    }
+}
+/// Form used in [`top_artists`]
+#[derive(Deserialize)]
+pub struct TopArtistsForm {
+    /// Number of artists to display
+    top: Option<usize>,
+    /// Way to sort the artits
+    sort: Sorting,
+}
+/// [`Template`] for [`top_artists`]
+///
+/// ```rinja
+/// {% for (link, artist, plays, minutes) in artists %}
+/// <li class="ml-7"><a href="{{ link }}">{{ artist }} | {{ plays }} play{{ plays|pluralize }} | {{ minutes }} minute{{ minutes|pluralize }}</a></li>
+/// {% endfor %}
+/// ```
+#[derive(Template)]
+#[template(in_doc = true, ext = "html", print = "none")]
+struct TopArtistsTempate {
+    /// Elements: link to artist page, [`Artist`] instance, play count, number of minutes
+    artists: Vec<(String, Artist, usize, i64)>,
+}
+/// POST `/top_artists[?top=usize][&sort=String]`
+pub async fn top_artists(
+    State(state): State<Arc<AppState>>,
+    Form(form): Form<TopArtistsForm>,
+) -> impl IntoResponse {
+    debug!(
+        top = form.top,
+        sort = form.sort.to_string(),
+        "POST /top_artists[?top=usize][&sort=Sorting]"
+    );
+
+    let entries = &state.entries;
+
+    let top = form.top.unwrap_or(10000);
+
+    let artists = match form.sort {
+        Sorting::Plays => gather::artists(entries)
+            .into_iter()
+            .sorted_unstable_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)))
+            .take(top)
+            .map(|(artist, plays)| {
+                (
+                    format!("/artist/{artist}"),
+                    artist.clone(),
+                    plays,
+                    gather::listening_time(entries, &artist).num_minutes(),
+                )
+            })
+            .collect(),
+        Sorting::Minutes => gather::artists(entries)
+            .into_iter()
+            .map(|(artist, plays)| {
+                (
+                    format!("/artist/{artist}"),
+                    artist.clone(),
+                    plays,
+                    gather::listening_time(entries, &artist).num_minutes(),
+                )
+            })
+            .sorted_unstable_by(|a, b| b.3.cmp(&a.3).then_with(|| a.1.cmp(&b.1)))
+            .take(top)
+            .collect(),
+    };
+
+    TopArtistsTempate { artists }
 }
 
 /// Custom URL encoding

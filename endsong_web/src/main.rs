@@ -17,7 +17,7 @@
 #![warn(clippy::allow_attributes_without_reason)]
 #![warn(clippy::allow_attributes)]
 
-use endsong_web::{album, artist, artists, index, not_found, r#static, AppState};
+use endsong_web::{album, artist, artists, index, not_found, r#static, top_artists, AppState};
 
 use axum::{routing::get, routing::post, Router};
 use endsong::prelude::*;
@@ -45,7 +45,7 @@ async fn main() {
 
     let entries = SongEntries::new(&paths)
         .unwrap_or_else(|e| panic!("{e}"))
-        // .sum_different_capitalization()
+        .sum_different_capitalization()
         .filter(30, TimeDelta::try_seconds(10).unwrap());
 
     let state = AppState::new(entries);
@@ -54,6 +54,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(index))
+        .route("/top_artists", post(top_artists))
         .route("/styles.css", get(r#static::styles))
         .route("/htmx.js", get(r#static::htmx))
         .route("/plotly.js", get(r#static::plotly))
