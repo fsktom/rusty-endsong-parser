@@ -57,7 +57,7 @@ impl AppState {
             .enumerate()
         {
             artist_info.entry(artist.clone()).or_insert(ArtistInfo {
-                link: Arc::from(format!("/artist/{artist}")),
+                link: Arc::from(format!("/artist/{}", encode_url(artist.as_ref()))),
                 plays: *plays,
                 duration: *duration,
                 // bc enumerate starts with 0
@@ -96,6 +96,8 @@ impl AppState {
 #[derive(Clone)]
 pub struct ArtistInfo {
     /// Link to the artist page (i.e. `/artist/[:artist_name]`)
+    ///
+    /// Don't forget to [`encode_url`] the `artist_name`!!
     link: Arc<str>,
     /// This artist's playcount
     plays: usize,
@@ -249,4 +251,19 @@ pub async fn top_artists(
 #[must_use]
 pub fn encode_url(name: &str) -> String {
     urlencoding::encode(name).into_owned()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn url_encoding() {
+        // https://www.w3schools.com/tags/ref_urlencode.ASP
+
+        assert_eq!("A", encode_url("A"));
+        assert_eq!("A%20", encode_url("A "));
+        assert_eq!("AC%2FDC", encode_url("AC/DC"));
+        assert_eq!("Bonnie%20%28%26%20Clyde%29", encode_url("Bonnie (& Clyde)"));
+    }
 }

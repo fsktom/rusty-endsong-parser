@@ -38,7 +38,7 @@ async fn main() {
         "macos" => "/Users/filip/Other/Endsong/",
         _ => "/mnt/c/temp/Endsong/",
     };
-    let last: u8 = 9;
+    let last: u8 = 0;
     let paths: Vec<String> = (0..=last)
         .map(|i| format!("{root}endsong_{i}.json"))
         .collect();

@@ -147,7 +147,7 @@ impl AsRef<Artist> for Artist {
     }
 }
 impl AsRef<str> for Artist {
-    /// returns the artist name
+    /// Returns the artist name
     fn as_ref(&self) -> &str {
         &self.name
     }
