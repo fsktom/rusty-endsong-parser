@@ -161,10 +161,12 @@ pub fn parse<P: AsRef<Path> + std::fmt::Debug>(paths: &[P]) -> Result<Vec<SongEn
         song_entries.append(&mut one);
     }
 
-    // stable sort because newer endsong files should already be sorted
-    // by timestamp (oldest streams are first, newest are last)
-    // but sorting, just in case you're using older (pre-2023) files
-    song_entries.sort();
+    // newer endsong files should already be sorted by timestamp
+    // (oldest streams are first, newest are last)
+    // sorting if you're using older (pre-2023) files
+    if !song_entries.is_sorted() {
+        song_entries.sort_unstable();
+    }
 
     Ok(song_entries)
 }
