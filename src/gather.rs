@@ -275,3 +275,19 @@ pub fn listening_time_of_many<Asp: Music>(entries: &[SongEntry], aspects: &[Asp]
         .map(|entry| entry.time_played)
         .sum()
 }
+
+/// Returns first occurence of an aspect
+pub fn first_entry_of<'a, Asp: Music>(
+    entries: &'a [SongEntry],
+    aspect: &Asp,
+) -> Option<&'a SongEntry> {
+    entries.iter().find(|entry| aspect.is_entry(entry))
+}
+
+/// Returns last occurence of an aspect
+pub fn last_entry_of<'a, Asp: Music>(
+    entries: &'a [SongEntry],
+    aspect: &Asp,
+) -> Option<&'a SongEntry> {
+    entries.iter().rev().find(|entry| aspect.is_entry(entry))
+}

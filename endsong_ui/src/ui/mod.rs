@@ -512,7 +512,7 @@ fn match_print_songs(
             songs.len(),
             &songs[0].name,
             &songs[0].album.artist.name,
-            entries.gather_plays_of_many(&songs)
+            gather::plays_of_many(entries, &songs)
         );
     }
     for song in songs {

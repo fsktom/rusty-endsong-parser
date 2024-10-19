@@ -459,12 +459,6 @@ impl SongEntries {
             .collect_vec()
     }
 
-    /// Counts up the plays of all [`Music`] in a collection
-    #[must_use]
-    pub fn gather_plays_of_many<Asp: Music>(&self, aspects: &[Asp]) -> usize {
-        gather::plays_of_many(self, aspects)
-    }
-
     /// Adds search capability
     ///
     /// Use with methods from [`Find`] to search for valid artist, album or song

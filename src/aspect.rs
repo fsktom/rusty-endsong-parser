@@ -152,6 +152,16 @@ impl AsRef<str> for Artist {
         &self.name
     }
 }
+impl PartialEq<&Artist> for Artist {
+    fn eq(&self, other: &&Artist) -> bool {
+        self.name == other.name
+    }
+}
+impl PartialEq<Artist> for &Artist {
+    fn eq(&self, other: &Artist) -> bool {
+        self.name == other.name
+    }
+}
 impl Music for Artist {
     fn is_entry(&self, entry: &SongEntry) -> bool {
         entry.artist == self.name
@@ -261,6 +271,16 @@ impl AsRef<str> for Album {
     /// returns just the album name
     fn as_ref(&self) -> &str {
         &self.name
+    }
+}
+impl PartialEq<&Album> for Album {
+    fn eq(&self, other: &&Album) -> bool {
+        self.name == other.name
+    }
+}
+impl PartialEq<Album> for &Album {
+    fn eq(&self, other: &Album) -> bool {
+        self.name == other.name
     }
 }
 impl Music for Album {
@@ -387,6 +407,16 @@ impl AsRef<str> for Song {
     /// returns just the song name
     fn as_ref(&self) -> &str {
         &self.name
+    }
+}
+impl PartialEq<&Song> for Song {
+    fn eq(&self, other: &&Song) -> bool {
+        self.name == other.name
+    }
+}
+impl PartialEq<Song> for &Song {
+    fn eq(&self, other: &Song) -> bool {
+        self.name == other.name
     }
 }
 impl Music for Song {

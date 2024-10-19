@@ -2,7 +2,7 @@
 
 #![allow(clippy::module_name_repetitions, reason = "looks nicer")]
 
-use crate::{artist::ArtistSelectionTemplate, encode_url, not_found, AppState};
+use crate::{artist::ArtistSelectionTemplate, encode_url, not_found, AppState, UrlEncoding};
 
 use std::sync::Arc;
 
@@ -128,10 +128,11 @@ pub async fn base(
         None
     };
 
-    let encoded_artist = encode_url(&artist.name);
+    let encoded_artist = artist.encode();
 
     let Some(album) = album else {
-        let encoded_album = encode_url(&albums.first().unwrap().name);
+        // unwrap ok - find().album() guaranteed to contain at least one album if Some, see earlier
+        let encoded_album = albums.first().unwrap().encode();
 
         let link_base_album = if let Some(artist_id) = options.artist_id {
             format!("/album/{encoded_artist}/{encoded_album}?artist_id={artist_id}")
@@ -148,9 +149,10 @@ pub async fn base(
 
     // http://localhost:3000/album/TiA/%E6%B5%81%E6%98%9F
     // (i.e. could only happen on manual link entry)
-    if &album.artist != artist {
+    if album.artist != artist {
         return Redirect::permanent(&format!(
             "/artist/{encoded_artist}?artist_id={}",
+            // unwrap ok - you're right after the artist sel page if this happens -> artist_id exists
             options.artist_id.unwrap()
         ))
         .into_response();
@@ -167,17 +169,8 @@ pub async fn base(
     );
 
     // unwrap ok bc already made sure artist exists earlier
-    let first_listen = entries
-        .iter()
-        .find(|entry| album.is_entry(entry))
-        .unwrap()
-        .timestamp;
-    let last_listen = entries
-        .iter()
-        .rev()
-        .find(|entry| album.is_entry(entry))
-        .unwrap()
-        .timestamp;
+    let first_listen = gather::first_entry_of(entries, album).unwrap().timestamp;
+    let last_listen = gather::last_entry_of(entries, album).unwrap().timestamp;
 
     let link_artist = if let Some(artist_id) = options.artist_id {
         format!("/artist/{encoded_artist}?artist_id={artist_id}")

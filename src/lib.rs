@@ -16,6 +16,7 @@
 // https://blog.rust-lang.org/2024/09/05/Rust-1.81.0.html#expectlint
 #![warn(clippy::allow_attributes_without_reason)]
 #![warn(clippy::allow_attributes)]
+#![allow(clippy::too_many_lines, reason = "stoopid")]
 
 pub mod aspect;
 pub mod entry;

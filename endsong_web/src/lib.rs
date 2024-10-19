@@ -221,6 +221,7 @@ pub async fn top_artists(
             .map(|artist| {
                 (
                     artist.clone(),
+                    // unwrap ok - artist guaranteed to be in map
                     state.artist_info.get(artist).unwrap().clone(),
                 )
             })
@@ -233,6 +234,7 @@ pub async fn top_artists(
             .map(|artist| {
                 (
                     artist.clone(),
+                    // unwrap ok - artist guaranteed to be in map
                     state.artist_info.get(artist).unwrap().clone(),
                 )
             })

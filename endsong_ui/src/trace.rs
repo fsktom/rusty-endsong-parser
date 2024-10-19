@@ -133,7 +133,8 @@ pub mod relative {
     /// Creates an empty trace if `aspect` is not in `entries`
     #[must_use]
     pub fn to_artist<Asp: AsRef<Album> + Music>(entries: &SongEntries, aspect: &Asp) -> TraceType {
-        let artist = &aspect.as_ref().artist;
+        let album: &Album = aspect.as_ref();
+        let artist = &album.artist;
 
         let mut times = Vec::<String>::new();
         // percentages relative to the sum of respective artist plays
