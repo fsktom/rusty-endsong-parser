@@ -15,7 +15,47 @@
   >
     <h2 class="self-center text-xl font-semibold">Artists</h2>
     <form class="flex items-center justify-center gap-4">
-      <label for="sorting">Sort by:</label>
+      <label>Show:</label>
+      <div class="flex gap-1">
+        <input
+          type="radio"
+          name="show"
+          value="plays"
+          id="show-plays"
+          hx-target="#artists"
+          hx-trigger="click"
+          hx-include="input[name='sort']:checked, input[name='top']:checked"
+          hx-post="/top_artists"
+        /><label for="show-plays">Plays</label>
+      </div>
+      <div class="flex gap-1">
+        <input
+          type="radio"
+          name="show"
+          value="minutes"
+          id="show-minutes"
+          hx-target="#artists"
+          hx-trigger="click"
+          hx-include="input[name='sort']:checked, input[name='top']:checked"
+          hx-post="/top_artists"
+        /><label for="show-minutes">Minutes</label>
+      </div>
+      <div class="flex gap-1">
+        <input
+          type="radio"
+          name="show"
+          value="both"
+          id="show-both"
+          hx-target="#artists"
+          hx-trigger="click"
+          hx-include="input[name='sort']:checked, input[name='top']:checked"
+          hx-post="/top_artists"
+          checked
+        /><label for="show-both">Both</label>
+      </div>
+    </form>
+    <form class="flex items-center justify-center gap-4">
+      <label>Sort by:</label>
       <div class="flex gap-1">
         <input
           type="radio"
@@ -25,7 +65,7 @@
           checked
           hx-target="#artists"
           hx-trigger="click"
-          hx-include="next input[name='top']:checked"
+          hx-include="input[name='top']:checked, input[name='show']:checked"
           hx-post="/top_artists"
         /><label for="sorting-plays">Plays</label>
       </div>
@@ -37,7 +77,7 @@
           id="sorting-minutes"
           hx-target="#artists"
           hx-trigger="click"
-          hx-include="next input[name='top']:checked"
+          hx-include="input[name='top']:checked, input[name='show']:checked"
           hx-post="/top_artists"
         /><label for="sorting-minutes">Minutes</label>
       </div>
@@ -52,7 +92,7 @@
           checked
           hx-target="#artists"
           hx-trigger="click, load"
-          hx-include="previous input[name='sort']:checked"
+          hx-include="input[name='sort']:checked, input[name='show']:checked"
           hx-post="/top_artists"
         /><label for="top-artists-10">Top 10</label>
       </div>
@@ -64,7 +104,7 @@
           id="top-artists-25"
           hx-target="#artists"
           hx-trigger="click"
-          hx-include="previous input[name='sort']:checked"
+          hx-include="input[name='sort']:checked, input[name='show']:checked"
           hx-post="/top_artists"
         /><label for="top-artists-25">Top 25</label>
       </div>
@@ -76,7 +116,7 @@
           id="top-artists-50"
           hx-target="#artists"
           hx-trigger="click"
-          hx-include="previous input[name='sort']:checked"
+          hx-include="input[name='sort']:checked, input[name='show']:checked"
           hx-post="/top_artists"
         /><label for="top-artists-50">Top 50</label>
       </div>
@@ -88,15 +128,12 @@
           id="top-artists-all"
           hx-target="#artists"
           hx-trigger="click"
-          hx-include="previous input[name='sort']:checked"
+          hx-include="input[name='sort']:checked, input[name='show']:checked"
           hx-post="/top_artists"
         /><label for="top-artists-all">All</label>
       </div>
     </form>
-    <ol class="list-decimal" id="artists">
-      <!-- so that tailwind saves ml-7 class used in .rs .... -->
-      <li class="ml-7"></li>
-    </ol>
+    <ol class="list-decimal" id="artists"></ol>
   </article>
 </section>
 {% endblock %}

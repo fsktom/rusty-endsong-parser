@@ -170,6 +170,41 @@ impl<'de> Deserialize<'de> for Sorting {
         }
     }
 }
+
+/// Whether to show minutes, plays or both
+#[derive(Debug)]
+enum Show {
+    /// Show plays
+    Plays,
+    /// Show minutes
+    Minutes,
+    /// Show minutes and plays
+    Both,
+}
+impl std::fmt::Display for Show {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Plays => write!(f, "plays"),
+            Self::Minutes => write!(f, "minutes"),
+            Self::Both => write!(f, "both"),
+        }
+    }
+}
+impl<'de> Deserialize<'de> for Show {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+
+        match s.as_str() {
+            "minutes" => Ok(Self::Minutes),
+            "plays" => Ok(Self::Plays),
+            _ => Ok(Self::Both),
+        }
+    }
+}
+
 /// Form used in [`top_artists`]
 #[derive(Deserialize)]
 pub struct TopArtistsForm {
@@ -177,27 +212,19 @@ pub struct TopArtistsForm {
     top: Option<usize>,
     /// Way to sort the artits
     sort: Sorting,
+    /// Whether to display minutes, plays or both
+    show: Show,
 }
 /// [`Template`] for [`top_artists`]
-///
-/// ```rinja
-/// {% for (artist, info) in artists %}
-/// <li class="ml-7">
-///   <a href="{{ info.link }}"
-///     >{{ artist }} | {{ info.plays }} play{{ info.plays|pluralize }} | {{
-///     info.duration.num_minutes() }} minute{{
-///     info.duration.num_minutes()|pluralize }}</a
-///   >
-/// </li>
-/// {% endfor %}
-/// ```
 #[derive(Template)]
-#[template(in_doc = true, ext = "html", print = "none")]
+#[template(path = "top_artists.html", print = "none")]
 struct TopArtistsTempate {
     /// List of [`Artist`]s with their info
     artists: Vec<(Artist, ArtistInfo)>,
+    /// Whether to display minutes, plays or both of the artists
+    show: Show,
 }
-/// POST `/top_artists[?top=usize][&sort=String]`
+/// POST `/top_artists[?top=usize][&sort=String][&show=Show]`
 #[expect(
     clippy::missing_panics_doc,
     reason = "unwraps which should never panic"
@@ -209,7 +236,8 @@ pub async fn top_artists(
     debug!(
         top = form.top,
         sort = form.sort.to_string(),
-        "POST /top_artists[?top=usize][&sort=Sorting]"
+        show = form.show.to_string(),
+        "POST /top_artists[?top=usize][&sort=Sorting][&show=Show]"
     );
 
     let top = form.top.unwrap_or(10000);
@@ -243,7 +271,9 @@ pub async fn top_artists(
             .collect(),
     };
 
-    TopArtistsTempate { artists }
+    let show = form.show;
+
+    TopArtistsTempate { artists, show }
 }
 
 /// Helper trait for encoding aspect names to make them work in URLs

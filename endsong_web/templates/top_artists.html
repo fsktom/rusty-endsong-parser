@@ -1,0 +1,20 @@
+{% for (artist, info) in artists %}
+<li class="ml-7">
+  {% match show %} {% when Show::Both %}
+  <a href="{{ info.link }}"
+    >{{ artist }} | {{ info.plays }} play{{ info.plays|pluralize }} |
+    {{info.duration.num_minutes() }} minute{{
+    info.duration.num_minutes()|pluralize }}</a
+  >
+  {% when Show::Plays %}
+  <a href="{{ info.link }}"
+    >{{ artist }} | {{ info.plays }} play{{ info.plays|pluralize }}</a
+  >
+  {% when Show::Minutes %}
+  <a href="{{ info.link }}"
+    >{{ artist }} | {{info.duration.num_minutes() }} minute{{
+    info.duration.num_minutes()|pluralize }}</a
+  >
+  {% endmatch %}
+</li>
+{% endfor %}
