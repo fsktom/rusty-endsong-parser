@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+<!--  -->
+{% block title %} History {% endblock %}
+<!--  -->
+{% block content %}
+<h2 class="text-2xl">A day's listening history</h2>
+<section class="flex flex-col items-center gap-2">
+  <form class="flex items-center justify-center gap-4">
+    <div class="flex gap-1">
+      <input
+        type="radio"
+        name="mode"
+        value="single"
+        id="mode-single-day"
+        hx-target="#dates"
+        hx-trigger="click, load"
+        hx-post="/history/datepicker"
+        checked
+      /><label for="show-plays">Single day</label>
+    </div>
+    <div class="flex gap-1">
+      <input
+        type="radio"
+        name="mode"
+        value="period"
+        id="mode-time-period"
+        hx-target="#dates"
+        hx-trigger="click"
+        hx-post="/history/datepicker"
+      /><label for="mode-time-period">Time period</label>
+    </div>
+  </form>
+  <form
+    id="dates"
+    class="flex items-center gap-1 rounded-s border border-gray-700 p-1 text-lg"
+  ></form>
+  <article id="history">
+    <p>You haven't listened to anything on this day!</p>
+  </article>
+</section>
+{% endblock %}

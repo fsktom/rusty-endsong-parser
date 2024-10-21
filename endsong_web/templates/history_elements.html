@@ -1,0 +1,38 @@
+<table>
+  <thead>
+    <tr class="uppercase">
+      <th scope="col">Time</th>
+      <th scope="col">Artist</th>
+      <th scope="col">Album</th>
+      <th scope="col">Song</th>
+      <th scope="col">Duration</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for element in entries %}
+    <tr class="border-b">
+      <th scope="row" class="pr-4 text-center font-mono">
+        <time datetime="{{ element.timestamp }}">{{ element.timestamp }}</time>
+      </th>
+      <td class="px-4 text-center">
+        <a href="{{ element.song.album.artist|link_artist }}"
+          >{{ element.song.album.artist }}</a
+        >
+      </td>
+      <td class="px-4 text-center">
+        <a href="{{ element.song.album|link_album}}"
+          >{{ element.song.album.name }}</a
+        >
+      </td>
+      <td class="px-4 text-center">
+        <a href="{{ element.song|link_song }}">{{ element.song.name }}</a>
+      </td>
+      <td class="pl-4 text-center">
+        <time datetime="{{ element.time_played }}"
+          >{{ element.time_played|pretty_duration }}</time
+        >
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

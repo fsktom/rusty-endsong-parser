@@ -17,7 +17,9 @@
 #![warn(clippy::allow_attributes_without_reason)]
 #![warn(clippy::allow_attributes)]
 
-use endsong_web::{album, artist, artists, index, not_found, r#static, top_artists, AppState};
+use endsong_web::{
+    album, artist, artists, history, index, not_found, r#static, top_artists, AppState,
+};
 
 use axum::{routing::get, routing::post, Router};
 use endsong::prelude::*;
@@ -71,6 +73,8 @@ async fn main() {
             get(artist::relative_plot),
         )
         .route("/album/:artist_name/:album_name", get(album::base))
+        .route("/history", get(history::base).post(history::elements))
+        .route("/history/datepicker", post(history::date_picker))
         .with_state(state)
         .fallback(not_found)
         .layer(compression);

@@ -1,0 +1,48 @@
+{% if single %}
+<div>
+  <label for="start-date">Start Date</label>
+  <input
+    id="start-date"
+    class="block rounded-lg border border-gray-300 bg-gray-50 p-2 text-gray-900"
+    type="date"
+    name="start_date"
+    hx-post="/history"
+    hx-target="#history"
+    hx-trigger="input changed, load"
+    min="{{ first|date_basic }}"
+    max="{{ last|date_basic }}"
+    value="{{ first|date_basic }}"
+  />
+</div>
+{% else %}
+<div>
+  <label for="start-date">Start Date (inclusive)</label>
+  <input
+    id="start-date"
+    class="block rounded-lg border border-gray-300 bg-gray-50 p-2 text-gray-900"
+    type="date"
+    name="start_date"
+    hx-post="/history"
+    hx-target="#history"
+    hx-trigger="input changed, load"
+    min="{{ first|date_basic }}"
+    max="{{ last|date_basic }}"
+    value="{{ first|date_basic }}"
+  />
+</div>
+<div>
+  <label for="end-date">End Date (exclusive)</label>
+  <input
+    id="end-date"
+    class="block rounded-lg border border-gray-300 bg-gray-50 p-2 text-gray-900"
+    type="date"
+    name="end_date"
+    hx-post="/history"
+    hx-target="#history"
+    hx-trigger="input changed"
+    min="{{ first|date_basic }}"
+    max="{{ last|date_basic }}"
+    value="{{ first_plus_one|date_basic }}"
+    />
+</div>
+{% endif %}

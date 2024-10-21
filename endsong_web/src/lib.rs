@@ -21,6 +21,7 @@
 pub mod album;
 pub mod artist;
 pub mod artists;
+pub mod history;
 pub mod r#static;
 
 use std::collections::HashMap;
