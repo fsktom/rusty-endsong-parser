@@ -59,7 +59,7 @@ struct AlbumTemplate<'a> {
     /// Link to artist page
     link_artist: String,
 }
-/// GET `/album/[:artist_name]/[:album_name][?artist_id=usize][?album_id=usize]`
+/// GET `/album/[:artist_name]/[:album_name][?artist_id=usize][&album_id=usize]`
 ///
 /// Artist page
 ///
@@ -86,7 +86,7 @@ pub async fn base(
         album_name = album_name,
         artist_id = options.artist_id,
         album_id = options.album_id,
-        "GET /album/[:artist_name]/[:album_name][?artist_id=usize][?album_id=usize]"
+        "GET /album/[:artist_name]/[:album_name][?artist_id=usize][&album_id=usize]"
     );
 
     let entries = &state.entries;
@@ -129,16 +129,18 @@ pub async fn base(
     };
 
     let encoded_artist = artist.encode();
+    let artist_id_arg = if let Some(artist_id) = options.artist_id {
+        format!("?artist_id={artist_id}")
+    } else {
+        String::new()
+    };
+    let link_artist = format!("/artist/{encoded_artist}{artist_id_arg}");
 
     let Some(album) = album else {
         // unwrap ok - find().album() guaranteed to contain at least one album if Some, see earlier
         let encoded_album = albums.first().unwrap().encode();
 
-        let link_base_album = if let Some(artist_id) = options.artist_id {
-            format!("/album/{encoded_artist}/{encoded_album}?artist_id={artist_id}")
-        } else {
-            format!("/album/{encoded_artist}/{encoded_album}")
-        };
+        let link_base_album = format!("/album/{encoded_artist}/{encoded_album}{artist_id_arg}");
 
         return AlbumSelectionTemplate {
             albums,
@@ -171,12 +173,6 @@ pub async fn base(
     // unwrap ok bc already made sure artist exists earlier
     let first_listen = gather::first_entry_of(entries, album).unwrap().timestamp;
     let last_listen = gather::last_entry_of(entries, album).unwrap().timestamp;
-
-    let link_artist = if let Some(artist_id) = options.artist_id {
-        format!("/artist/{encoded_artist}?artist_id={artist_id}")
-    } else {
-        format!("/artist/{encoded_artist}")
-    };
 
     AlbumTemplate {
         plays,

@@ -145,22 +145,17 @@ pub async fn base(
         .timestamp;
 
     let encoded_artist = artist.encode();
-    let (link_albums, link_songs, link_absolute, link_relative) =
-        if let Some(artist_id) = options.artist_id {
-            (
-                format!("/artist/{encoded_artist}/albums?artist_id={artist_id}"),
-                format!("/artist/{encoded_artist}/songs?artist_id={artist_id}"),
-                format!("/artist/{encoded_artist}/absolute_plot?artist_id={artist_id}"),
-                format!("/artist/{encoded_artist}/relative_plot?artist_id={artist_id}"),
-            )
-        } else {
-            (
-                format!("/artist/{encoded_artist}/albums"),
-                format!("/artist/{encoded_artist}/songs"),
-                format!("/artist/{encoded_artist}/absolute_plot"),
-                format!("/artist/{encoded_artist}/relative_plot"),
-            )
-        };
+    let artist_id_arg = if let Some(artist_id) = options.artist_id {
+        format!("?artist_id={artist_id}")
+    } else {
+        String::new()
+    };
+    let (link_albums, link_songs, link_absolute, link_relative) = (
+        format!("/artist/{encoded_artist}/albums{artist_id_arg}"),
+        format!("/artist/{encoded_artist}/songs{artist_id_arg}"),
+        format!("/artist/{encoded_artist}/absolute_plot{artist_id_arg}"),
+        format!("/artist/{encoded_artist}/relative_plot{artist_id_arg}"),
+    );
 
     ArtistTemplate {
         artist,
@@ -345,7 +340,7 @@ struct AlbumsTemplate {
     /// Elements: link to album page, [`Album`] instance, plays
     albums: Vec<(String, Album, usize)>,
 }
-/// POST `/artist/[:artist_name]/albums[&artist_id=usize][?top=usize]`
+/// POST `/artist/[:artist_name]/albums[?artist_id=usize][&top=usize]`
 ///
 /// Lists of top albums
 ///
@@ -360,7 +355,7 @@ pub async fn albums(
         artist_name = artist_name,
         artist_id = options.artist_id,
         top = form.top,
-        "POST /artist/[:artist_name]/albums[&artist_id=usize][?top=usize]"
+        "POST /artist/[:artist_name]/albums[?artist_id=usize][&top=usize]"
     );
 
     let entries = &state.entries;
@@ -428,7 +423,7 @@ struct SongsTemplate {
     /// Elements: link to song page, [`Song`] instance, plays
     songs: Vec<(String, Song, usize)>,
 }
-/// POST `/artist/[:artist_name]/songs[&artist_id=usize][?top=usize][&sum_across_albums=String]`
+/// POST `/artist/[:artist_name]/songs[?artist_id=usize][&top=usize][&sum_across_albums=String]`
 ///
 /// Lists of top albums
 ///
@@ -444,7 +439,7 @@ pub async fn songs(
         artist_id = options.artist_id,
         top = form.top,
         sum_across_albums = form.sum_across_albums,
-        "POST /artist/[:artist_name]/songs[&artist_id=usize][?top=usize][&sum_across_albums=String]"
+        "POST /artist/[:artist_name]/songs[?artist_id=usize][&top=usize][&sum_across_albums=String]"
     );
 
     let entries = &state.entries;
