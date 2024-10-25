@@ -30,6 +30,47 @@
       <p>Placeholder</p>
       {% endblock %}
     </main>
+    <aside
+      id="toast-error"
+      class="invisible fixed bottom-8 mb-4 flex w-full max-w-xs transform items-center rounded-lg bg-slate-400 p-4 opacity-0 shadow transition-opacity duration-700 ease-in-out dark:bg-red-700"
+    >
+      <div
+        class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg"
+      >
+        <svg
+          class="h-5 w-5"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"
+          />
+        </svg>
+      </div>
+      <div id="toast-error-message" class="ms-3 text-lg">An error has occured!</div>
+    </aside>
     <footer></footer>
+    <script>
+      // https://htmx.org/events/#htmx:responseError
+      document.body.addEventListener("htmx:responseError", function (event) {
+        // on errors like 400 or 422
+        // show error toast with the response body as text
+        let toastMessage = document.getElementById("toast-error-message");
+        toastMessage.innerHTML = event.detail.xhr.responseText;
+
+        let toast = document.getElementById("toast-error");
+        toast.classList.replace("invisible", "visible");
+        toast.classList.replace("opacity-0", "opacity-100");
+
+        setTimeout(function () {
+          toast.classList.replace("opacity-100", "opacity-0");
+        }, 2000);
+        setTimeout(function () {
+          toast.classList.replace("visible", "invisible");
+        }, 2700);
+      });
+    </script>
   </body>
 </html>

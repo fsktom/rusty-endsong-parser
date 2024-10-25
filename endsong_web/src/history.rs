@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Form, State},
+    http::StatusCode,
     response::IntoResponse,
 };
 use chrono::{MappedLocalTime, NaiveDate, NaiveTime};
@@ -64,11 +65,19 @@ pub async fn elements(
     let entries = &state.entries;
 
     let Some(dates) = parse_dates(entries, form.start_date, form.end_date) else {
-        return axum_extra::response::Html("<p>Invalid dates!</p>").into_response();
+        return (
+            StatusCode::BAD_REQUEST,
+            axum_extra::response::Html("<p>Invalid dates!</p>"),
+        )
+            .into_response();
     };
     let (start_date, end_date) = dates;
     if end_date <= start_date {
-        return axum_extra::response::Html("<p>Invalid dates!</p>").into_response();
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            axum_extra::response::Html("<p>Invalid dates - start date is before end date!</p>"),
+        )
+            .into_response();
     }
     let filtered_entries = entries.between(&start_date, &end_date);
 
