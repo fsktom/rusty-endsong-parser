@@ -15,7 +15,7 @@ rustyline = { git = "https://github.com/kkawakam/rustyline", rev = "4363c5b", fe
 plotly = "0.10"
 itertools = "0.13"
 textwrap = "0.16"
-thiserror = "1.0"
+thiserror = "2.0"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 endsong_macros = { path = "endsong_macros" }
 rinja = "0.3"
