@@ -172,7 +172,7 @@ pub async fn base(
     .into_response()
 }
 
-/// GET `/artist/[:artist_name]/absolute_lot[?artist_id=usize]`
+/// POST `/artist/[:artist_name]/absolute_lot[?artist_id=usize]`
 ///
 /// Has to be in-lined in another base.html-derived template
 pub async fn absolute_plot(
@@ -183,7 +183,7 @@ pub async fn absolute_plot(
     debug!(
         artist_name = artist_name,
         artist_id = options.artist_id,
-        "GET /artist/[:artist_name]/absolute_lot[?artist_id=usize]"
+        "POST /artist/[:artist_name]/absolute_lot[?artist_id=usize]"
     );
 
     let entries = &state.entries;
@@ -233,7 +233,7 @@ pub async fn absolute_plot(
     axum_extra::response::Html(plot_html).into_response()
 }
 
-/// GET `/artist/[:artist_name]/relative_plot[?artist_id=usize]`
+/// POST `/artist/[:artist_name]/relative_plot[?artist_id=usize]`
 ///
 /// Has to be in-lined in another base.html-derived template
 pub async fn relative_plot(
@@ -244,7 +244,7 @@ pub async fn relative_plot(
     debug!(
         artist_name = artist_name,
         artist_id = options.artist_id,
-        "GET /artist/[:artist_name]/relative_plot[?artist_id=usize]"
+        "POST /artist/[:artist_name]/relative_plot[?artist_id=usize]"
     );
 
     let entries = &state.entries;

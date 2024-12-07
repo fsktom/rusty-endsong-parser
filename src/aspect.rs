@@ -327,7 +327,8 @@ impl Song {
     /// ignoring album name and capitalization for track name
     #[must_use]
     pub fn is_entry_ignore_album_and_case(&self, entry: &SongEntry) -> bool {
-        self.album.artist.is_entry(entry) && UniCase::new(&entry.track) == UniCase::new(&self.name)
+        self.album.artist.is_entry_ignore_case(entry)
+            && UniCase::new(&entry.track) == UniCase::new(&self.name)
     }
 }
 impl Clone for Song {

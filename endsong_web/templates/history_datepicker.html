@@ -41,7 +41,7 @@
     hx-target="#history"
     hx-trigger="input changed"
     min="{{ first|date_basic }}"
-    max="{{ last|date_basic }}"
+    max="{{ last_plus_one|date_basic }}"
     value="{{ first_plus_one|date_basic }}"
   />
 </div>

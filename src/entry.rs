@@ -316,22 +316,30 @@ impl SongEntries {
         self
     }
 
-    /// Returns a slice of [`SongEntry`]s between the given dates
+    /// Returns a slice of [`SongEntry`]s between the given dates.
+    /// It will be empty if it cannot find any in the given range.
     ///
-    /// This slice can be used in functions in [`gather`] to gather data between the given dates
+    /// This slice can be used in functions in [`gather`]
+    /// to gather data between the given dates.
     ///
-    /// This function uses binary search to find the closest entries to the given dates
+    /// It uses binary search internally to find the entries very fast.
     ///
     /// # Panics
     ///
-    /// Panics if `start` is after or equal to `end`
+    /// Panics if `start` is after  `end`
     #[must_use]
     pub fn between<'a>(
         &'a self,
         start: &DateTime<Local>,
         end: &DateTime<Local>,
     ) -> &'a [SongEntry] {
-        assert!(start <= end, "Start date is after end date!");
+        assert!(start < end, "Start date is after end date!");
+        assert!(!self.is_empty(), "Dataset is empty!");
+
+        // unwrap ok - ^made sure slice is not empty
+        if end < &self.first().unwrap().timestamp || start > &self.last().unwrap().timestamp {
+            return &[];
+        }
 
         let begin = match self.binary_search_by(|entry| entry.timestamp.cmp(start)) {
             // timestamp from entry

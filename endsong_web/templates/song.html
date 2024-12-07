@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+<!--  -->
+{% block title %} {{ song_versions[0].0.album.artist.name }} - {{
+song_versions[0].0.name }} {% endblock %}
+<!--  -->
+{% block content %}
+<h2 class="text-2xl font-bold">
+  <a href="">{{ song_versions[0].0.album.artist.name }}</a> - {{
+  song_versions[0].0.name }}
+</h2>
+<section class="flex">
+  <article
+    class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow dark:shadow-none"
+  >
+    <h3 class="text-center text-xl font-bold">Appears in albums:</h3>
+    <ul class="text-center">
+      {% for song in song_versions %}
+      <li>{{ song.0.album.name }} - {{ song.0.name }} | {{ song.1 }} plays</li>
+      {% endfor %}
+    </ul>
+  </article>
+</section>
+{% endblock %}

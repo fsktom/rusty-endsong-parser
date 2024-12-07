@@ -64,10 +64,10 @@ pub async fn elements(
 
     let entries = &state.entries;
 
-    let Some(dates) = parse_dates(entries, form.start_date, form.end_date) else {
+    let Some(dates) = parse_dates(form.start_date, form.end_date) else {
         return (
             StatusCode::BAD_REQUEST,
-            axum_extra::response::Html("<p>Invalid dates!</p>"),
+            axum_extra::response::Html("<p>Invalid date!</p>"),
         )
             .into_response();
     };
@@ -75,7 +75,7 @@ pub async fn elements(
     if end_date <= start_date {
         return (
             StatusCode::UNPROCESSABLE_ENTITY,
-            axum_extra::response::Html("<p>Invalid dates - start date is before end date!</p>"),
+            axum_extra::response::Html("<p>Start date is before end date!</p>"),
         )
             .into_response();
     }
@@ -102,13 +102,9 @@ pub async fn elements(
 
 /// Parses dates in `YYYY-MM-DD` format and returns (`first_date`, `last_date`) tuple
 fn parse_dates(
-    entries: &SongEntries,
     start_date: Option<String>,
     end_date: Option<String>,
 ) -> Option<(DateTime<Local>, DateTime<Local>)> {
-    let first_date = entries.first_date();
-    let last_date = entries.last_date();
-
     let zero_time = NaiveTime::from_hms_opt(0, 0, 0)?;
 
     let start_date = start_date?;
@@ -119,11 +115,6 @@ fn parse_dates(
         start_date.and_time(zero_time).and_local_timezone(Local)
     else {
         return None;
-    };
-    let start_date = if start_date < first_date {
-        first_date
-    } else {
-        start_date
     };
 
     let Some(end_date) = end_date else {
@@ -139,12 +130,6 @@ fn parse_dates(
     else {
         return None;
     };
-    let end_date = if end_date > last_date {
-        last_date
-    } else {
-        end_date
-    };
-
     Some((start_date, end_date))
 }
 
@@ -195,6 +180,8 @@ struct DatePickerTemplate {
     first_plus_one: DateTime<Local>,
     /// Most recent day of listening
     last: DateTime<Local>,
+    /// Most recent day of listening plus one day (for exclusive end)
+    last_plus_one: DateTime<Local>,
 }
 /// POST `/history/datepicker`
 pub async fn date_picker(
@@ -211,12 +198,14 @@ pub async fn date_picker(
     let first = entries.first_date();
     let first_plus_one = entries.first_date() + TimeDelta::days(1);
     let last = entries.last_date();
+    let last_plus_one = entries.last_date() + TimeDelta::days(1);
 
     DatePickerTemplate {
         single,
         first,
         first_plus_one,
         last,
+        last_plus_one,
     }
 }
 
