@@ -14,7 +14,7 @@ const STYLING: &str = include_str!("../static/tailwind_style.css");
 /// HTMX code
 ///
 /// <https://htmx.org/docs/#installing>
-const HTMX: &str = include_str!("../static/htmx.min.2.0.3.js");
+const HTMX: &str = include_str!("../static/htmx.min.2.0.4.js");
 
 /// plotly.js code
 ///
