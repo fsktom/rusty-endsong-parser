@@ -18,10 +18,8 @@
 #![warn(clippy::allow_attributes)]
 
 use endsong_web::{album, artist, artists, history, r#static, song};
-// use endsong_web::layers;
 use endsong_web::{index, not_found, top_artists, AppState};
 
-// use axum::middleware;
 use axum::{routing::get, routing::post, Router};
 use endsong::prelude::*;
 use tower_http::compression::CompressionLayer;
@@ -79,8 +77,6 @@ async fn main() {
         .route("/history/datepicker", post(history::date_picker))
         .with_state(state)
         .fallback(not_found)
-        // .layer(middleware::from_fn(layers::minify_html))
-        // .layer(middleware::from_fn(layers::minify_css))
         .layer(compression);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
