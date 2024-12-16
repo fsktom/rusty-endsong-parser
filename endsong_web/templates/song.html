@@ -5,18 +5,83 @@ endblock %}
 <!--  -->
 {% block content %}
 <h2 class="text-2xl font-bold">
-  <a href="{{ link_artist }}">{{ base_song.album.artist.name }}</a> - {{ base_song.name }}
+  <a href="{{ link_artist }}">{{ base_song.album.artist.name }}</a> - {{
+  base_song.name }}
 </h2>
 <section class="flex">
   <article
-    class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 p-7 shadow dark:shadow-none"
+    class="flex w-full flex-col items-center gap-3 rounded-lg border border-gray-200 p-7 shadow dark:shadow-none"
   >
-    <h3 class="text-center text-xl font-bold">Appears in albums:</h3>
-    <ul class="text-center">
-      {% for song in song_versions %}
-      <li>{{ song.0.album.name }} - {{ song.0.name }} | {{ song.1 }} plays</li>
-      {% endfor %}
+    <ul class="list-none text-center">
+      <li>Total playcount: {{ plays }}</li>
+      <li>
+        Total time played:
+        <time datetime="{{ time_played }}"
+          >{{ time_played|pretty_duration }}</time
+        >
+      </li>
+      <li>
+        Song duration:
+        <time datetime="{{ duration }}">{{ duration|pretty_duration }}</time>
+      </li>
+      <li>
+        Average time played:
+        <time datetime="{{ avg_time_played }}"
+          >{{ avg_time_played|pretty_duration }}</time
+        >
+      </li>
+      <li>
+        Amount of times the song has been listened to in full: {{ full_listens
+        }} ({{ "{:.2}%"|format((full_listens as f64/plays as f64)*100.0) }})
+      </li>
+      <li>
+        {% let ninety_duration = (duration*9)/10 %} 90+% (<time
+          datetime="{{ ninety_duration }}"
+          >{{ ninety_duration|pretty_duration }}</time
+        >) listens: {{ ninety_listens }} ({{ "{:.2}%"|format((ninety_listens as
+        f64/plays as f64)*100.0) }})
+      </li>
+      <li>
+        First listen:
+        <time datetime="{{ first_listen }}">{{ first_listen }}</time>
+      </li>
+      <li>
+        Last listen: <time datetime="{{ last_listen }}">{{ last_listen }}</time>
+      </li>
     </ul>
+    <h3 class="text-xl font-bold">Appears in albums:</h3>
+    <table>
+      <thead>
+        <tr class="uppercase">
+          <th scope="col" class="px-4">Song</th>
+          <th scope="col" class="px-4">Album</th>
+          <th scope="col" class="px-4">Plays</th>
+          <th scope="col" class="px-4">Time Played</th>
+          <th scope="col" class="px-4">First listen</th>
+          <th scope="col" class="px-4">Last listen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in song_versions %}
+        <tr>
+          <th scope="row" class="px-4">{{ s.song.name }}</th>
+          <th scope="row" class="px-4">{{ s.song.album.name }}</th>
+          <th scope="row" class="px-4">{{ s.plays }}</th>
+          <th scope="row" class="px-4">
+            <time datetime="{{ s.time_played }}"
+              >{{ s.time_played|pretty_duration }}</time
+            >
+          </th>
+          <th scope="row" class="px-4 font-mono">
+            <time datetime="{{ s.first_listen }}">{{ s.first_listen }}</time>
+          </th>
+          <th scope="row" class="px-4 font-mono">
+            <time datetime="{{ s.last_listen }}">{{ s.last_listen }}</time>
+          </th>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </article>
 </section>
 {% endblock %}

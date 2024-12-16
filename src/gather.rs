@@ -284,10 +284,31 @@ pub fn first_entry_of<'a, Asp: Music>(
     entries.iter().find(|entry| aspect.is_entry(entry))
 }
 
+/// Returns first occurence of a collection of aspects
+pub fn first_entry_of_many<'a, Asp: Music>(
+    entries: &'a [SongEntry],
+    aspects: &[Asp],
+) -> Option<&'a SongEntry> {
+    entries
+        .iter()
+        .find(|entry| aspects.iter().any(|aspect| aspect.is_entry(entry)))
+}
+
 /// Returns last occurence of an aspect
 pub fn last_entry_of<'a, Asp: Music>(
     entries: &'a [SongEntry],
     aspect: &Asp,
 ) -> Option<&'a SongEntry> {
     entries.iter().rev().find(|entry| aspect.is_entry(entry))
+}
+
+/// Returns last occurence of a collection of aspects
+pub fn last_entry_of_many<'a, Asp: Music>(
+    entries: &'a [SongEntry],
+    aspects: &[Asp],
+) -> Option<&'a SongEntry> {
+    entries
+        .iter()
+        .rev()
+        .find(|entry| aspects.iter().any(|aspect| aspect.is_entry(entry)))
 }

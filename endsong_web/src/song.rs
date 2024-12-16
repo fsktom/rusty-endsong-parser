@@ -26,14 +26,44 @@ pub struct SongQuery {
     artist_id: Option<usize>,
 }
 
+/// Info on a [`Song`] instance
+struct SongVersion {
+    /// The [`Song`] itself
+    song: Song,
+    /// Number of plays
+    plays: usize,
+    /// Time listened to this sing
+    time_played: TimeDelta,
+    /// First stream's timestamp
+    first_listen: DateTime<Local>,
+    /// Most recent stream's timestamp
+    last_listen: DateTime<Local>,
+}
+
 /// [`Template`] for [`base`]
 #[derive(Template)]
 #[template(path = "song.html")]
 struct SongTemplate {
     /// A song variant (to use for name + artist)
     base_song: Song,
-    /// List of songs
-    song_versions: Vec<(Song, usize)>,
+    /// Total plays of this song across albums & capitalizations
+    plays: usize,
+    /// Total listening time of this song across albums & capitalizations
+    time_played: TimeDelta,
+    /// First stream's timestamp
+    first_listen: DateTime<Local>,
+    /// Most recent stream's timestamp
+    last_listen: DateTime<Local>,
+    /// The song's duration
+    duration: TimeDelta,
+    /// The song's average listening time
+    avg_time_played: TimeDelta,
+    /// Number of times the song has been listened to in full
+    full_listens: usize,
+    /// Number of times the song has been listened to for at least 90% of its duration
+    ninety_listens: usize,
+    /// List of songs with their plays, time played etc.
+    song_versions: Vec<SongVersion>,
     /// Link to artist page
     link_artist: String,
 }
@@ -43,6 +73,9 @@ struct SongTemplate {
 ///
 /// Shouldn't panic lol
 #[expect(clippy::comparison_chain, reason = "couldn't bother")]
+#[expect(clippy::too_many_lines, reason = "big func")]
+#[expect(clippy::cast_possible_truncation, reason = "necessary for avg calc")]
+#[expect(clippy::cast_possible_wrap, reason = "necessary for avg calc")]
 pub async fn base(
     State(state): State<Arc<AppState>>,
     Path((artist_name, song_name)): Path<(String, String)>,
@@ -120,29 +153,40 @@ pub async fn base(
     // wouldn't make sense to separate based on capitalization
     // so we also display occurrences across capitalizations
 
-    let song_versions: Vec<(Song, usize)> = songs
-        .iter()
-        .filter(|song| song.album.artist == artist)
-        .map(|song| {
-            (song.clone(), {
-                let plays = gather::plays(entries, song);
-                // if same plays
-                if plays == highest.1 {
-                    // but earlier in alphabet
-                    // (capitalization... ) => to make it deterministic
-                    if song < &highest.0 {
-                        // change
-                        highest = (song.clone(), plays);
-                    }
-                // if higher plays
-                } else if plays > highest.1 {
+    let mut song_versions: Vec<SongVersion> = vec![];
+
+    // filter because of multiple aritst capitalizations...
+    for song in songs.iter().filter(|song| song.album.artist == artist) {
+        let plays = {
+            let plays = gather::plays(entries, song);
+            // if same plays
+            if plays == highest.1 {
+                // but earlier in alphabet
+                // (capitalization... ) => to make it deterministic
+                if song < &highest.0 {
                     // change
                     highest = (song.clone(), plays);
                 }
-                plays
-            })
-        })
-        .collect();
+            // if higher plays
+            } else if plays > highest.1 {
+                // change
+                highest = (song.clone(), plays);
+            }
+            plays
+        };
+        let time_played = gather::listening_time(entries, song);
+
+        let first_listen = gather::first_entry_of(entries, song).unwrap().timestamp;
+        let last_listen = gather::last_entry_of(entries, song).unwrap().timestamp;
+
+        song_versions.push(SongVersion {
+            song: song.clone(),
+            plays,
+            time_played,
+            first_listen,
+            last_listen,
+        });
+    }
 
     // if song doesn't exist for given artist (but does for one with diff capitalization)
     if song_versions.is_empty() {
@@ -151,10 +195,64 @@ pub async fn base(
 
     let base_song = highest.0;
 
+    let plays = gather::plays_of_many(entries, &songs);
+    let time_played = gather::listening_time_of_many(entries, &songs);
+
+    let first_listen = gather::first_entry_of_many(entries, &songs)
+        .unwrap()
+        .timestamp;
+    let last_listen = gather::last_entry_of_many(entries, &songs)
+        .unwrap()
+        .timestamp;
+
+    let duration = *entries.durations.get(&base_song).unwrap();
+    let avg_time_played = time_played / plays as i32;
+
+    let full_listens = entries
+        .iter()
+        .filter(|entry| songs.iter().any(|aspect| aspect.is_entry(entry)))
+        .filter(|entry| entry.time_played >= duration)
+        .count();
+    let ninety_listens = entries
+        .iter()
+        .filter(|entry| songs.iter().any(|aspect| aspect.is_entry(entry)))
+        .filter(|entry| entry.time_played >= (duration * 9) / 10)
+        .count();
+
     SongTemplate {
         base_song,
+        plays,
+        time_played,
+        first_listen,
+        last_listen,
+        duration,
+        avg_time_played,
+        full_listens,
+        ninety_listens,
         song_versions,
         link_artist,
     }
     .into_response()
+}
+
+/// Filters in use by `song.html`
+mod filters {
+    #![allow(clippy::unnecessary_wraps, reason = "rinja required output type")]
+    use endsong::prelude::*;
+
+    /// Pretty formats a [`TimeDelta`] in a reasonable way
+    ///
+    /// ```"_m _s"```
+    pub fn pretty_duration(duration: &TimeDelta) -> rinja::Result<String> {
+        let seconds = duration.num_seconds();
+        let minutes = duration.num_minutes();
+
+        if minutes == 0 {
+            return Ok(format!("{seconds}s"));
+        }
+
+        let remaining_seconds = seconds % 60;
+
+        Ok(format!("{minutes}m {remaining_seconds}s"))
+    }
 }

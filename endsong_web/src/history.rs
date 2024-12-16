@@ -209,7 +209,7 @@ pub async fn date_picker(
     }
 }
 
-/// Filters in use by `history_datepicker.html`
+/// Filters in use by `history_datepicker.html` and `history_elements.html`
 mod filters {
     #![allow(clippy::unnecessary_wraps, reason = "rinja required output type")]
     use endsong::prelude::*;
