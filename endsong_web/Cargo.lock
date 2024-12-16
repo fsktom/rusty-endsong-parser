@@ -364,6 +364,7 @@ dependencies = [
  "endsong",
  "itertools",
  "plotly",
+ "regex",
  "rinja",
  "rinja_axum",
  "serde",

@@ -18,3 +18,4 @@ urlencoding = "2.1"
 serde = "1.0"
 plotly = { version = "0.11", features = ["with-axum"] }
 chrono = "0.4"
+regex = "1.11"

@@ -22,6 +22,7 @@ pub mod album;
 pub mod artist;
 pub mod artists;
 pub mod history;
+pub mod layers;
 pub mod song;
 pub mod r#static;
 
