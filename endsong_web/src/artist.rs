@@ -2,7 +2,7 @@
 
 #![allow(clippy::module_name_repetitions, reason = "looks nicer")]
 
-use crate::{not_found, AppState, ArtistInfo, UrlEncoding};
+use crate::{not_found_with_context, AppState, ArtistInfo, UrlEncoding};
 
 use std::sync::Arc;
 
@@ -102,7 +102,9 @@ pub async fn base(
     let entries = &state.entries;
 
     let Some(artists) = entries.find().artist(&artist_name) else {
-        return not_found().await.into_response();
+        return not_found_with_context(format!("An artist named {artist_name}"), "/", "home")
+            .await
+            .into_response();
     };
 
     let artist = if artists.len() == 1 {
@@ -189,7 +191,9 @@ pub async fn absolute_plot(
     let entries = &state.entries;
 
     let Some(artists) = entries.find().artist(&artist_name) else {
-        return not_found().await.into_response();
+        return not_found_with_context(format!("An artist named {artist_name}"), "/", "home")
+            .await
+            .into_response();
     };
 
     let artist = if artists.len() == 1 {
@@ -250,7 +254,9 @@ pub async fn relative_plot(
     let entries = &state.entries;
 
     let Some(artists) = entries.find().artist(&artist_name) else {
-        return not_found().await.into_response();
+        return not_found_with_context(format!("An artist named {artist_name}"), "/", "home")
+            .await
+            .into_response();
     };
 
     let artist = if artists.len() == 1 {
@@ -361,7 +367,9 @@ pub async fn albums(
     let entries = &state.entries;
 
     let Some(artists) = entries.find().artist(&artist_name) else {
-        return not_found().await.into_response();
+        return not_found_with_context(format!("An artist named {artist_name}"), "/", "home")
+            .await
+            .into_response();
     };
 
     let artist = if artists.len() == 1 {
@@ -445,7 +453,9 @@ pub async fn songs(
     let entries = &state.entries;
 
     let Some(artists) = entries.find().artist(&artist_name) else {
-        return not_found().await.into_response();
+        return not_found_with_context(format!("An artist named {artist_name}"), "/", "home")
+            .await
+            .into_response();
     };
 
     let artist = if artists.len() == 1 {

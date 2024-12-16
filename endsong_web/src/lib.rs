@@ -122,6 +122,49 @@ pub async fn not_found() -> impl IntoResponse {
     (StatusCode::NOT_FOUND, NotFoundTemplate {})
 }
 
+/// [`Template`] for [`not_found_with_context`]
+#[derive(Template)]
+#[template(path = "404_ctx.html", print = "none")]
+struct NotFoundWithContextTemplate {
+    /// Contains context for the non-existing item
+    ///
+    /// Will be rendered as `<context> doesn't exist!`
+    context: String,
+    /// Link to the page to return to
+    link: String,
+    /// Label for the link
+    link_label: String,
+}
+/// 404 with context
+///
+/// ```plaintext
+/// <context> doesn't exist!
+/// ```
+pub async fn not_found_with_context(
+    context: String,
+    link: &str,
+    link_label: &str,
+) -> impl IntoResponse {
+    debug!(
+        context = context,
+        link = link,
+        link_label = link_label,
+        "404"
+    );
+
+    let link = link.to_string();
+    let link_label = link_label.to_string();
+
+    (
+        StatusCode::NOT_FOUND,
+        NotFoundWithContextTemplate {
+            context,
+            link,
+            link_label,
+        },
+    )
+}
+
 /// [`Template`] for [`index`]
 #[derive(Template)]
 #[template(path = "index.html", print = "none")]

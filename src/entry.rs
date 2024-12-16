@@ -549,7 +549,7 @@ fn song_durations(entries: &[SongEntry]) -> HashMap<Song, TimeDelta> {
 ///
 /// Created with [`SongEntries::find`]
 pub struct Find<'a>(&'a SongEntries);
-impl<'a> Find<'a> {
+impl Find<'_> {
     /// Searches the entries for possible artists
     ///
     /// Case-insensitive and returns the [`Artist`] with proper capitalization.
@@ -606,6 +606,8 @@ impl<'a> Find<'a> {
     ///
     /// Case-insensitive and returns a [`Vec<Song>`] containing an instance
     /// of [`Song`] for every album it's been found in with proper capitalization
+    ///
+    /// Vector is guaranteed to be non-empty if [`Some`]
     ///
     /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
     #[must_use]

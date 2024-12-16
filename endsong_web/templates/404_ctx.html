@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+<!--  -->
+{% block title %} 404 {% endblock %}
+<!--  -->
+{% block content %}
+<section class="text-center w-4/5">
+  <p class="text-3xl">{{ context }} doesn't exist!</p>
+  <p class="text-2xl font-bold"><a href="{{ link }}">Go to {{ link_label }}</a></p>
+</section>
+{% endblock %}

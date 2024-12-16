@@ -2,13 +2,16 @@
 
 #![allow(clippy::module_name_repetitions, reason = "looks nicer")]
 
-use crate::{artist::ArtistSelectionTemplate, encode_url, not_found, AppState, UrlEncoding};
+use crate::{
+    artist::ArtistSelectionTemplate, encode_url, not_found, not_found_with_context, AppState,
+    UrlEncoding,
+};
 
 use std::sync::Arc;
 
 use axum::{
     extract::{Path, Query, State},
-    response::{IntoResponse, Redirect, Response},
+    response::{IntoResponse, Response},
 };
 use endsong::prelude::*;
 use rinja_axum::Template;
@@ -92,7 +95,9 @@ pub async fn base(
     let entries = &state.entries;
 
     let Some(artists) = entries.find().artist(&artist_name) else {
-        return not_found().await.into_response();
+        return not_found_with_context(format!("An artist named {artist_name}"), "/", "home")
+            .await
+            .into_response();
     };
 
     let artist = if artists.len() == 1 {
@@ -103,15 +108,16 @@ pub async fn base(
         None
     };
 
+    let link_album_without_artist_id = format!(
+        "/album/{}/{}",
+        encode_url(&artist_name),
+        encode_url(&album_name)
+    );
+    let link_base_artist = link_album_without_artist_id.clone();
     let Some(artist) = artist else {
-        // query if multiple artists with different capitalization
         return ArtistSelectionTemplate {
-            link_base_artist: format!(
-                "/album/{}/{}",
-                encode_url(&artist_name),
-                encode_url(&album_name)
-            ),
             artists,
+            link_base_artist,
         }
         .into_response();
     };
@@ -152,11 +158,7 @@ pub async fn base(
     // http://localhost:3000/album/TiA/%E6%B5%81%E6%98%9F
     // (i.e. could only happen on manual link entry)
     if album.artist != artist {
-        return Redirect::permanent(&format!(
-            "/artist/{encoded_artist}?artist_id={}",
-            // unwrap ok - you're right after the artist sel page if this happens -> artist_id exists
-            options.artist_id.unwrap()
-        ))
+        return not_found_with_context(format!("An album named {album_name} from {artist}"), &link_album_without_artist_id, "artist selection page - it probably does exist for another artist with the same name, but capitalized differently!").await
         .into_response();
     }
 

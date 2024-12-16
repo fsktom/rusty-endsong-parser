@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 <!--  -->
-{% block title %} {{ song_versions[0].0.album.artist.name }} - {{
-song_versions[0].0.name }} {% endblock %}
+{% block title %} {{ base_song.album.artist.name }} - {{ base_song.name }} {%
+endblock %}
 <!--  -->
 {% block content %}
 <h2 class="text-2xl font-bold">
-  <a href="">{{ song_versions[0].0.album.artist.name }}</a> - {{
-  song_versions[0].0.name }}
+  <a href="{{ link_artist }}">{{ base_song.album.artist.name }}</a> - {{ base_song.name }}
 </h2>
 <section class="flex">
   <article

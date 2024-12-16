@@ -117,6 +117,8 @@ pub fn song_from_album(
 /// Case-insensitive and returns a [`Vec<Song>`] containing an instance
 /// of [`Song`] for every album it's been found in with proper capitalization
 ///
+/// Vector is guaranteed to be non-empty if [`Some`]
+///
 /// See #2 <https://github.com/fsktom/rusty-endsong-parser/issues/2>
 pub fn song(entries: &[SongEntry], song_name: &str, artist_name: &str) -> Option<Vec<Song>> {
     let song_bogus_album = Song::new(song_name, "", artist_name);
