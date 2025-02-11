@@ -17,6 +17,7 @@ itertools = "0.14"
 tracing = "0.1"
 thiserror = "2.0"
 unicase = "2.8"
+jiff = { version = "0.2.0", features = ["serde"] }
 
 [dev-dependencies]
 criterion = "0.5"
