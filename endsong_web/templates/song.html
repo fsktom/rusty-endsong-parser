@@ -25,6 +25,9 @@ endblock %}
         <time datetime="{{ duration }}">{{ duration|pretty_duration }}</time>
       </li>
       <li>
+        <!--  -->
+        {% let avg_time_played = time_played / plays as i32 %}
+        <!--  -->
         Average time played:
         <time datetime="{{ avg_time_played }}"
           >{{ avg_time_played|pretty_duration }}</time
@@ -35,8 +38,10 @@ endblock %}
         }} ({{ "{:.2}%"|format((full_listens as f64/plays as f64)*100.0) }})
       </li>
       <li>
-        {% let ninety_duration = (duration*9)/10 %} 90+% (<time
-          datetime="{{ ninety_duration }}"
+        <!--  -->
+        {% let ninety_duration = (duration * 9) / 10 %}
+        <!--  -->
+        90+% (<time datetime="{{ ninety_duration }}"
           >{{ ninety_duration|pretty_duration }}</time
         >) listens: {{ ninety_listens }} ({{ "{:.2}%"|format((ninety_listens as
         f64/plays as f64)*100.0) }})

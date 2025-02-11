@@ -56,8 +56,6 @@ struct SongTemplate {
     last_listen: DateTime<Local>,
     /// The song's duration
     duration: TimeDelta,
-    /// The song's average listening time
-    avg_time_played: TimeDelta,
     /// Number of times the song has been listened to in full
     full_listens: usize,
     /// Number of times the song has been listened to for at least 90% of its duration
@@ -74,8 +72,6 @@ struct SongTemplate {
 /// Shouldn't panic lol
 #[expect(clippy::comparison_chain, reason = "couldn't bother")]
 #[expect(clippy::too_many_lines, reason = "big func")]
-#[expect(clippy::cast_possible_truncation, reason = "necessary for avg calc")]
-#[expect(clippy::cast_possible_wrap, reason = "necessary for avg calc")]
 pub async fn base(
     State(state): State<Arc<AppState>>,
     Path((artist_name, song_name)): Path<(String, String)>,
@@ -206,7 +202,6 @@ pub async fn base(
         .timestamp;
 
     let duration = *entries.durations.get(&base_song).unwrap();
-    let avg_time_played = time_played / plays as i32;
 
     let full_listens = entries
         .iter()
@@ -226,7 +221,6 @@ pub async fn base(
         first_listen,
         last_listen,
         duration,
-        avg_time_played,
         full_listens,
         ninety_listens,
         song_versions,
